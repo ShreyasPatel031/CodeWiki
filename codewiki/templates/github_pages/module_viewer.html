@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Viewer - PowerUtilityDemos</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        #mermaid-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .doc-content {
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+        }
+
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .doc-content ul, .doc-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .doc-content li {
+            margin: 8px 0;
+        }
+
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        /* Make clickable nodes have blue border only - don't change fill or edges */
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path,
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+            /* Don't change fill - keep original colors */
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            /* Keep original text color */
+            font-weight: 600 !important;
+        }
+
+        .clickable-node {
+            cursor: pointer !important;
+        }
+        
+        /* Ensure pointer events work */
+        .clickable-node * {
+            pointer-events: auto !important;
+        }
+        
+        /* Don't change edge colors */
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
+        }
+        
+        /* Selected node/subgraph styling - green border for selected */
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()">← Back</button>
+        <div class="title" id="moduleTitle">PowerUtilityDemos Overview</div>
+    </div>
+
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
+        </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
+        </div>
+    </div>
+
+    <script>
+        let moduleData = {};
+        let currentModule = 'overview';
+        let navigationHistory = []; // Track navigation path for back button
+        let expandedNodes = new Map(); // Track expanded nodes: nodeId -> {originalNodeId, originalLabel, targetModuleId, subgraphId, collapseNodeId}
+        let currentDiagramCode = ''; // Track current diagram code
+        let baseDiagramCode = ''; // Track base diagram (before any expansions)
+        let selectedNodeId = null; // Track currently selected node/subgraph
+        let selectedModuleId = null; // Track module ID for selected node
+        
+        // Initialize on page load
+        if (typeof moduleData !== 'undefined' && moduleData['overview']) {
+            loadModule('overview');
+        }
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Load module data
+        fetch('module_viewer_data.json')
+            .then(response => response.json())
+            .then(data => {
+                moduleData = data;
+                navigationHistory = []; // Reset history
+                currentModule = 'overview';
+                loadModule('overview');
+            })
+            .catch(error => {
+                console.error('Error loading module data:', error);
+                document.getElementById('docContent').innerHTML = '<p>Error loading module data. Make sure module_viewer_data.json exists.</p>';
+            });
+
+        function loadModule(moduleId, skipHistoryUpdate = false) {
+            if (!moduleData || !moduleData[moduleId]) {
+                console.error('Module not found:', moduleId, 'Available:', Object.keys(moduleData || {}));
+                return;
+            }
+
+            const module = moduleData[moduleId];
+
+            // Update currentModule - always update it
+            currentModule = moduleId;
+            
+            // Reset expansion state and selection when loading a new module
+            expandedNodes.clear();
+            selectedNodeId = null;
+            selectedModuleId = null;
+            // Set base diagram code from the module's diagram
+            baseDiagramCode = module.diagram || '';
+            currentDiagramCode = module.diagram || '';
+
+            // Update title
+            const titleEl = document.getElementById('moduleTitle');
+            if (titleEl) {
+                titleEl.textContent = module.name;
+            }
+
+            // Update back button - show and enable if we have history
+            const backButton = document.getElementById('backButton');
+            if (backButton) {
+                if (navigationHistory.length > 0) {
+                    backButton.style.display = 'inline-block';
+                    backButton.disabled = false;
+                } else {
+                    // Hide on overview with no history, show but disable otherwise
+                    if (moduleId === 'overview') {
+                        backButton.style.display = 'none';
+                    } else {
+                        backButton.style.display = 'inline-block';
+                        backButton.disabled = true;
+                    }
+                }
+            }
+
+            // Render documentation
+            renderDocumentation(module.documentation);
+
+            // Render diagram
+            renderDiagram(module.diagram, module.links, moduleId);
+        }
+
+        function selectNode(nodeId, moduleId) {
+            console.log(`[SELECT] Selecting node ${nodeId} with module ${moduleId}`);
+            
+            // Update selected state
+            selectedNodeId = nodeId;
+            selectedModuleId = moduleId;
+            
+            // Load the selected module's documentation
+            if (moduleData && moduleData[moduleId]) {
+                const module = moduleData[moduleId];
+                renderDocumentation(module.documentation || 'No documentation available.');
+                document.getElementById('moduleTitle').textContent = module.name || moduleId;
+            } else {
+                console.error(`[SELECT] Module ${moduleId} not found in moduleData`);
+                renderDocumentation(`Module ${moduleId} not found.`);
+            }
+            
+            // Update styling - re-render diagram to apply selected styling
+            // Use the current diagram code (which already has all expansions applied)
+            const currentModuleData = moduleData[currentModule] || moduleData['overview'];
+            const diagramToRender = currentDiagramCode || baseDiagramCode;
+            console.log(`[SELECT] Re-rendering diagram with selected node: ${nodeId}`);
+            renderDiagram(diagramToRender, currentModuleData.links || {}, currentModule);
+        }
+
+        function renderDocumentation(markdown) {
+            const html = marked.parse(markdown);
+            document.getElementById('docContent').innerHTML = html;
+
+            // Make links in documentation clickable
+            document.querySelectorAll('#docContent a[href$=".md"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const href = link.getAttribute('href');
+                    const moduleId = href.replace('.md', '');
+                    navigateToModule(moduleId);
+                });
+            });
+        }
+
+        function expandNodeInline(nodeId, targetModuleId) {
+            if (!nodeId || !targetModuleId || !moduleData[targetModuleId]) {
+                console.error(`Cannot expand: nodeId=${nodeId}, module=${targetModuleId}`);
+                return;
+            }
+            
+            // Check if already expanded
+            if (expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is already expanded`);
+                return;
+            }
+            
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule.diagram) {
+                console.error(`Module ${targetModuleId} has no diagram`);
+                return;
+            }
+            
+            console.log(`[EXPAND] Expanding node ${nodeId} with module ${targetModuleId}`);
+            console.log(`[EXPAND] Currently expanded nodes: [${Array.from(expandedNodes.keys()).join(', ')}]`);
+            
+            // Always rebuild from base to ensure consistency
+            // Start with base diagram
+            let workingDiagram = baseDiagramCode;
+            
+            if (!workingDiagram) {
+                console.error(`[EXPAND] No base diagram code available`);
+                return;
+            }
+            
+            // First, find the node in the BASE diagram to get its original label
+            const nodeDefPattern = new RegExp(`\\b${nodeId}\\s*\\[([^\\]]+)\\]`);
+            let baseNodeMatch = workingDiagram.match(nodeDefPattern);
+            let originalLabel = '';
+            
+            if (!baseNodeMatch) {
+                // Node might already be part of an expanded subgraph - check if it's in current diagram
+                const currentDiagram = currentDiagramCode || baseDiagramCode;
+                const currentNodeMatch = currentDiagram.match(nodeDefPattern);
+                if (!currentNodeMatch) {
+                    console.error(`[EXPAND] Could not find node ${nodeId} in base or current diagram. Available nodes in base:`, 
+                        workingDiagram.match(/\w+\[[^\]]+\]/g));
+                    return;
+                }
+                // Use label from current diagram
+                originalLabel = currentNodeMatch[1].trim();
+                console.log(`[EXPAND] Found node ${nodeId} in current diagram with label "${originalLabel}"`);
+            } else {
+                originalLabel = baseNodeMatch[1].trim();
+                console.log(`[EXPAND] Found node ${nodeId} in base diagram with label "${originalLabel}"`);
+            }
+            
+            // Store expanded state BEFORE applying (so we can rebuild properly)
+            const subgraphId = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            expandedNodes.set(nodeId, {
+                originalNodeId: nodeId,
+                originalLabel: originalLabel,
+                targetModuleId: targetModuleId,
+                subgraphId: subgraphId,
+                collapseNodeId: collapseNodeId
+            });
+            
+            // Now rebuild the entire diagram by applying ALL expansions in order
+            // Sort expansions by depth (fewer underscores = shallower = apply first)
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            // Apply each expansion in order
+            for (const [expNodeId, expState] of sortedExpansions) {
+                console.log(`[EXPAND] Applying expansion: ${expNodeId} -> ${expState.targetModuleId}`);
+                const beforeApply = workingDiagram;
+                workingDiagram = applyExpansionToDiagram(workingDiagram, expNodeId, expState.targetModuleId);
+                // Check if expansion actually changed the diagram
+                if (workingDiagram === beforeApply && expNodeId === nodeId) {
+                    console.error(`[EXPAND] Expansion of ${expNodeId} failed - diagram unchanged`);
+                    // Remove from expandedNodes if it failed
+                    expandedNodes.delete(expNodeId);
+                    return;
+                }
+            }
+            
+            // Update current diagram code with the rebuilt diagram
+            currentDiagramCode = workingDiagram;
+            
+            console.log(`[EXPAND] Expansion complete. Now ${expandedNodes.size} nodes expanded.`);
+            console.log(`[EXPAND] New diagram code length: ${currentDiagramCode.length}`);
+            
+            // Select the expanded node (which is now a subgraph)
+            selectNode(subgraphId, targetModuleId);
+        }
+        
+        function collapseNode(nodeId) {
+            if (!expandedNodes.has(nodeId)) {
+                console.log(`[COLLAPSE] Node ${nodeId} is not expanded. Expanded nodes: [${Array.from(expandedNodes.keys()).join(', ')}]`);
+                return;
+            }
+            
+            console.log(`[COLLAPSE] Collapsing node ${nodeId}`);
+            console.log(`[COLLAPSE] Before: ${expandedNodes.size} nodes expanded`);
+            
+            // Check if any other nodes depend on this one (are nested inside it)
+            // We need to also collapse any child expansions
+            const nodesToCollapse = [nodeId];
+            for (const [expNodeId, expState] of expandedNodes.entries()) {
+                // If expNodeId starts with nodeId + "_", it's a child (e.g., B_B is a child of B)
+                if (expNodeId.startsWith(nodeId + '_') && !expNodeId.endsWith('_collapse')) {
+                    nodesToCollapse.push(expNodeId);
+                    console.log(`[COLLAPSE] Also collapsing child node: ${expNodeId}`);
+                }
+            }
+            
+            // Remove all nodes to collapse
+            for (const nodeToRemove of nodesToCollapse) {
+                expandedNodes.delete(nodeToRemove);
+            }
+            
+            console.log(`[COLLAPSE] After: ${expandedNodes.size} nodes expanded`);
+            
+            // Rebuild diagram from base by applying all remaining expansions IN ORDER
+            // Order matters - parent expansions must be applied before child expansions
+            let rebuiltDiagram = baseDiagramCode;
+            
+            // Sort expansions by depth (fewer underscores = shallower = apply first)
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                console.log(`[COLLAPSE] Re-applying expansion: ${expNodeId} -> ${expState.targetModuleId}`);
+                rebuiltDiagram = applyExpansionToDiagram(rebuiltDiagram, expNodeId, expState.targetModuleId);
+            }
+            
+            currentDiagramCode = rebuiltDiagram;
+            
+            // Re-render with current module links
+            const currentModuleData = moduleData[currentModule] || moduleData['overview'];
+            renderDiagram(rebuiltDiagram, currentModuleData.links || {}, currentModule || 'overview');
+        }
+        
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                console.log(`[EXPAND] No target module or diagram for ${targetModuleId}`);
+                return diagram;
+            }
+            
+            console.log(`[EXPAND] Expanding node ${nodeId} with module ${targetModuleId}`);
+            
+            // Find the node's label in the diagram
+            const nodeLabelMatch = diagram.match(new RegExp(`\\b${nodeId}\\s*\\[([^\\]]+)\\]`));
+            if (!nodeLabelMatch) {
+                console.log(`[EXPAND] Node ${nodeId} not found in diagram`);
+                return diagram;
+            }
+            const originalLabel = nodeLabelMatch[1].trim();
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            
+            // Build the subgraph content from target module's diagram
+            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            
+            // Prefix all node IDs in subgraph content to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z])\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Determine if this node is inside an existing subgraph by checking its prefix
+            // e.g., H_B is inside H_sub, so we need to insert H_B_sub inside H_sub
+            let parentSubgraphName = null;
+            if (nodeId.includes('_')) {
+                // Node has a prefix, find the parent subgraph
+                const lastUnderscoreIdx = nodeId.lastIndexOf('_');
+                const parentPrefix = nodeId.substring(0, lastUnderscoreIdx);
+                parentSubgraphName = parentPrefix + '_sub';
+                console.log(`[EXPAND] Node ${nodeId} is nested, parent subgraph: ${parentSubgraphName}`);
+            }
+            
+            const lines = diagram.split('\n');
+            const resultLines = [];
+            const edgesToAddAfterSubgraph = []; // Edges to add right after the subgraph
+            const edgesToAddAfterParent = []; // Edges to add after parent subgraph's end
+            let subgraphInserted = false;
+            let insideParentSubgraph = false;
+            let parentSubgraphEndIdx = -1;
+            
+            // First pass: find where to insert and collect info
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                
+                // Track if we're inside the parent subgraph
+                if (parentSubgraphName && trimmed.startsWith('subgraph ' + parentSubgraphName)) {
+                    insideParentSubgraph = true;
+                }
+                if (parentSubgraphName && insideParentSubgraph && trimmed === 'end') {
+                    parentSubgraphEndIdx = i;
+                    insideParentSubgraph = false;
+                }
+            }
+            
+            // Second pass: build result
+            insideParentSubgraph = false;
+            let currentSubgraphDepth = 0;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                
+                // Skip empty lines
+                if (!trimmed) continue;
+                
+                // Track subgraph depth
+                if (trimmed.startsWith('subgraph ')) {
+                    currentSubgraphDepth++;
+                    if (parentSubgraphName && trimmed.startsWith('subgraph ' + parentSubgraphName)) {
+                        insideParentSubgraph = true;
+                    }
+                }
+                if (trimmed === 'end') {
+                    // If we're about to exit the parent subgraph and haven't inserted yet, insert now
+                    if (parentSubgraphName && insideParentSubgraph && !subgraphInserted) {
+                        // Insert the new subgraph BEFORE this 'end'
+                        const indent = '        '.repeat(currentSubgraphDepth);
+                        const collapseNodeId = `${prefix}collapse`;
+                        const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+                        const indentedContent = subgraphLines.map(l => indent + '    ' + l.trim()).join('\n');
+                        const subgraphDef = `${indent}subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n${indent}    ${collapseNodeId}["[-] Collapse"]\n${indent}end`;
+                        resultLines.push(subgraphDef);
+                        subgraphInserted = true;
+                        
+                        // Add edges that reference the new subgraph (inside parent)
+                        for (const edge of edgesToAddAfterSubgraph) {
+                            resultLines.push(indent + edge.trim());
+                        }
+                        edgesToAddAfterSubgraph.length = 0;
+                    }
+                    currentSubgraphDepth--;
+                    if (parentSubgraphName && insideParentSubgraph && currentSubgraphDepth === 0) {
+                        insideParentSubgraph = false;
+                    }
+                }
+                
+                // Check if this line contains the target node
+                const hasTargetNode = new RegExp(`\\b${nodeId}\\b`).test(trimmed);
+                
+                if (!hasTargetNode) {
+                    // Line doesn't involve target node - keep as-is
+                    resultLines.push(line);
+                    continue;
+                }
+                
+                // Line involves target node
+                const hasNodeDef = new RegExp(`\\b${nodeId}\\s*\\[`).test(trimmed);
+                const hasEdge = trimmed.includes('-->');
+                
+                // Get current indentation
+                const indentMatch = line.match(/^(\s*)/);
+                const baseIndent = indentMatch ? indentMatch[1] : '';
+                
+                if (hasNodeDef && !hasEdge) {
+                    // Pure node definition line - replace with subgraph if not nested, or mark for later
+                    if (!parentSubgraphName && !subgraphInserted) {
+                        // Top-level node - insert subgraph here
+                        const collapseNodeId = `${prefix}collapse`;
+                        const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+                        const indentedContent = subgraphLines.map(l => baseIndent + '    ' + l.trim()).join('\n');
+                        const subgraphDef = `${baseIndent}subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n${baseIndent}    ${collapseNodeId}["[-] Collapse"]\n${baseIndent}end`;
+                        resultLines.push(subgraphDef);
+                        subgraphInserted = true;
+                    }
+                    // For nested nodes, subgraph will be inserted before parent's 'end'
+                    continue;
+                }
+                
+                if (hasNodeDef && hasEdge) {
+                    // Node definition with edge on same line
+                    // Extract any other node definitions on this line
+                    const otherNodeDefs = [...trimmed.matchAll(/(\w+)\[([^\]]+)\]/g)]
+                        .filter(m => m[1] !== nodeId);
+                    for (const m of otherNodeDefs) {
+                        resultLines.push(`${baseIndent}${m[1]}[${m[2]}]`);
+                    }
+                    
+                    // Replace target node with subgraph in the edge
+                    let edgeLine = trimmed.replace(new RegExp(`\\b${nodeId}\\s*\\[[^\\]]*\\]`, 'g'), subgraphName);
+                    edgeLine = edgeLine.replace(new RegExp(`\\b${nodeId}\\b`, 'g'), subgraphName);
+                    // Clean up - just keep source --> target format
+                    edgeLine = edgeLine.replace(/\w+\[[^\]]+\]/g, (match) => {
+                        const id = match.match(/^(\w+)/)[1];
+                        return id === subgraphName ? subgraphName : id;
+                    });
+                    edgesToAddAfterSubgraph.push(baseIndent + edgeLine.trim());
+                    
+                    // If top-level and not inserted yet, insert subgraph here
+                    if (!parentSubgraphName && !subgraphInserted) {
+                        const collapseNodeId = `${prefix}collapse`;
+                        const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+                        const indentedContent = subgraphLines.map(l => baseIndent + '    ' + l.trim()).join('\n');
+                        const subgraphDef = `${baseIndent}subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n${baseIndent}    ${collapseNodeId}["[-] Collapse"]\n${baseIndent}end`;
+                        resultLines.push(subgraphDef);
+                        subgraphInserted = true;
+                        // Add edges right after
+                        for (const edge of edgesToAddAfterSubgraph) {
+                            resultLines.push(edge);
+                        }
+                        edgesToAddAfterSubgraph.length = 0;
+                    }
+                    continue;
+                }
+                
+                if (!hasNodeDef && hasEdge) {
+                    // Edge-only line involving target node
+                    let edgeLine = trimmed.replace(new RegExp(`\\b${nodeId}\\b`, 'g'), subgraphName);
+                    edgesToAddAfterSubgraph.push(baseIndent + edgeLine.trim());
+                    continue;
+                }
+                
+                // Fallback - keep line
+                resultLines.push(line);
+            }
+            
+            // If we still haven't inserted the subgraph (shouldn't happen normally)
+            if (!subgraphInserted) {
+                const collapseNodeId = `${prefix}collapse`;
+                const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+                const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+                const subgraphDef = `    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
+                resultLines.push(subgraphDef);
+            }
+            
+            // Add any remaining edges
+            for (const edge of edgesToAddAfterSubgraph) {
+                resultLines.push(edge);
+            }
+            
+            // Ensure we have graph declaration
+            let newDiagram = resultLines.filter(l => l.trim()).join('\n');
+            if (!newDiagram.trim().startsWith('graph')) {
+                newDiagram = 'graph TD\n' + newDiagram;
+            }
+            
+            console.log(`[EXPAND] Final diagram:\n${newDiagram}`);
+            return newDiagram;
+        }
+        
+        function renderDiagram(diagramCode, links, currentModuleId = 'overview') {
+            if (!diagramCode) {
+                document.getElementById('mermaid-diagram').innerHTML = '<p>No diagram available for this module.</p>';
+                return;
+            }
+            
+            // Store current diagram code
+            currentDiagramCode = diagramCode;
+            // baseDiagramCode is only set in loadModule, not here
+            // This ensures we always have the original module diagram as the base
+
+            // Build a map of node text to module ID
+            // Mermaid diagrams use format: A[Label Text] - extract node ID to label mapping
+            const nodeIdToModule = {}; // Maps Mermaid node IDs (A, B, C) to module IDs
+            const nodeLabelToModule = {}; // Maps label text to module IDs
+            const labelToNodeId = {}; // Maps label text to node ID (for expansion)
+            
+            // First, extract node definitions from diagram code
+            const nodePattern = /(\w+)\[([^\]]+)\]/g;
+            let match;
+            while ((match = nodePattern.exec(diagramCode)) !== null) {
+                const nodeId = match[1]; // A, B, C, etc.
+                const label = match[2].trim(); // The text in brackets
+                
+                // Store label to nodeId mapping
+                labelToNodeId[label] = nodeId;
+                
+                // Check if this label matches any linked module - use exact case-insensitive match first
+                let matched = false;
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    const labelLower = label.toLowerCase().trim();
+                    const linkLower = linkText.toLowerCase().trim();
+                    
+                    // Exact match
+                    if (labelLower === linkLower) {
+                        nodeIdToModule[nodeId] = moduleId;
+                        nodeLabelToModule[label] = moduleId; // Keep original case for display
+                        console.log(`✓ Exact match: node ${nodeId}[${label}] -> ${moduleId}`);
+                        matched = true;
+                        break;
+                    }
+                }
+                
+                // Partial match only if exact match failed and strings are substantial
+                if (!matched) {
+                    for (const [linkText, moduleId] of Object.entries(links)) {
+                        const labelLower = label.toLowerCase().trim();
+                        const linkLower = linkText.toLowerCase().trim();
+                        
+                        // Only match if substantial overlap (both > 3 chars and one contains the other)
+                        if (labelLower.length > 3 && linkLower.length > 3) {
+                            if (labelLower.includes(linkLower) || linkLower.includes(labelLower)) {
+                                nodeIdToModule[nodeId] = moduleId;
+                                nodeLabelToModule[label] = moduleId;
+                                console.log(`✓ Partial match: node ${nodeId}[${label}] -> ${moduleId}`);
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (!matched) {
+                    console.log(`✗ No match for node ${nodeId}[${label}]`);
+                }
+            }
+
+            // Ensure diagram has graph declaration
+            let finalDiagramCode = diagramCode.trim();
+            if (!finalDiagramCode.startsWith('graph ')) {
+                finalDiagramCode = 'graph TD\n' + finalDiagramCode;
+            }
+            
+            // Render diagram using async mermaid.render
+            const diagramDiv = document.getElementById('mermaid-diagram');
+            diagramDiv.innerHTML = '<div class="loading">Rendering diagram...</div>';
+            const diagramId = 'diagram-' + Date.now();
+
+            // Helper function to make a node blue and clickable
+            function makeNodeBlueAndClickable(nodeGroup, targetModule, links, displayText, nodeClickHandlers, nodeId) {
+                // Find the link text for display
+                let matchedLinkText = displayText || '';
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    if (moduleId === targetModule) {
+                        matchedLinkText = linkText;
+                        break;
+                    }
+                }
+                
+                // Remove old click handlers if they exist
+                if (nodeClickHandlers && nodeClickHandlers.has(nodeGroup)) {
+                    const oldHandler = nodeClickHandlers.get(nodeGroup);
+                    nodeGroup.removeEventListener('click', oldHandler, true);
+                    // Also remove from children
+                    try {
+                        nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, text, tspan').forEach(child => {
+                            if (child && child.parentNode) {
+                                child.removeEventListener('click', oldHandler, true);
+                            }
+                        });
+                    } catch (e) {
+                        // Ignore errors when removing
+                    }
+                }
+                
+                // Make shapes blue - try all possible shape selectors
+                let shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, polyline');
+                
+                // If no shapes in nodeGroup, check children
+                if (shapes.length === 0) {
+                    const childGroups = nodeGroup.querySelectorAll('g');
+                    childGroups.forEach(childGroup => {
+                        const childShapes = childGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                        if (childShapes.length > 0 && shapes.length === 0) {
+                            shapes = childShapes;
+                        }
+                    });
+                }
+                
+                if (shapes.length === 0) {
+                    console.log(`  ⚠️ Node "${matchedLinkText}": No shapes found`);
+                } else {
+                    console.log(`  ✓ Node "${matchedLinkText}": Found ${shapes.length} shapes, adding blue border`);
+                    shapes.forEach(shape => {
+                        // Only change border, not fill - keep original colors
+                        shape.setAttribute('stroke', '#2563eb');
+                        shape.setAttribute('stroke-width', '3');
+                        shape.style.setProperty('stroke', '#2563eb', 'important');
+                        shape.style.setProperty('stroke-width', '3px', 'important');
+                        // Don't change fill - keep original
+                        shape.classList.add('clickable-shape');
+                    });
+                }
+                
+                // Don't change text color - keep original
+                const allTexts = nodeGroup.querySelectorAll('text, tspan');
+                allTexts.forEach(txt => {
+                    txt.style.fontWeight = '600';
+                });
+                
+                // Make entire node clickable
+                nodeGroup.style.cursor = 'pointer';
+                nodeGroup.style.pointerEvents = 'auto';
+                nodeGroup.setAttribute('title', `Click to view ${matchedLinkText}`);
+                nodeGroup.setAttribute('data-node-id', nodeId);
+                nodeGroup.classList.add('clickable-node');
+
+                // Add click handler - use capture phase to ensure it fires
+                // IMPORTANT: Capture targetModule and nodeId in a local variable to avoid closure issues
+                const capturedTargetModule = targetModule;
+                const capturedLinkText = matchedLinkText;
+                const capturedNodeId = nodeId;
+                const clickHandler = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log(`[DIAGRAM CLICK] Clicked node: "${capturedLinkText}" (nodeId: ${capturedNodeId}) -> Module: ${capturedTargetModule}`);
+                    if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                        const targetModule = moduleData[capturedTargetModule];
+                        // Check if node can be expanded (has a diagram)
+                        if (targetModule.diagram && targetModule.diagram.trim()) {
+                            // Expand the node if it's not already expanded
+                            if (!expandedNodes.has(capturedNodeId)) {
+                                expandNodeInline(capturedNodeId, capturedTargetModule);
+                            } else {
+                                // If already expanded, just select the subgraph
+                                const subgraphId = `${capturedNodeId}_sub`;
+                                selectNode(subgraphId, capturedTargetModule);
+                            }
+                        } else {
+                            // Node has no internal diagram - just select it
+                            selectNode(capturedNodeId, capturedTargetModule);
+                        }
+                    } else {
+                        console.error(`[DIAGRAM CLICK] Cannot select: nodeId="${capturedNodeId}", module="${capturedTargetModule}" not found`);
+                        console.error(`[DIAGRAM CLICK] Available modules:`, Object.keys(moduleData));
+                    }
+                };
+                
+                // Store handler for potential removal later
+                if (nodeClickHandlers) {
+                    nodeClickHandlers.set(nodeGroup, clickHandler);
+                }
+                
+                nodeGroup.addEventListener('click', clickHandler, true);
+                // Also add to all child elements to ensure clicks are captured
+                // IMPORTANT: Use the same captured values to avoid closure issues
+                try {
+                    nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, text, tspan').forEach(child => {
+                        if (child && child.parentNode) {
+                            child.style.cursor = 'pointer';
+                            // Use the same clickHandler with captured values
+                            child.addEventListener('click', clickHandler, true);
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Error adding click handlers to child elements:', e);
+                }
+
+                // Add hover effect - only change border thickness
+                nodeGroup.addEventListener('mouseenter', () => {
+                    const shapesForHover = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, polyline');
+                    shapesForHover.forEach(shape => {
+                        if (shape && shape.parentNode) { // Check element still exists
+                            shape.style.strokeWidth = '4px';
+                            shape.setAttribute('stroke-width', '4');
+                        }
+                    });
+                });
+                nodeGroup.addEventListener('mouseleave', () => {
+                    const shapesForHover = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, polyline');
+                    shapesForHover.forEach(shape => {
+                        if (shape && shape.parentNode) { // Check element still exists
+                            shape.style.strokeWidth = '3px';
+                            shape.setAttribute('stroke-width', '3');
+                        }
+                    });
+                });
+                
+                // Check if this node is selected and apply selected styling
+                if (selectedNodeId === nodeId && selectedModuleId === targetModule) {
+                    console.log(`  → Node "${matchedLinkText}" is SELECTED`);
+                    nodeGroup.classList.add('selected-node');
+                    const selectedShapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                    selectedShapes.forEach(shape => {
+                        shape.setAttribute('stroke', '#10b981');
+                        shape.setAttribute('stroke-width', '4');
+                        shape.style.setProperty('stroke', '#10b981', 'important');
+                        shape.style.setProperty('stroke-width', '4px', 'important');
+                    });
+                }
+                
+                console.log(`✓ Made node blue and clickable: "${matchedLinkText}" -> ${targetModule}`);
+                console.log(`  [CLOSURE] Captured targetModule for this node: ${capturedTargetModule}, displayText: "${capturedLinkText}"`);
+            }
+
+            (async () => {
+                try {
+                    console.log('[RENDER] Rendering diagram:', finalDiagramCode.substring(0, 200) + '...');
+                    const { svg } = await mermaid.render(diagramId, finalDiagramCode);
+                    diagramDiv.innerHTML = svg;
+
+                    // Make clickable nodes blue and add click handlers
+                    // Use both setTimeout and MutationObserver to ensure DOM is ready
+                    // Track processed nodes across all processNodes calls to avoid duplicate handlers
+                    const processedNodes = new WeakSet();
+                    const nodeClickHandlers = new WeakMap(); // Store handlers for removal
+                    
+                    const processNodes = () => {
+                        const svgEl = diagramDiv.querySelector('svg');
+                        if (!svgEl) {
+                            console.error('No SVG found');
+                            return;
+                        }
+
+                        // Find all node groups first
+                        const nodeGroups = svgEl.querySelectorAll('g.node');
+                        console.log(`Found ${nodeGroups.length} node groups to process`);
+                        
+                        if (nodeGroups.length === 0) {
+                            console.error('No node groups found');
+                            return;
+                        }
+                        
+                        // Process nodes by matching text content to nodeLabelToModule
+                        nodeGroups.forEach((nodeGroup, index) => {
+                            // FIRST: Try to extract node ID from SVG element's id attribute
+                            // Mermaid generates IDs like "flowchart-B_B-123" where B_B is the actual node ID
+                            let svgNodeId = null;
+                            const groupId = nodeGroup.id || '';
+                            const idMatch = groupId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (idMatch) {
+                                svgNodeId = idMatch[1];
+                            }
+                            
+                            // Get all text content from this node - Mermaid structures text differently
+                            // Try different approaches to find text
+                            let fullText = '';
+                            
+                            // Method 1: Direct text elements in nodeGroup
+                            const directTextElements = nodeGroup.querySelectorAll('text, tspan');
+                            if (directTextElements.length > 0) {
+                                directTextElements.forEach(el => {
+                                    const text = el.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 2: Check child groups (Mermaid often puts text in child g elements)
+                            if (!fullText) {
+                                const childGroups = nodeGroup.querySelectorAll('g');
+                                childGroups.forEach(childGroup => {
+                                    const childTexts = childGroup.querySelectorAll('text, tspan');
+                                    childTexts.forEach(el => {
+                                        const text = el.textContent.trim();
+                                        if (text && !fullText.includes(text)) {
+                                            fullText += (fullText ? ' ' : '') + text;
+                                        }
+                                    });
+                                });
+                            }
+                            
+                            // Method 3: Get textContent from entire nodeGroup (fallback)
+                            if (!fullText) {
+                                fullText = nodeGroup.textContent.trim();
+                            }
+                            
+                            fullText = fullText.trim();
+                            
+                            if (!fullText) {
+                                console.log(`Node ${index}: No text found - trying to match by position/index`);
+                                // If no text found, try to match by position (nodeGroups order should match diagram definition order)
+                                // This is a fallback if text extraction fails
+                                const nodeOrder = Object.keys(nodeIdToModule); // A, B, C, D, E, F, G, H, I
+                                if (index < nodeOrder.length) {
+                                    const nodeId = nodeOrder[index];
+                                    const moduleId = nodeIdToModule[nodeId];
+                                    if (moduleId) {
+                                        const labelText = Object.keys(nodeLabelToModule).find(l => nodeLabelToModule[l] === moduleId) || '';
+                                        console.log(`  → Using position-based match: node ${nodeId} -> ${moduleId} (${labelText})`);
+                                        if (!processedNodes.has(nodeGroup)) {
+                                            processedNodes.add(nodeGroup);
+                                            makeNodeBlueAndClickable(nodeGroup, moduleId, links, labelText, nodeClickHandlers, nodeId);
+                                        }
+                                        return;
+                                    }
+                                }
+                                return;
+                            }
+                            
+                            if (!fullText) {
+                                console.log(`Node ${index}: Empty text after combining`);
+                                return;
+                            }
+
+                            // Check if this text matches any linked module
+                            let targetModule = null;
+                            let matchedLinkText = null;
+                            const textLower = fullText.toLowerCase().replace(/\s+/g, ' ').trim();
+                            
+                            console.log(`Node ${index}: Checking text "${fullText}" (lower: "${textLower}")`);
+                            console.log(`  Available nodeLabelToModule:`, Object.keys(nodeLabelToModule));
+                            console.log(`  Available links:`, Object.keys(links));
+                            
+                            // Try exact match against link text first (most reliable)
+                            for (const [linkText, moduleId] of Object.entries(links)) {
+                                const linkLower = linkText.toLowerCase().replace(/\s+/g, ' ').trim();
+                                if (textLower === linkLower) {
+                                    targetModule = moduleId;
+                                    matchedLinkText = linkText;
+                                    console.log(`  ✓ Exact match via links: "${linkText}" -> ${moduleId}`);
+                                    break;
+                                }
+                            }
+                            
+                            // Try exact match against nodeLabelToModule
+                            if (!targetModule) {
+                                for (const [labelText, moduleId] of Object.entries(nodeLabelToModule)) {
+                                    const labelLower = labelText.toLowerCase().replace(/\s+/g, ' ').trim();
+                                    if (textLower === labelLower) {
+                                        targetModule = moduleId;
+                                        // Find matching link text
+                                        for (const [linkText, modId] of Object.entries(links)) {
+                                            if (modId === moduleId) {
+                                                matchedLinkText = linkText;
+                                                break;
+                                            }
+                                        }
+                                        console.log(`  ✓ Exact match via nodeLabelToModule: "${labelText}" -> ${moduleId}`);
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Partial match only if exact match failed - be very strict
+                            if (!targetModule) {
+                                for (const [linkText, moduleId] of Object.entries(links)) {
+                                    const linkLower = linkText.toLowerCase().replace(/\s+/g, ' ').trim();
+                                    // Only match if substantial and clear overlap
+                                    if (linkLower.length > 4 && textLower.length > 4) {
+                                        if (textLower === linkLower || 
+                                            (textLower.includes(linkLower) && textLower.length - linkLower.length < 3)) {
+                                            targetModule = moduleId;
+                                            matchedLinkText = linkText;
+                                            console.log(`  ✓ Partial match via links: "${linkText}" -> ${moduleId}`);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Check if this is a collapse button
+                            if (fullText.trim() === '[-] Collapse' || fullText.trim() === 'Collapse' || fullText.includes('Collapse')) {
+                                // Extract the nodeId from the SVG element's id
+                                // Collapse buttons have IDs like "flowchart-B_collapse-123" or "flowchart-B_B_collapse-456"
+                                // We need to extract the original node ID (B or B_B) by removing the "_collapse" suffix
+                                let collapseNodeId = null;
+                                
+                                if (svgNodeId && svgNodeId.endsWith('_collapse')) {
+                                    // Extract original node ID: "B_collapse" -> "B", "B_B_collapse" -> "B_B"
+                                    collapseNodeId = svgNodeId.replace(/_collapse$/, '');
+                                    console.log(`  → Collapse button for node ${collapseNodeId} (from SVG id: ${svgNodeId})`);
+                                }
+                                
+                                // Fallback: try parent subgraph matching if SVG ID didn't work
+                                if (!collapseNodeId) {
+                                    let parentGroup = nodeGroup.parentElement;
+                                    while (parentGroup && parentGroup !== svgEl) {
+                                        if (parentGroup.classList && parentGroup.classList.contains('cluster')) {
+                                            const subgraphId = parentGroup.id || '';
+                                            for (const [expNodeId, expState] of expandedNodes.entries()) {
+                                                if (subgraphId.includes(`${expNodeId}_sub`)) {
+                                                    collapseNodeId = expNodeId;
+                                                    break;
+                                                }
+                                            }
+                                            if (collapseNodeId) break;
+                                        }
+                                        parentGroup = parentGroup.parentElement;
+                                    }
+                                }
+                                
+                                // Fallback: match by prefix pattern in expanded nodes
+                                if (!collapseNodeId && svgNodeId) {
+                                    for (const [expNodeId, expState] of expandedNodes.entries()) {
+                                        if (svgNodeId.startsWith(`${expNodeId}_collapse`)) {
+                                            collapseNodeId = expNodeId;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (collapseNodeId) {
+                                    if (!processedNodes.has(nodeGroup)) {
+                                        processedNodes.add(nodeGroup);
+                                        console.log(`  → Making collapse button clickable for node ${collapseNodeId}`);
+                                        
+                                        // Capture the nodeId in closure
+                                        const capturedCollapseNodeId = collapseNodeId;
+                                        
+                                        // Make collapse button clickable with distinct styling
+                                        const collapseHandler = (e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            console.log(`[COLLAPSE BUTTON] Clicked, collapsing node ${capturedCollapseNodeId}`);
+                                            collapseNode(capturedCollapseNodeId);
+                                        };
+                                        
+                                        nodeGroup.style.cursor = 'pointer';
+                                        nodeGroup.style.pointerEvents = 'auto';
+                                        nodeGroup.classList.add('collapse-button');
+                                        
+                                        // Style collapse button differently (red border)
+                                        const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                                        shapes.forEach(shape => {
+                                            shape.setAttribute('stroke', '#dc2626');
+                                            shape.setAttribute('stroke-width', '2');
+                                            shape.style.setProperty('stroke', '#dc2626', 'important');
+                                            shape.style.setProperty('stroke-width', '2px', 'important');
+                                        });
+                                        
+                                        nodeGroup.addEventListener('click', collapseHandler, true);
+                                        nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse, text, tspan').forEach(child => {
+                                            if (child && child.parentNode) {
+                                                child.style.cursor = 'pointer';
+                                                child.addEventListener('click', collapseHandler, true);
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    console.log(`  ⚠️ Collapse button found but could not determine which node to collapse`);
+                                }
+                                return; // Skip further processing for collapse buttons
+                            }
+                            
+                            if (!targetModule) {
+                                console.log(`  ✗ No match found for "${fullText}"`);
+                            } else {
+                                // Use the SVG node ID if we extracted it, otherwise fall back to label lookup
+                                let foundNodeId = svgNodeId;
+                                
+                                if (!foundNodeId) {
+                                    // Fallback: Find nodeId from label
+                                    for (const [label, nodeId] of Object.entries(labelToNodeId)) {
+                                        if (label.toLowerCase().trim() === textLower || 
+                                            matchedLinkText && label.toLowerCase().trim() === matchedLinkText.toLowerCase().trim()) {
+                                            foundNodeId = nodeId;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // Fallback: try to find nodeId from nodeIdToModule
+                                if (!foundNodeId) {
+                                    for (const [nodeId, moduleId] of Object.entries(nodeIdToModule)) {
+                                        if (moduleId === targetModule) {
+                                            foundNodeId = nodeId;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                console.log(`  [NODE ID] SVG id: "${groupId}", extracted: "${svgNodeId}", final: "${foundNodeId}"`);
+                                
+                                if (!processedNodes.has(nodeGroup)) {
+                                    processedNodes.add(nodeGroup);
+                                    console.log(`  → Making node clickable: "${matchedLinkText || fullText}" -> ${targetModule} (nodeId: ${foundNodeId})`);
+                                    makeNodeBlueAndClickable(nodeGroup, targetModule, links, matchedLinkText || fullText, nodeClickHandlers, foundNodeId);
+                                } else {
+                                    console.log(`  → Node already processed, skipping`);
+                                }
+                            }
+                        });
+                        
+                        // Process subgraphs to check if any are selected
+                        if (selectedNodeId && selectedNodeId.endsWith('_sub')) {
+                            const subgraphs = svgEl.querySelectorAll('g.cluster');
+                            const baseSubgraphId = selectedNodeId.replace('_sub', ''); // e.g., "B_sub" -> "B"
+                            subgraphs.forEach(subgraphGroup => {
+                                const subgraphIdAttr = subgraphGroup.id || '';
+                                // Check if this subgraph matches the selected one
+                                // Mermaid subgraph IDs typically include the subgraph name in various formats
+                                // Try multiple matching strategies
+                                const matches = subgraphIdAttr.includes(selectedNodeId) || 
+                                               subgraphIdAttr.includes(baseSubgraphId + '_sub') ||
+                                               (subgraphIdAttr.includes('cluster') && subgraphIdAttr.includes(baseSubgraphId));
+                                
+                                // Also check the subgraph label text
+                                let labelMatches = false;
+                                const labelText = subgraphGroup.querySelector('.cluster-label text, .flowchart-label text');
+                                if (labelText) {
+                                    const labelContent = labelText.textContent || '';
+                                    // Check if label matches any expanded node's original label
+                                    for (const [expNodeId, expState] of expandedNodes.entries()) {
+                                        if (expState.subgraphId === selectedNodeId) {
+                                            if (labelContent.trim() === expState.originalLabel) {
+                                                labelMatches = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if (matches || labelMatches) {
+                                    console.log(`  → Subgraph ${selectedNodeId} is SELECTED (ID: ${subgraphIdAttr}, labelMatches: ${labelMatches})`);
+                                    subgraphGroup.classList.add('selected-subgraph');
+                                    // Apply green border to subgraph bounding box
+                                    const labelBox = subgraphGroup.querySelector('.flowchart-labelBox, .cluster-label');
+                                    if (labelBox) {
+                                        labelBox.setAttribute('stroke', '#10b981');
+                                        labelBox.setAttribute('stroke-width', '3');
+                                        labelBox.style.setProperty('stroke', '#10b981', 'important');
+                                        labelBox.style.setProperty('stroke-width', '3px', 'important');
+                                    }
+                                    // Also apply to all cluster rects (there may be multiple)
+                                    const clusterRects = subgraphGroup.querySelectorAll('rect');
+                                    clusterRects.forEach(rect => {
+                                        // Only style the main cluster rect, not internal node rects
+                                        if (rect.getAttribute('rx') !== null || rect.classList.contains('outer-node')) {
+                                            rect.setAttribute('stroke', '#10b981');
+                                            rect.setAttribute('stroke-width', '3');
+                                            rect.style.setProperty('stroke', '#10b981', 'important');
+                                            rect.style.setProperty('stroke-width', '3px', 'important');
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        
+                        // WeakSet doesn't have size property, count manually
+                        let processedCount = 0;
+                        nodeGroups.forEach(nodeGroup => {
+                            if (processedNodes.has(nodeGroup)) {
+                                processedCount++;
+                            }
+                        });
+                        console.log(`Processed ${processedCount} clickable nodes out of ${nodeGroups.length} total nodes`);
+                    };
+                    
+                    // Try immediately
+                    processNodes();
+                    
+                    // Also try after a short delay to catch late-rendered nodes
+                    setTimeout(processNodes, 100);
+                    setTimeout(processNodes, 500);
+                    
+                    // Use MutationObserver to catch when Mermaid adds more elements
+                    const observer = new MutationObserver((mutations) => {
+                        const hasNewNodes = mutations.some(mutation => 
+                            Array.from(mutation.addedNodes).some(node => 
+                                node.nodeType === 1 && (node.matches('g.node') || node.querySelector('g.node'))
+                            )
+                        );
+                        if (hasNewNodes) {
+                            processNodes();
+                        }
+                    });
+                    
+                    observer.observe(diagramDiv, { childList: true, subtree: true });
+                    
+                    // Stop observing after 3 seconds
+                    setTimeout(() => observer.disconnect(), 3000);
+                } catch (error) {
+                    console.error('Error rendering diagram:', error);
+                    diagramDiv.innerHTML = '<p>Error rendering diagram. Check console for details.</p>';
+                }
+            })();
+        }
+
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) {
+                console.error(`Module not found: ${moduleId}`);
+                return;
+            }
+            
+            // Add current module to navigation history before navigating
+            if (currentModule !== moduleId) {
+                navigationHistory.push(currentModule);
+                console.log(`[NAV] From "${currentModule}" to "${moduleId}"`);
+                console.log(`[NAV] History: [${navigationHistory.join(' -> ')}]`);
+                loadModule(moduleId); // loadModule will set currentModule
+            }
+        }
+
+        function goBack() {
+            console.log(`[BACK] Called. History length: ${navigationHistory.length}`);
+            console.log(`[BACK] Current module: ${currentModule}`);
+            console.log(`[BACK] History before: [${navigationHistory.join(' -> ')}]`);
+            
+            if (navigationHistory.length > 0) {
+                const previousModule = navigationHistory.pop();
+                console.log(`[BACK] Going back to "${previousModule}"`);
+                console.log(`[BACK] History after: [${navigationHistory.join(' -> ')}]`);
+                if (previousModule && moduleData[previousModule]) {
+                    loadModule(previousModule, true); // Skip adding to history
+                } else {
+                    console.error(`[BACK] Cannot go back: module "${previousModule}" not found`);
+                    // Fallback to overview
+                    navigationHistory = [];
+                    loadModule('overview', true);
+                }
+            } else {
+                // If no history, go to overview
+                console.log('[BACK] No history, going to overview');
+                if (currentModule !== 'overview') {
+                    loadModule('overview', true);
+                }
+            }
+        }
+
+        // Handle browser back button
+        window.addEventListener('popstate', (e) => {
+            if (navigationHistory.length > 0) {
+                goBack();
+            }
+        });
+        
+        // Global test function - clickNode(label) - e.g., clickNode('Theme Module')
+        window.clickNode = function(label, preferNested = false) {
+            const nodes = document.querySelectorAll('.clickable-node');
+            let matchingNodes = [];
+            for (const node of nodes) {
+                const title = node.getAttribute('title') || '';
+                if (title.toLowerCase().includes(label.toLowerCase())) {
+                    const nodeId = node.getAttribute('data-node-id') || '';
+                    matchingNodes.push({ node, title, nodeId, isNested: nodeId.includes('_') });
+                }
+            }
+            
+            if (matchingNodes.length === 0) {
+                console.log(`[TEST] Node "${label}" not found`);
+                return false;
+            }
+            
+            // If preferNested is true, prefer nodes with underscore in ID (nested nodes)
+            let targetNode;
+            if (preferNested) {
+                targetNode = matchingNodes.find(n => n.isNested) || matchingNodes[0];
+            } else {
+                targetNode = matchingNodes.find(n => !n.isNested) || matchingNodes[0];
+            }
+            
+            console.log(`[TEST] Clicking node: ${targetNode.title} (nodeId: ${targetNode.nodeId}, preferNested: ${preferNested})`);
+            targetNode.node.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            return true;
+            return false;
+        };
+        
+        // Keyboard shortcuts for testing:
+        // Press 1 to click Main Application
+        // Press 2 to click Chat Module
+        // Press 3 to click Fleet Management
+        // Press 4 to click nested Vehicle Info (B_B) inside Fleet Management
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === '1') {
+                console.log('[TEST KEY] Pressing 1 - clicking Main Application');
+                window.clickNode('Main Application');
+            } else if (e.key === '2') {
+                console.log('[TEST KEY] Pressing 2 - clicking Chat Module');
+                window.clickNode('Chat Module');
+            } else if (e.key === '3') {
+                console.log('[TEST KEY] Pressing 3 - clicking Fleet Management');
+                window.clickNode('Fleet Management');
+            } else if (e.key === '4') {
+                // Click nested Vehicle Info (B_B) - prefer nodes with underscore in ID (nested)
+                console.log('[TEST KEY] Pressing 4 - clicking nested Vehicle Info (B_B)');
+                window.clickNode('Vehicle Info', true);  // preferNested = true
+            } else if (e.key === '5') {
+                // Click nested Chat Module (H_B inside Main Application) - prefer nested
+                console.log('[TEST KEY] Pressing 5 - clicking nested Chat Module (H_B)');
+                window.clickNode('Chat Module', true);  // preferNested = true
+            }
+        });
+    </script>
+</body>
+</html>
+
