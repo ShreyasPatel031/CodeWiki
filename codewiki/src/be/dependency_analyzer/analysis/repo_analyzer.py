@@ -96,6 +96,14 @@ class RepoAnalyzer:
         return build_tree(Path(repo_dir), Path(repo_dir))
 
     def _should_exclude_path(self, path: str, filename: str) -> bool:
+        # First check: if any part of the path contains excluded directory names
+        path_parts = path.split("/")
+        excluded_dirs = {"node_modules", "vendor", "bower_components", ".git", "__pycache__", 
+                         ".venv", "venv", "env", ".env", "dist", "build", "target", "bin", "obj"}
+        if any(part in excluded_dirs for part in path_parts):
+            return True
+        
+        # Second check: pattern matching
         for pattern in self.exclude_patterns:
             if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(filename, pattern):
                 return True

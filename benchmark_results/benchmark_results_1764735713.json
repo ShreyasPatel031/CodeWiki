@@ -1,0 +1,92 @@
+{
+  "timestamp": 1764735713.638766,
+  "repos": [
+    {
+      "repo_name": "local-postman-server",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/local-postman-server",
+      "total_code_files": 1,
+      "size_mb": 0.0007295608520507812,
+      "success": false,
+      "duration": 12.622329950332642,
+      "files_created": 0,
+      "md_files": 0,
+      "json_files": 0,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: local-postman-server\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/local-postman-server/docs\n[4/4] Generating documentation...\n\n",
+      "stderr": "\n\u2717 Unexpected error: No module named 'codewiki.src.utils.metrics'; 'codewiki.src.utils' is not a package\n",
+      "returncode": 1
+    },
+    {
+      "repo_name": "miller-analysis",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/miller-analysis",
+      "total_code_files": 4,
+      "size_mb": 0.04296398162841797,
+      "success": false,
+      "duration": 12.501277923583984,
+      "files_created": 0,
+      "md_files": 0,
+      "json_files": 0,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: miller-analysis\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/miller-analysis/docs\n[4/4] Generating documentation...\n\n",
+      "stderr": "\n\u2717 Unexpected error: No module named 'codewiki.src.utils.metrics'; 'codewiki.src.utils' is not a package\n",
+      "returncode": 1
+    },
+    {
+      "repo_name": "amwell-data-scrape",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/amwell-data-scrape",
+      "total_code_files": 1,
+      "size_mb": 0.012493133544921875,
+      "success": false,
+      "duration": 12.446824073791504,
+      "files_created": 0,
+      "md_files": 0,
+      "json_files": 0,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: amwell-data-scrape\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/amwell-data-scrape/docs\n[4/4] Generating documentation...\n\n",
+      "stderr": "\n\u2717 Unexpected error: No module named 'codewiki.src.utils.metrics'; 'codewiki.src.utils' is not a package\n",
+      "returncode": 1
+    },
+    {
+      "repo_name": "epic-ehr-test",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/epic-ehr-test",
+      "total_code_files": 1,
+      "size_mb": 0.0018320083618164062,
+      "success": false,
+      "duration": 12.552177906036377,
+      "files_created": 0,
+      "md_files": 0,
+      "json_files": 0,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: epic-ehr-test\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/epic-ehr-test/docs\n[4/4] Generating documentation...\n\n",
+      "stderr": "\n\u2717 Unexpected error: No module named 'codewiki.src.utils.metrics'; 'codewiki.src.utils' is not a package\n",
+      "returncode": 1
+    },
+    {
+      "repo_name": "linkedin-scraper",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/linkedin-scraper",
+      "total_code_files": 1,
+      "size_mb": 0.04641437530517578,
+      "success": false,
+      "duration": 12.498584985733032,
+      "files_created": 0,
+      "md_files": 0,
+      "json_files": 0,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: linkedin-scraper\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/linkedin-scraper/docs\n[4/4] Generating documentation...\n\n",
+      "stderr": "\n\u2717 Unexpected error: No module named 'codewiki.src.utils.metrics'; 'codewiki.src.utils' is not a package\n",
+      "returncode": 1
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 0,
+    "failed": 5,
+    "avg_duration": 12.524238967895508,
+    "avg_files_created": 0.0
+  }
+}

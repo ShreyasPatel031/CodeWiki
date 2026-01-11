@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-01-11T03:16:39.326226",
+  "total_repos": 4,
+  "successful": 4,
+  "failed": 0,
+  "total_duration_seconds": 773.7099999999999,
+  "total_tokens": 25943,
+  "total_cost_usd": 0.0415,
+  "avg_duration_per_repo": 193.43,
+  "avg_cost_per_repo": 0.0104,
+  "results": [
+    {
+      "repo_name": "gemini-cli",
+      "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/gemini-cli",
+      "success": true,
+      "return_code": 0,
+      "duration_seconds": 380.25,
+      "stage_timings": {
+        "Dependency Analysis": 9.2,
+        "Module Clustering": 0.0,
+        "Documentation Generation": 5.7,
+        "Agent Processing": 31.3,
+        "HTML Generation": 0.0
+      },
+      "tokens_used": 7412,
+      "estimated_cost_usd": 0.0119,
+      "code_files": 1287,
+      "repo_size_mb": 19.91,
+      "module_count": 8,
+      "module_depth": 2,
+      "md_files_generated": 51,
+      "html_generated": true,
+      "html_size_kb": 129.74,
+      "stdout_excerpt": "tadata JSON: 1906 chars\n[03:10:05] INFO     [STAGE 5] Docs content JSON: 83618 chars (51 files)\n[03:10:05] INFO     [STAGE 5] Replacing placeholders in template...\n[03:10:05] INFO     [STAGE 5] Template processing complete, HTML size: 132848 chars\n[03:10:05] INFO     [STAGE 5] Writing output to /Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs/index.html...\n[03:10:05] INFO     [STAGE 5] Created output directory: /Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs\n[03:10:05] INFO     [STAGE 5] Successfully wrote HTML file: 132856 bytes\n[03:10:05] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.0s\n[03:10:05] INFO     [STAGE 5] HTML generation completed in 0.0s\n[03:10:05] INFO     [STAGE 5] index.html created successfully: 132856 bytes\n[06:19]   Generated index.html\n[03:10:05] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.1s\n[06:19]   HTML Generation complete (0.1s)\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs\n\nGenerated files:\n  - testing_utilities.md\n  - command_and_tool_management.md\n  - glob_tool.md\n  - AppContext.md\n  - web_search_tool.md\n  - overview.md\n  - read_file_tool.md\n  - MultiFolderTrustDialog.md\n  - configuration_and_settings_settings_management.md\n  - UiTelemetryService.md\n  ... and 45 more\n\nStatistics:\n  Total modules:     8\n  Files analyzed:    4144\n  Generation time:   6 minutes 19 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs/overview.md\n   open /Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs/index.html  # View in browser\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://google-gemini.github.io/gemini-cli/\n\n",
+      "stderr_excerpt": "e files...\n[DEBUG] [9.2s] Stage 1 complete: 4144 components, 150 leaf nodes\n[DEBUG] [9.2s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 150 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 150 leaf nodes, 4144 total components\n[DEBUG] [19.6s] Stage 2 complete: 8 modules created\n\n[DEBUG] ===== STAGE 2 COMPLETE =====\n[DEBUG] Module count: 8\n[DEBUG] Total duration so far: 28.8s\n[DEBUG] Module names: ['command_and_tool_management', 'ui_components_and_contexts', 'configuration_and_settings', 'testing_utilities', 'core_services_and_utilities', 'telemetry_and_analytics', 'mcp_and_oauth_management', 'file_and_search_utilities']\n[DEBUG] Continuing to Stage 3: Documentation Generation...\n[DEBUG] [28.8s] Starting Stage 3: Documentation Generation\n[DEBUG] [0.0s] Generating docs for 8 modules...\n[DEBUG] [0.0s] Calling generate_module_documentation...\n\n=== DETAILED ERROR INFO ===\nException type: <class 'pydantic_ai.exceptions.UnexpectedModelBehavior'>\nException: Tool 'generate_sub_module_documentation' exceeded max retries count of 1\nException args: (\"Tool 'generate_sub_module_documentation' exceeded max retries count of 1\",)\nException attributes: ['add_note', 'args', 'body', 'message', 'with_traceback']\n=== END ERROR INFO ===\n\n[DEBUG] [350.3s] Module documentation complete\n[DEBUG] [350.3s] Generated 51 markdown files: testing_utilities.md, command_and_tool_management.md, glob_tool.md, AppContext.md, web_search_tool.md...\n[DEBUG] First overview created at 379.1s\n[DEBUG] [379.1s] ALL STAGES COMPLETE\n[DEBUG] [HYP-D] Checking HTML generation flag: generate_html=True, output_dir=/Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs\n[DEBUG] [HYP-D] HTML generation flag is True, calling _run_html_generation\n[DEBUG] [HYP-D] _run_html_generation ENTRY: output_dir=/Users/shreyaspatel/CodeWiki/test_repos/gemini-cli/docs\n[DEBUG] [HYP-A] Logger config: name=codewiki.cli.adapters.doc_generator, handlers=0, level=0, effective=20\n"
+    },
+    {
+      "repo_name": "openai-realtime",
+      "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/openai-realtime",
+      "success": true,
+      "return_code": 0,
+      "duration_seconds": 45.7,
+      "stage_timings": {
+        "Dependency Analysis": 0.0,
+        "Module Clustering": 0.0,
+        "Documentation Generation": 16.1,
+        "Agent Processing": 28.6,
+        "HTML Generation": 0.0
+      },
+      "tokens_used": 605,
+      "estimated_cost_usd": 0.001,
+      "code_files": 12,
+      "repo_size_mb": 0.29,
+      "module_count": 1,
+      "module_depth": 1,
+      "md_files_generated": 8,
+      "html_generated": true,
+      "html_size_kb": 54.28,
+      "stdout_excerpt": "E 5] Module tree JSON: 898 chars\n[03:10:51] INFO     [STAGE 5] Metadata JSON: 563 chars\n[03:10:51] INFO     [STAGE 5] Docs content JSON: 12460 chars (8 files)\n[03:10:51] INFO     [STAGE 5] Replacing placeholders in template...\n[03:10:51] INFO     [STAGE 5] Template processing complete, HTML size: 55578 chars\n[03:10:51] INFO     [STAGE 5] Writing output to /Users/shreyaspatel/CodeWiki/test_repos/openai-realtime/docs/index.html...\n[03:10:51] INFO     [STAGE 5] Created output directory: /Users/shreyaspatel/CodeWiki/test_repos/openai-realtime/docs\n[03:10:51] INFO     [STAGE 5] Successfully wrote HTML file: 55586 bytes\n[03:10:51] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.0s\n[03:10:51] INFO     [STAGE 5] HTML generation completed in 0.0s\n[03:10:51] INFO     [STAGE 5] index.html created successfully: 55586 bytes\n[00:44]   Generated index.html\n[03:10:51] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.1s\n[00:44]   HTML Generation complete (0.1s)\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/CodeWiki/test_repos/openai-realtime/docs\n\nGenerated files:\n  - App.md\n  - overview.md\n  - SessionControls.md\n  - EntryServer.md\n  - Button.md\n  - first_module_tree.json\n  - metadata.json\n  - main.md\n  - module_tree.json\n  - ToolPanel.md\n  ... and 2 more\n\nStatistics:\n  Total modules:     1\n  Files analyzed:    17\n  Generation time:   0 minutes 44 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/CodeWiki/test_repos/openai-realtime/docs/overview.md\n   open /Users/shreyaspatel/CodeWiki/test_repos/openai-realtime/docs/index.html  # View in browser\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://openai.github.io/openai-realtime-console/\n\n",
+      "stderr_excerpt": "[DEBUG] Repo: openai-realtime, 4 code files, 425069.71 MB\n[DEBUG] [0.0s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.0s] Stage 1 complete: 17 components, 17 leaf nodes\n[DEBUG] [0.0s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 17 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 17 leaf nodes, 17 total components\n[DEBUG] [0.0s] Stage 2 complete: 1 modules created\n\n[DEBUG] ===== STAGE 2 COMPLETE =====\n[DEBUG] Module count: 1\n[DEBUG] Total duration so far: 0.0s\n[DEBUG] Module names: ['main']\n[DEBUG] Continuing to Stage 3: Documentation Generation...\n[DEBUG] [0.0s] Starting Stage 3: Documentation Generation\n[DEBUG] [0.0s] Generating docs for 1 modules...\n[DEBUG] [0.0s] Calling generate_module_documentation...\n"
+    },
+    {
+      "repo_name": "fastapi",
+      "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/fastapi",
+      "success": true,
+      "return_code": 0,
+      "duration_seconds": 178.14,
+      "stage_timings": {
+        "Dependency Analysis": 0.4,
+        "Module Clustering": 0.0,
+        "Documentation Generation": 5.8,
+        "Agent Processing": 13.9,
+        "HTML Generation": 0.0
+      },
+      "tokens_used": 13959,
+      "estimated_cost_usd": 0.0223,
+      "code_files": 1240,
+      "repo_size_mb": 5.82,
+      "module_count": 5,
+      "module_depth": 3,
+      "md_files_generated": 14,
+      "html_generated": true,
+      "html_size_kb": 97.25,
+      "stdout_excerpt": "e JSON: 6327 chars\n[03:13:49] INFO     [STAGE 5] Metadata JSON: 793 chars\n[03:13:49] INFO     [STAGE 5] Docs content JSON: 50835 chars (14 files)\n[03:13:49] INFO     [STAGE 5] Replacing placeholders in template...\n[03:13:49] INFO     [STAGE 5] Template processing complete, HTML size: 99574 chars\n[03:13:49] INFO     [STAGE 5] Writing output to /Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs/index.html...\n[03:13:49] INFO     [STAGE 5] Created output directory: /Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs\n[03:13:49] INFO     [STAGE 5] Successfully wrote HTML file: 99582 bytes\n[03:13:49] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.0s\n[03:13:49] INFO     [STAGE 5] HTML generation completed in 0.0s\n[03:13:49] INFO     [STAGE 5] index.html created successfully: 99582 bytes\n[02:57]   Generated index.html\n[03:13:49] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.1s\n[02:57]   HTML Generation complete (0.1s)\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs\n\nGenerated files:\n  - scripts_notify_translations.md\n  - security_oauth2.md\n  - overview.md\n  - security_http.md\n  - first_module_tree.json\n  - metadata.json\n  - security_open_id_connect.md\n  - scripts_contributors.md\n  - module_tree.json\n  - openapi_models.md\n  ... and 8 more\n\nStatistics:\n  Total modules:     5\n  Files analyzed:    1641\n  Generation time:   2 minutes 57 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs/overview.md\n   open /Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs/index.html  # View in browser\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://tiangolo.github.io/fastapi/\n\n",
+      "stderr_excerpt": "[DEBUG] Repo: fastapi, 1240 code files, 425073.53 MB\n[DEBUG] [0.0s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.4s] Stage 1 complete: 1641 components, 377 leaf nodes\n[DEBUG] [0.5s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 377 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 377 leaf nodes, 1641 total components\n[DEBUG] [21.6s] Stage 2 complete: 5 modules created\n\n[DEBUG] ===== STAGE 2 COMPLETE =====\n[DEBUG] Module count: 5\n[DEBUG] Total duration so far: 22.1s\n[DEBUG] Module names: ['fastapi_core', 'openapi_models', 'scripts_contributors', 'scripts_notify_translations', 'scripts_sponsors']\n[DEBUG] Continuing to Stage 3: Documentation Generation...\n[DEBUG] [22.1s] Starting Stage 3: Documentation Generation\n[DEBUG] [0.0s] Generating docs for 5 modules...\n[DEBUG] [0.0s] Calling generate_module_documentation...\n[DEBUG] [155.0s] Module documentation complete\n[DEBUG] [155.0s] Generated 14 markdown files: scripts_notify_translations.md, security_oauth2.md, overview.md, security_http.md, security_open_id_connect.md...\n[DEBUG] First overview created at 177.1s\n[DEBUG] [177.1s] ALL STAGES COMPLETE\n[DEBUG] [HYP-D] Checking HTML generation flag: generate_html=True, output_dir=/Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs\n[DEBUG] [HYP-D] HTML generation flag is True, calling _run_html_generation\n[DEBUG] [HYP-D] _run_html_generation ENTRY: output_dir=/Users/shreyaspatel/CodeWiki/test_repos/fastapi/docs\n[DEBUG] [HYP-A] Logger config: name=codewiki.cli.adapters.doc_generator, handlers=0, level=0, effective=20\n"
+    },
+    {
+      "repo_name": "flask",
+      "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/flask",
+      "success": true,
+      "return_code": 0,
+      "duration_seconds": 169.62,
+      "stage_timings": {
+        "Dependency Analysis": 0.0,
+        "Module Clustering": 0.0,
+        "Documentation Generation": 5.2,
+        "Agent Processing": 26.6,
+        "HTML Generation": 0.0
+      },
+      "tokens_used": 3967,
+      "estimated_cost_usd": 0.0063,
+      "code_files": 82,
+      "repo_size_mb": 1.51,
+      "module_count": 3,
+      "module_depth": 2,
+      "md_files_generated": 16,
+      "html_generated": true,
+      "html_size_kb": 87.48,
+      "stdout_excerpt": "AGE 5] Config JSON: 2 chars\n[03:16:39] INFO     [STAGE 5] Module tree JSON: 2194 chars\n[03:16:39] INFO     [STAGE 5] Metadata JSON: 744 chars\n[03:16:39] INFO     [STAGE 5] Docs content JSON: 45021 chars (16 files)\n[03:16:39] INFO     [STAGE 5] Replacing placeholders in template...\n[03:16:39] INFO     [STAGE 5] Template processing complete, HTML size: 89569 chars\n[03:16:39] INFO     [STAGE 5] Writing output to /Users/shreyaspatel/CodeWiki/test_repos/flask/docs/index.html...\n[03:16:39] INFO     [STAGE 5] Created output directory: /Users/shreyaspatel/CodeWiki/test_repos/flask/docs\n[03:16:39] INFO     [STAGE 5] Successfully wrote HTML file: 89577 bytes\n[03:16:39] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.0s\n[03:16:39] INFO     [STAGE 5] HTML generation completed in 0.0s\n[03:16:39] INFO     [STAGE 5] index.html created successfully: 89577 bytes\n[02:48]   Generated index.html\n[03:16:39] INFO     [STAGE 5: HTML GENERATION] COMPLETE in 0.1s\n[02:48]   HTML Generation complete (0.1s)\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/CodeWiki/test_repos/flask/docs\n\nGenerated files:\n  - overview.md\n  - flask_class.md\n  - application.md\n  - context.md\n  - cli.md\n  - first_module_tree.json\n  - views.md\n  - metadata.json\n  - tagged_json_serializer.md\n  - config_class.md\n  ... and 10 more\n\nStatistics:\n  Total modules:     3\n  Files analyzed:    128\n  Generation time:   2 minutes 48 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/CodeWiki/test_repos/flask/docs/overview.md\n   open /Users/shreyaspatel/CodeWiki/test_repos/flask/docs/index.html  # View in browser\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://pallets.github.io/flask/\n\n",
+      "stderr_excerpt": "[DEBUG] Repo: flask, 82 code files, 425040.69 MB\n[DEBUG] [0.0s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.1s] Stage 1 complete: 128 components, 49 leaf nodes\n[DEBUG] [0.1s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 49 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 49 leaf nodes, 128 total components\n[DEBUG] [13.2s] Stage 2 complete: 3 modules created\n\n[DEBUG] ===== STAGE 2 COMPLETE =====\n[DEBUG] Module count: 3\n[DEBUG] Total duration so far: 13.2s\n[DEBUG] Module names: ['flask_core', 'json_handling', 'testing']\n[DEBUG] Continuing to Stage 3: Documentation Generation...\n[DEBUG] [13.2s] Starting Stage 3: Documentation Generation\n[DEBUG] [0.0s] Generating docs for 3 modules...\n[DEBUG] [0.0s] Calling generate_module_documentation...\n[DEBUG] [155.4s] Module documentation complete\n[DEBUG] [155.4s] Generated 16 markdown files: overview.md, flask_class.md, application.md, context.md, cli.md...\n[DEBUG] First overview created at 168.6s\n[DEBUG] [168.6s] ALL STAGES COMPLETE\n[DEBUG] [HYP-D] Checking HTML generation flag: generate_html=True, output_dir=/Users/shreyaspatel/CodeWiki/test_repos/flask/docs\n[DEBUG] [HYP-D] HTML generation flag is True, calling _run_html_generation\n[DEBUG] [HYP-D] _run_html_generation ENTRY: output_dir=/Users/shreyaspatel/CodeWiki/test_repos/flask/docs\n[DEBUG] [HYP-A] Logger config: name=codewiki.cli.adapters.doc_generator, handlers=0, level=0, effective=20\n"
+    }
+  ]
+}

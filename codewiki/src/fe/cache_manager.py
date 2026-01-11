@@ -10,7 +10,7 @@ from typing import Optional, Dict
 
 from .models import CacheEntry
 from .config import WebAppConfig
-from codewiki.src.utils import file_manager
+from codewiki.src.file_manager import file_manager
 
 
 class CacheManager:

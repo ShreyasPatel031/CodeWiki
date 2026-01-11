@@ -1,0 +1,262 @@
+{
+  "timestamp": 1764819268.415251,
+  "repos": [
+    {
+      "repo_name": "miller-analysis",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/miller-analysis",
+      "total_code_files": 4,
+      "size_mb": 0.04296398162841797,
+      "success": true,
+      "duration": 1.1384801864624023,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 42,
+      "stage_timings": {
+        "Dependency Analysis": 0.03945422172546387,
+        "Module Clustering": 0.014686107635498047
+      },
+      "metrics": {
+        "repo_name": "miller-analysis",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/miller-analysis",
+        "repo_size_mb": 360927.98046875,
+        "total_files": 0,
+        "total_code_files": 4,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 0.03945422172546387,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.014686107635498047,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 0.05454683303833008,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819254.013194,
+        "end_time": 1764819254.067741
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: miller-analysis\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/miller-analysis/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/miller-analysis\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.0s] _analyze_structure complete, 8 files found\n[DEBUG] [DEP] [0.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [0.0s] _analyze_call_graph complete, 42 functions found\n[DEBUG] [DEP] [0.0s] Building components from analysis...\n[DEBUG] [DEP] [0.0s] parse_repository complete: 42 components, 4 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/miller-analysis/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    42\n  Generation time:   0 minutes 0 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/miller-analysis/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: miller-analysis, 4 code files, 360927.98 MB\n[DEBUG] [0.0s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.0s] Stage 1 complete: 42 components, 42 leaf nodes\n[DEBUG] [0.0s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 42 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 42 leaf nodes, 42 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 0.1s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "multimodal-live-api-web-console",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console",
+      "total_code_files": 23,
+      "size_mb": 2.1620264053344727,
+      "success": true,
+      "duration": 6.775390863418579,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 84,
+      "stage_timings": {
+        "Dependency Analysis": 0.07637405395507812,
+        "Module Clustering": 0.007091999053955078
+      },
+      "metrics": {
+        "repo_name": "multimodal-live-api-web-console",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console",
+        "repo_size_mb": 360928.16796875,
+        "total_files": 0,
+        "total_code_files": 23,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 0.07637405395507812,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.007091999053955078,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 1.266737937927246,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819258.439512,
+        "end_time": 1764819259.70625
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: multimodal-live-api-web-console\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.0s] _analyze_structure complete, 9 files found\n[DEBUG] [DEP] [0.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [0.1s] _analyze_call_graph complete, 84 functions found\n[DEBUG] [DEP] [0.1s] Building components from analysis...\n[DEBUG] [DEP] [0.1s] parse_repository complete: 84 components, 18 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    84\n  Generation time:   0 minutes 5 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://ShreyasPatel031.github.io/multimodal-live-api-EPIC-APIs/\n\n",
+      "stderr": "[DEBUG] Repo: multimodal-live-api-web-console, 23 code files, 360928.17 MB\n[DEBUG] [1.2s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.1s] Stage 1 complete: 84 components, 5 leaf nodes\n[DEBUG] [1.3s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 5 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 5 leaf nodes, 84 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 1.3s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "PowerUtilityDemos",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/PowerUtilityDemos",
+      "total_code_files": 42,
+      "size_mb": 7.735614776611328,
+      "success": true,
+      "duration": 15.333370923995972,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 10,
+      "component_count": 82,
+      "stage_timings": {
+        "Dependency Analysis": 0.5456900596618652,
+        "Module Clustering": 12.114332914352417
+      },
+      "metrics": {
+        "repo_name": "PowerUtilityDemos",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/PowerUtilityDemos",
+        "repo_size_mb": 360928.0703125,
+        "total_files": 0,
+        "total_code_files": 42,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 0.5456900596618652,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 12.114332914352417,
+            "tokens_used": 2884,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 13.158787965774536,
+        "total_tokens": 2884,
+        "total_files_created": 0,
+        "start_time": 1764819255.115608,
+        "end_time": 1764819268.274396
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: PowerUtilityDemos\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.0s] _analyze_structure complete, 2 files found\n[DEBUG] [DEP] [0.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [0.5s] _analyze_call_graph complete, 82 functions found\n[DEBUG] [DEP] [0.5s] Building components from analysis...\n[DEBUG] [DEP] [0.5s] parse_repository complete: 82 components, 15 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs\n\nStatistics:\n  Total modules:     10\n  Files analyzed:    82\n  Generation time:   0 minutes 14 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: PowerUtilityDemos, 42 code files, 360928.07 MB\n[DEBUG] [0.5s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.5s] Stage 1 complete: 82 components, 81 leaf nodes\n[DEBUG] [1.0s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 81 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 81 leaf nodes, 82 total components\n[DEBUG] [12.1s] Stage 2 complete: 10 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 10\n[DEBUG] Total duration: 13.2s\n[DEBUG] Module names: ['runtime', 'chat_window', 'fleet_sidebar', 'route_replay', 'theme_provider', 'vehicle_info_card', 'hooks', 'api_handlers', 'index_page', 'test']\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-main",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-main",
+      "total_code_files": 67,
+      "size_mb": 0.3458900451660156,
+      "success": true,
+      "duration": 5.908236980438232,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 247,
+      "stage_timings": {
+        "Dependency Analysis": 1.9335458278656006,
+        "Module Clustering": 0.01021575927734375
+      },
+      "metrics": {
+        "repo_name": "openai-realtime-console-main",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-main",
+        "repo_size_mb": 360927.88671875,
+        "total_files": 0,
+        "total_code_files": 67,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 1.9335458278656006,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.01021575927734375,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 2.758539915084839,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819256.103584,
+        "end_time": 1764819258.862124
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: openai-realtime-console-main\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.5s] _analyze_structure complete, 19 files found\n[DEBUG] [DEP] [1.5s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [1.9s] _analyze_call_graph complete, 247 functions found\n[DEBUG] [DEP] [1.9s] Building components from analysis...\n[DEBUG] [DEP] [1.9s] parse_repository complete: 247 components, 63 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    247\n  Generation time:   0 minutes 4 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: openai-realtime-console-main, 67 code files, 360927.89 MB\n[DEBUG] [0.8s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [1.9s] Stage 1 complete: 247 components, 68 leaf nodes\n[DEBUG] [2.7s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 68 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 68 leaf nodes, 247 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 2.8s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "invoice-audit-dashboard",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard",
+      "total_code_files": 141,
+      "size_mb": 29.77445125579834,
+      "success": true,
+      "duration": 6.017931938171387,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 121,
+      "stage_timings": {
+        "Dependency Analysis": 1.397036075592041,
+        "Module Clustering": 0.005231142044067383
+      },
+      "metrics": {
+        "repo_name": "invoice-audit-dashboard",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard",
+        "repo_size_mb": 360928.1640625,
+        "total_files": 0,
+        "total_code_files": 141,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 1.397036075592041,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.005231142044067383,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 2.569049119949341,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819256.4185028,
+        "end_time": 1764819258.987552
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: invoice-audit-dashboard\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.1s] _analyze_structure complete, 13 files found\n[DEBUG] [DEP] [0.1s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [1.4s] _analyze_call_graph complete, 121 functions found\n[DEBUG] [DEP] [1.4s] Building components from analysis...\n[DEBUG] [DEP] [1.4s] parse_repository complete: 121 components, 24 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    121\n  Generation time:   0 minutes 5 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: invoice-audit-dashboard, 141 code files, 360928.16 MB\n[DEBUG] [1.2s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [1.4s] Stage 1 complete: 121 components, 11 leaf nodes\n[DEBUG] [2.6s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 11 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 11 leaf nodes, 121 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 2.6s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 5,
+    "failed": 0,
+    "avg_duration": 7.034682178497315,
+    "avg_files_created": 4.0
+  }
+}

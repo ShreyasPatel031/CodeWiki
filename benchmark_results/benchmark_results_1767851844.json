@@ -1,0 +1,277 @@
+{
+  "timestamp": 1767851844.934226,
+  "repos": [
+    {
+      "repo_name": "google-gemini--gemini-cli",
+      "success": true,
+      "duration": 8.663974046707153,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 4116,
+      "stage_timings": {
+        "Dependency Analysis": 7.721740961074829,
+        "Module Clustering": 0.06744885444641113
+      },
+      "metrics": {
+        "repo_name": "google-gemini--gemini-cli",
+        "repo_path": "/private/tmp/codewiki_benchmark/google-gemini--gemini-cli",
+        "repo_size_mb": 410286.5234375,
+        "total_files": 0,
+        "total_code_files": 1002,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 7.721740961074829,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.06744885444641113,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 7.821696043014526,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1767851602.90959,
+        "end_time": 1767851610.731286
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: google-gemini--gemini-cli\n\u2713 Output directory: /private/tmp/codewiki_benchmark/google-gemini--gemini-cli/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /private/tmp/codewiki_benchmark/google-gemini--gemini-cli\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.2s] _analyze_structure complete, 19 files found\n[DEBUG] [DEP] [0.2s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [4.7s] _analyze_call_graph complete, 4116 functions found\n[DEBUG] [DEP] [4.7s] Building components from analysis...\n[DEBUG] [DEP] [7.6s] parse_repository complete: 4116 components, 689 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /private/tmp/codewiki_benchmark/google-gemini--gemini-cli/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    4116\n  Generation time:   0 minutes 7 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /private/tmp/codewiki_benchmark/google-gemini--gemini-cli/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://google-gemini.github.io/gemini-cli/\n\n",
+      "stderr": "[DEBUG] Repo: google-gemini--gemini-cli, 1002 code files, 410286.52 MB\n[DEBUG] [0.0s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [7.7s] Stage 1 complete: 4116 components, 150 leaf nodes\n[DEBUG] [7.8s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 150 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 150 leaf nodes, 4116 total components\n[DEBUG] [0.1s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 7.8s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0,
+      "repo_url": "https://github.com/google-gemini/gemini-cli",
+      "repo_full_name": "google-gemini/gemini-cli",
+      "clone_duration": 1.5823650360107422,
+      "total_code_files": 1260,
+      "size_mb": 9.936248779296875,
+      "repo_path": "/tmp/codewiki_benchmark/google-gemini--gemini-cli"
+    },
+    {
+      "repo_name": "golang--go",
+      "success": true,
+      "duration": 3.9040021896362305,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 336,
+      "stage_timings": {
+        "Dependency Analysis": 2.0515573024749756,
+        "Module Clustering": 0.008116006851196289
+      },
+      "metrics": {
+        "repo_name": "golang--go",
+        "repo_path": "/private/tmp/codewiki_benchmark/golang--go",
+        "repo_size_mb": 410514.56640625,
+        "total_files": 0,
+        "total_code_files": 175,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 2.0515573024749756,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.008116006851196289,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 2.399286985397339,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1767851618.589993,
+        "end_time": 1767851620.98928
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: golang--go\n\u2713 Output directory: /private/tmp/codewiki_benchmark/golang--go/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /private/tmp/codewiki_benchmark/golang--go\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.4s] _analyze_structure complete, 9 files found\n[DEBUG] [DEP] [1.4s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [2.0s] _analyze_call_graph complete, 336 functions found\n[DEBUG] [DEP] [2.0s] Building components from analysis...\n[DEBUG] [DEP] [2.0s] parse_repository complete: 336 components, 105 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /private/tmp/codewiki_benchmark/golang--go/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    336\n  Generation time:   0 minutes 3 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /private/tmp/codewiki_benchmark/golang--go/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://golang.github.io/go/\n\n",
+      "stderr": "[DEBUG] Repo: golang--go, 175 code files, 410514.57 MB\n[DEBUG] [0.3s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [2.1s] Stage 1 complete: 336 components, 83 leaf nodes\n[DEBUG] [2.4s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 83 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 83 leaf nodes, 336 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 2.4s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0,
+      "repo_url": "https://github.com/golang/go",
+      "repo_full_name": "golang/go",
+      "clone_duration": 5.716397047042847,
+      "total_code_files": 10200,
+      "size_mb": 70.44422054290771,
+      "repo_path": "/tmp/codewiki_benchmark/golang--go"
+    },
+    {
+      "repo_name": "flutter--flutter",
+      "success": true,
+      "duration": 54.73249888420105,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 8,
+      "component_count": 5221,
+      "stage_timings": {
+        "Dependency Analysis": 5.536571979522705,
+        "Module Clustering": 46.23993682861328
+      },
+      "metrics": {
+        "repo_name": "flutter--flutter",
+        "repo_path": "/private/tmp/codewiki_benchmark/flutter--flutter",
+        "repo_size_mb": 410728.23046875,
+        "total_files": 0,
+        "total_code_files": 2184,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 5.536571979522705,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 46.23993682861328,
+            "tokens_used": 19531,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 52.4255907535553,
+        "total_tokens": 19531,
+        "total_files_created": 0,
+        "start_time": 1767851631.9984791,
+        "end_time": 1767851684.42407
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: flutter--flutter\n\u2713 Output directory: /private/tmp/codewiki_benchmark/flutter--flutter/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /private/tmp/codewiki_benchmark/flutter--flutter\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.7s] _analyze_structure complete, 13 files found\n[DEBUG] [DEP] [1.7s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [4.9s] _analyze_call_graph complete, 5221 functions found\n[DEBUG] [DEP] [4.9s] Building components from analysis...\n[DEBUG] [DEP] [5.4s] parse_repository complete: 5221 components, 1157 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /private/tmp/codewiki_benchmark/flutter--flutter/docs\n\nStatistics:\n  Total modules:     8\n  Files analyzed:    5221\n  Generation time:   0 minutes 53 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /private/tmp/codewiki_benchmark/flutter--flutter/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://flutter.github.io/flutter/\n\n",
+      "stderr": "[DEBUG] Repo: flutter--flutter, 2184 code files, 410728.23 MB\n[DEBUG] [0.6s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [5.5s] Stage 1 complete: 5221 components, 764 leaf nodes\n[DEBUG] [6.2s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 764 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 764 leaf nodes, 5221 total components\n[DEBUG] [46.2s] Stage 2 complete: 8 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 8\n[DEBUG] Total duration: 52.4s\n[DEBUG] Module names: ['windows_runner_module', 'android_integration_tests_module', 'impeller_geometry_module', 'impeller_renderer_module', 'flutter_shell_platform_android_module', 'flutter_shell_platform_windows_module', 'accessibility_module', 'tonic_dart_module']\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0,
+      "repo_url": "https://github.com/flutter/flutter",
+      "repo_full_name": "flutter/flutter",
+      "clone_duration": 7.751681089401245,
+      "total_code_files": 7908,
+      "size_mb": 85.49011611938477,
+      "repo_path": "/tmp/codewiki_benchmark/flutter--flutter"
+    },
+    {
+      "repo_name": "kubernetes--kubernetes",
+      "success": true,
+      "duration": 7.962531089782715,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 21,
+      "stage_timings": {
+        "Dependency Analysis": 3.6539390087127686,
+        "Module Clustering": 0.007688045501708984
+      },
+      "metrics": {
+        "repo_name": "kubernetes--kubernetes",
+        "repo_path": "/private/tmp/codewiki_benchmark/kubernetes--kubernetes",
+        "repo_size_mb": 412129.30078125,
+        "total_files": 0,
+        "total_code_files": 12,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 3.6539390087127686,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.007688045501708984,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 4.767052888870239,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1767851695.3070211,
+        "end_time": 1767851700.074074
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: kubernetes--kubernetes\n\u2713 Output directory: /private/tmp/codewiki_benchmark/kubernetes--kubernetes/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /private/tmp/codewiki_benchmark/kubernetes--kubernetes\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [2.4s] _analyze_structure complete, 14 files found\n[DEBUG] [DEP] [2.4s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [3.6s] _analyze_call_graph complete, 21 functions found\n[DEBUG] [DEP] [3.6s] Building components from analysis...\n[DEBUG] [DEP] [3.6s] parse_repository complete: 21 components, 4 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /private/tmp/codewiki_benchmark/kubernetes--kubernetes/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    21\n  Generation time:   0 minutes 7 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /private/tmp/codewiki_benchmark/kubernetes--kubernetes/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://kubernetes.github.io/kubernetes/\n\n",
+      "stderr": "[DEBUG] Repo: kubernetes--kubernetes, 12 code files, 412129.30 MB\n[DEBUG] [1.1s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [3.7s] Stage 1 complete: 21 components, 3 leaf nodes\n[DEBUG] [4.8s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 3 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 3 leaf nodes, 21 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 4.8s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0,
+      "repo_url": "https://github.com/kubernetes/kubernetes",
+      "repo_full_name": "kubernetes/kubernetes",
+      "clone_duration": 5.790707349777222,
+      "total_code_files": 12147,
+      "size_mb": 112.75368213653564,
+      "repo_path": "/tmp/codewiki_benchmark/kubernetes--kubernetes"
+    },
+    {
+      "repo_name": "facebook--react",
+      "success": true,
+      "duration": 142.52173519134521,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 12,
+      "component_count": 10984,
+      "stage_timings": {
+        "Dependency Analysis": 19.67505931854248,
+        "Module Clustering": 121.48316621780396
+      },
+      "metrics": {
+        "repo_name": "facebook--react",
+        "repo_path": "/private/tmp/codewiki_benchmark/facebook--react",
+        "repo_size_mb": 412198.4765625,
+        "total_files": 0,
+        "total_code_files": 4271,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 19.67505931854248,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 121.48316621780396,
+            "tokens_used": 25699,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 141.29781675338745,
+        "total_tokens": 25699,
+        "total_files_created": 0,
+        "start_time": 1767851703.3055282,
+        "end_time": 1767851844.603345
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: facebook--react\n\u2713 Output directory: /private/tmp/codewiki_benchmark/facebook--react/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /private/tmp/codewiki_benchmark/facebook--react\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.0s] _analyze_structure complete, 20 files found\n[DEBUG] [DEP] [1.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [12.2s] _analyze_call_graph complete, 10984 functions found\n[DEBUG] [DEP] [12.2s] Building components from analysis...\n[DEBUG] [DEP] [19.5s] parse_repository complete: 10984 components, 3176 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /private/tmp/codewiki_benchmark/facebook--react/docs\n\nStatistics:\n  Total modules:     12\n  Files analyzed:    10984\n  Generation time:   2 minutes 21 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /private/tmp/codewiki_benchmark/facebook--react/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n5. Your documentation will be available at:\n   https://facebook.github.io/react/\n\n",
+      "stderr": "enchmark._render111' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.InputLabel61' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.FluxContainer_AdsGuidanceChannel_36' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.FluxContainer_AdsPETopNavContainer_26' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.AdsPEManageAdsPaneContainer160' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.AdsPECreateDialogContainer175' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.AdsPEExportAsTextDialog46' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.AdsPEMultiTabDrawer136' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.Column39' in module 'scripts_benchmarks' - not found in components\n[11:27:24] WARNING  Skipping invalid sub leaf node 'pe-class-components.benchmark.XUIDialog23' in module 'scripts_benchmarks' - not found in components\n[DEBUG] [121.5s] Stage 2 complete: 12 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 12\n[DEBUG] Total duration: 141.3s\n[DEBUG] Module names: ['react_compiler', 'react_devtools', 'react_dom_tests', 'react_reconciler_tests', 'react_test_renderer_tests', 'react_core_tests', 'react_native_renderer_tests', 'react_server_dom_webpack', 'eslint_plugin_react_hooks', 'scheduler']\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0,
+      "repo_url": "https://github.com/facebook/react",
+      "repo_full_name": "facebook/react",
+      "clone_duration": 1.8285701274871826,
+      "total_code_files": 4352,
+      "size_mb": 20.451821327209473,
+      "repo_path": "/tmp/codewiki_benchmark/facebook--react"
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 5,
+    "failed": 0,
+    "avg_duration": 43.556948280334474,
+    "avg_files_created": 4.0
+  }
+}

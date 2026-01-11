@@ -8,12 +8,22 @@ and function definitions across multiple programming languages.
 from typing import List, Dict
 
 DEFAULT_IGNORE_PATTERNS = {
+    # Dependency directories - MUST EXCLUDE
+    "node_modules",
+    "node_modules/**",
+    "**/node_modules",
+    "**/node_modules/**",
+    ".npm",
+    ".yarn",
+    ".pnpm-store",
+    "vendor",
+    "bower_components",
+    # Other common exclusions
     ".github",
     ".vscode",
     ".git",
     ".gitignore",
     ".gitmodules",
-    ".gitignore",
     "examples",
     # Python
     "*.pyc",

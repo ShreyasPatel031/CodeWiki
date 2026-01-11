@@ -69,17 +69,49 @@ def safe_write(path: Path, content: str, encoding: str = "utf-8"):
     Raises:
         FileSystemError: If write fails
     """
+    # #region agent log
+    import json
+    import time as time_module
+    path_str = str(path)
+    resolved_path = str(Path(path).expanduser().resolve())
+    with open('/Users/shreyaspatel/CodeWiki/.cursor/debug.log', 'a') as f:
+        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"fs.py:60","message":"safe_write ENTRY","data":{"input_path":path_str,"resolved_path":resolved_path,"content_length":len(content),"encoding":encoding},"timestamp":int(time_module.time()*1000)})+"\n")
+    # #endregion
     path = Path(path).expanduser().resolve()
     temp_path = path.with_suffix(path.suffix + ".tmp")
+    # #region agent log
+    with open('/Users/shreyaspatel/CodeWiki/.cursor/debug.log', 'a') as f:
+        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"fs.py:73","message":"safe_write BEFORE temp write","data":{"final_path":str(path),"temp_path":str(temp_path),"parent_exists":path.parent.exists()},"timestamp":int(time_module.time()*1000)})+"\n")
+    # #endregion
     
     try:
         # Write to temp file
         with open(temp_path, "w", encoding=encoding) as f:
             f.write(content)
+        # #region agent log
+        temp_size_after = temp_path.stat().st_size if temp_path.exists() else 0
+        with open('/Users/shreyaspatel/CodeWiki/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"fs.py:77","message":"safe_write AFTER temp write","data":{"temp_path":str(temp_path),"temp_exists":temp_path.exists(),"temp_size":temp_size_after},"timestamp":int(time_module.time()*1000)})+"\n")
+        # #endregion
         
         # Atomic rename
+        target_exists_before = path.exists()
         temp_path.replace(path)
+        # #region agent log
+        target_exists_after = path.exists()
+        target_size_after = path.stat().st_size if target_exists_after else 0
+        temp_still_exists = temp_path.exists()
+        with open('/Users/shreyaspatel/CodeWiki/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"fs.py:81","message":"safe_write AFTER atomic rename","data":{"target_path":str(path),"target_existed_before":target_exists_before,"target_exists_after":target_exists_after,"target_size":target_size_after,"temp_still_exists":temp_still_exists},"timestamp":int(time_module.time()*1000)})+"\n")
+        # #endregion
     except Exception as e:
+        # #region agent log
+        import traceback
+        exc_traceback = traceback.format_exc()
+        temp_exists_on_error = temp_path.exists() if 'temp_path' in locals() else False
+        with open('/Users/shreyaspatel/CodeWiki/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"fs.py:82","message":"safe_write EXCEPTION","data":{"exception_type":type(e).__name__,"exception_msg":str(e),"target_path":str(path),"temp_exists":temp_exists_on_error,"traceback":exc_traceback[:500]},"timestamp":int(time_module.time()*1000)})+"\n")
+        # #endregion
         # Clean up temp file if it exists
         if temp_path.exists():
             temp_path.unlink()

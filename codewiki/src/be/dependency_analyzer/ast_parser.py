@@ -26,22 +26,32 @@ class DependencyParser:
         self.analysis_service = AnalysisService()
 
     def parse_repository(self, filtered_folders: List[str] = None) -> Dict[str, Node]:
+        import time
+        start = time.time()
         logger.debug(f"Parsing repository at {self.repo_path}")
+        print(f"[DEBUG] [DEP] Starting parse_repository at {self.repo_path}", flush=True)
         
+        print(f"[DEBUG] [DEP] [{time.time() - start:.1f}s] Calling _analyze_structure...", flush=True)
         structure_result = self.analysis_service._analyze_structure(
             self.repo_path, 
             include_patterns=None,
             exclude_patterns=None
         )
+        print(f"[DEBUG] [DEP] [{time.time() - start:.1f}s] _analyze_structure complete, {len(structure_result.get('file_tree', {}).get('children', []))} files found", flush=True)
         
+        print(f"[DEBUG] [DEP] [{time.time() - start:.1f}s] Calling _analyze_call_graph...", flush=True)
         call_graph_result = self.analysis_service._analyze_call_graph(
             structure_result["file_tree"], 
             self.repo_path
         )
+        print(f"[DEBUG] [DEP] [{time.time() - start:.1f}s] _analyze_call_graph complete, {len(call_graph_result.get('functions', []))} functions found", flush=True)
         
+        print(f"[DEBUG] [DEP] [{time.time() - start:.1f}s] Building components from analysis...", flush=True)
         self._build_components_from_analysis(call_graph_result)
         
+        duration = time.time() - start
         logger.debug(f"Found {len(self.components)} components across {len(self.modules)} modules")
+        print(f"[DEBUG] [DEP] [{duration:.1f}s] parse_repository complete: {len(self.components)} components, {len(self.modules)} modules", flush=True)
         return self.components
     
     def _build_components_from_analysis(self, call_graph_result: Dict):
@@ -87,6 +97,13 @@ class DependencyParser:
                 if module_path:
                     self.modules.add(module_path)
         
+        # Build name-to-component-id lookup for O(1) access instead of O(n) search
+        # This fixes a critical O(n²) performance bug for large repos (30k+ functions)
+        name_to_component_id = {}
+        for comp_id, comp_node in self.components.items():
+            if comp_node.name and comp_node.name not in name_to_component_id:
+                name_to_component_id[comp_node.name] = comp_id
+        
         processed_relationships = 0
         for rel_dict in relationships:
             caller_id = rel_dict.get("caller", "")
@@ -97,10 +114,8 @@ class DependencyParser:
             
             callee_component_id = component_id_mapping.get(callee_id)
             if not callee_component_id:
-                for comp_id, comp_node in self.components.items():
-                    if comp_node.name == callee_id:
-                        callee_component_id = comp_id
-                        break
+                # O(1) lookup instead of O(n) loop
+                callee_component_id = name_to_component_id.get(callee_id)
             
             if caller_component_id and caller_component_id in self.components:
                 if callee_component_id:

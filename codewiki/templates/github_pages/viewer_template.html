@@ -7,15 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #f1f5f9;
-            --text-color: #334155;
-            --border-color: #e2e8f0;
-            --hover-color: #f8fafc;
-            --code-bg: #f8fafc;
-        }
-        
         * {
             margin: 0;
             padding: 0;
@@ -24,41 +15,47 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: #ffffff;
-        }
-        
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        .sidebar {
-            width: 320px;
-            background-color: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 20px;
-            overflow-y: auto;
-            position: fixed;
             height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        
-        .content {
-            flex: 1;
-            margin-left: 320px;
-            padding: 40px 60px;
-            max-width: calc(100% - 320px);
-        }
-        
-        .logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 15px;
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
         }
         
         .repo-link {
@@ -67,333 +64,273 @@
             gap: 6px;
             padding: 8px 16px;
             background: white;
-            color: var(--primary-color);
+            color: #2563eb;
             text-decoration: none;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #e2e8f0;
         }
         
         .repo-link:hover {
-            background: var(--hover-color);
-            border-color: var(--primary-color);
-        }
-        
-        .repo-info {
-            margin: 20px 0;
-            padding: 15px;
             background: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            border-color: #2563eb;
         }
-        
-        .repo-info h4 {
-            margin: 0 0 10px 0;
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
         }
-        
-        .info-row {
-            font-size: 11px;
-            color: #475569;
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        #mermaid-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .doc-content {
             line-height: 1.6;
-            margin-bottom: 4px;
-        }
-        
-        .info-row strong {
-            font-weight: 600;
-            min-width: 80px;
-            display: inline-block;
-        }
-        
-        .nav-section {
-            margin-bottom: 20px;
-        }
-        
-        .nav-section h3 {
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            padding: 8px 12px;
-        }
-        
-        .nav-item {
-            display: block;
-            padding: 10px 12px;
-            color: var(--text-color);
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            margin-bottom: 2px;
-            cursor: pointer;
-        }
-        
-        .nav-item:hover {
-            background-color: white;
-            color: var(--primary-color);
-        }
-        
-        .nav-item.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .nav-subsection {
-            margin-left: 15px;
-            margin-top: 5px;
-        }
-        
-        .nav-subsection .nav-item {
-            font-size: 13px;
-            padding: 8px 12px;
-        }
-        
-        .nav-subsection .nav-subsection {
-            margin-left: 20px;
-        }
-        
-        .nav-subsection .nav-subsection .nav-item {
-            font-size: 12px;
-            padding: 6px 10px;
-        }
-        
-        .markdown-content {
-            max-width: 100%;
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .markdown-content h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-        
-        .markdown-content h2 {
-            font-size: 2rem;
-            font-weight: 600;
             color: #334155;
-            margin-top: 2.5rem;
+        }
+
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .doc-content h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .doc-content p {
             margin-bottom: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .markdown-content h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #475569;
-            margin-top: 2rem;
-            margin-bottom: 0.75rem;
-        }
-        
-        .markdown-content h4 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .markdown-content p {
-            margin-bottom: 1rem;
             color: #475569;
         }
         
-        .markdown-content ul, .markdown-content ol {
-            margin-bottom: 1rem;
-            padding-left: 2rem;
+        .doc-content ul, .doc-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
         }
-        
-        .markdown-content li {
-            margin-bottom: 0.5rem;
-            color: #475569;
+
+        .doc-content li {
+            margin: 8px 0;
         }
-        
-        .markdown-content code {
-            background-color: var(--code-bg);
-            padding: 0.2em 0.4em;
-            border-radius: 0.25rem;
-            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
+
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
             color: #e11d48;
         }
         
-        .markdown-content pre {
-            background-color: var(--code-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 1.25rem;
+        .doc-content pre {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
             overflow-x: auto;
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
+            margin: 16px 0;
         }
         
-        .markdown-content pre code {
-            background-color: transparent;
+        .doc-content pre code {
+            background: transparent;
             padding: 0;
-            color: var(--text-color);
-            font-size: 0.875rem;
+            color: #334155;
         }
-        
-        .markdown-content blockquote {
-            border-left: 4px solid var(--primary-color);
-            padding-left: 1rem;
-            margin: 1.5rem 0;
-            font-style: italic;
+
+        .doc-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 16px 0;
             color: #64748b;
-            background: var(--hover-color);
-            padding: 1rem 1rem 1rem 1.5rem;
-            border-radius: 0 0.5rem 0.5rem 0;
+            background: #f8fafc;
+            padding: 16px 16px 16px 24px;
+            border-radius: 0 8px 8px 0;
         }
-        
-        .markdown-content table {
+
+        .doc-content table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+            margin: 16px 0;
         }
-        
-        .markdown-content th, .markdown-content td {
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
+
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
             text-align: left;
         }
         
-        .markdown-content th {
-            background-color: var(--secondary-color);
+        .doc-content th {
+            background: #f1f5f9;
             font-weight: 600;
-            color: var(--text-color);
         }
-        
-        .markdown-content tr:hover {
-            background-color: var(--hover-color);
-        }
-        
-        .markdown-content a {
-            color: var(--primary-color);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-        
-        .markdown-content a:hover {
-            border-bottom-color: var(--primary-color);
-        }
-        
-        .markdown-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .mermaid {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            overflow-x: auto;
-        }
-        
+
         .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
+            text-align: center;
+            padding: 40px;
             color: #64748b;
         }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--secondary-color);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
+
+        /* Make clickable nodes have blue border only - don't change fill or edges */
+        /* High specificity selectors to override Mermaid's inline styles */
+        svg g.node.clickable-node rect,
+        svg g.node.clickable-node circle,
+        svg g.node.clickable-node polygon,
+        svg g.node.clickable-node ellipse,
+        .mermaid g.node.clickable-node rect,
+        .mermaid g.node.clickable-node circle,
+        .mermaid g.node.clickable-node polygon,
+        .mermaid g.node.clickable-node ellipse,
+        #mermaid-diagram g.node.clickable-node rect,
+        #mermaid-diagram g.node.clickable-node circle,
+        #mermaid-diagram g.node.clickable-node polygon,
+        #mermaid-diagram g.node.clickable-node ellipse,
+        g.clickable-node rect,
+        g.clickable-node circle,
+        g.clickable-node polygon,
+        g.clickable-node ellipse,
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path:not(.edgePath *),
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            font-weight: 600 !important;
+        }
+
+        .clickable-node,
+        g.node.clickable-node {
+            cursor: pointer !important;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Ensure pointer events work */
+        .clickable-node *,
+        g.node.clickable-node * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
         }
         
-        .error {
-            padding: 2rem;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 0.5rem;
-            color: #991b1b;
-            margin: 2rem 0;
+        /* Don't change edge colors */
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
         }
         
-        .error h3 {
-            margin-bottom: 0.5rem;
+        /* Selected node/subgraph styling - green border for selected */
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+
+        /* Collapse button styling */
+        .collapse-button rect,
+        .collapse-button circle,
+        .collapse-button polygon {
+            stroke: #dc2626 !important;
+            stroke-width: 2px !important;
+        }
+
+        .collapse-button {
+            cursor: pointer !important;
         }
         
         @media (max-width: 1024px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
+            .container {
+                flex-direction: column;
             }
-            
-            .content {
-                margin-left: 0;
-                padding: 20px;
-                max-width: 100%;
+            .diagram-pane, .doc-pane {
+                width: 100%;
+                height: 50%;
+            }
+            .diagram-pane {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <nav class="sidebar">
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <div class="title" id="moduleTitle">📚 {{TITLE}}</div>
             {{REPO_LINK}}
-            <div class="logo">📚 {{TITLE}}</div>
-            
-            <div class="repo-info" id="repo-info" style="display: {{SHOW_INFO}};">
-                <h4>Generation Info</h4>
-                <div id="info-content">{{INFO_CONTENT}}</div>
             </div>
             
-            <div class="nav-section">
-                <div class="nav-item active" data-file="overview.md">
-                    📄 Overview
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
                 </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
             </div>
-            
-            <div id="navigation"></div>
-        </nav>
-        
-        <main class="content">
-            <div id="loading" class="loading">
-                <div class="loading-spinner"></div>
-                <p>Loading documentation...</p>
-            </div>
-            
-            <div id="content" class="markdown-content" style="display: none;"></div>
-        </main>
     </div>
     
     <script>
@@ -402,8 +339,24 @@
         const MODULE_TREE = {{MODULE_TREE_JSON}};
         const METADATA = {{METADATA_JSON}};
         const DOCS_BASE_PATH = '{{DOCS_BASE_PATH}}';
+        const DOCS_CONTENT = {{DOCS_CONTENT_JSON}};
+        const REPO_TITLE = '{{TITLE}}';
+
+        // State management
+        let currentModule = 'overview';
+        let navigationHistory = [];
+        let expandedNodes = new Map(); // Track expanded nodes: nodeId -> {originalLabel, targetModuleId, subgraphId}
+        let currentDiagramCode = '';
+        let baseDiagramCode = '';
+        let selectedNodeId = null;
+        let selectedModuleId = null;
         
-        // Initialize marked with options
+        // Module data structure (built from MODULE_TREE)
+        let moduleData = {};
+        let nodeIdToModule = {}; // Maps node IDs to module keys
+        let moduleLinkMap = {}; // Maps module names to their links
+
+        // Initialize marked
         marked.setOptions({
             breaks: true,
             gfm: true,
@@ -415,83 +368,125 @@
         mermaid.initialize({
             startOnLoad: false,
             theme: 'default',
-            themeVariables: {
-                primaryColor: '#2563eb',
-                primaryTextColor: '#334155',
-                primaryBorderColor: '#e2e8f0',
-                lineColor: '#64748b',
-                secondaryColor: '#f1f5f9',
-                tertiaryColor: '#f8fafc'
-            },
-            flowchart: { htmlLabels: true, curve: 'basis' },
-            sequence: { mirrorActors: true, useMaxWidth: true }
-        });
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (MODULE_TREE) {
-                buildNavigation();
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
             }
-            
-            // Load overview by default
-            loadDocument('overview.md');
         });
-        
-        function buildNavigation() {
-            const nav = document.getElementById('navigation');
-            let html = '';
+
+        // Build module data from MODULE_TREE
+        function buildModuleData() {
+            // Create overview module
+            const overviewDiagram = generateOverviewDiagram();
+            const overviewLinks = {};
             
+            // Build links for overview - each top-level module is a link
             for (const [key, data] of Object.entries(MODULE_TREE)) {
-                html += buildNavItem(key, data, 0);
+                const formattedName = formatModuleName(key);
+                overviewLinks[formattedName] = key;
             }
             
-            nav.innerHTML = html;
+            moduleData['overview'] = {
+                name: REPO_TITLE + ' Overview',
+                diagram: overviewDiagram,
+                documentation: DOCS_CONTENT['overview.md'] || '# Overview\n\nNo overview available.',
+                links: overviewLinks
+            };
             
-            // Add click handlers
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const file = this.getAttribute('data-file');
-                    if (file) {
-                        loadDocument(file);
-                        
-                        // Update active state
-                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                        this.classList.add('active');
-                    }
-                });
-            });
+            // Build modules from tree
+            buildModulesFromTree(MODULE_TREE, '');
         }
-        
-        function buildNavItem(key, data, depth) {
-            const indentClass = depth > 0 ? 'nav-subsection' : 'nav-section';
-            const fileName = `${key}.md`;
-            
-            let html = `<div class="${indentClass}">`;
-            
-            if (data.components && data.components.length > 0) {
-                html += `<div class="nav-item" data-file="${fileName}">
-                    ${formatNavTitle(key)}
-                </div>`;
-            } else if (depth === 0) {
-                html += `<h3>${formatNavTitle(key)}</h3>`;
-            } else {
-                html += `<div class="nav-item" data-file="${fileName}">
-                    ${formatNavTitle(key)}
-                </div>`;
-            }
-            
-            if (data.children) {
-                for (const [childKey, childData] of Object.entries(data.children)) {
-                    html += buildNavItem(childKey, childData, depth + 1);
+
+        function buildModulesFromTree(tree, parentPath) {
+            for (const [key, data] of Object.entries(tree)) {
+                const moduleId = parentPath ? `${parentPath}/${key}` : key;
+                const formattedName = formatModuleName(key);
+                
+                // Generate diagram for this module showing its children
+                const diagram = generateModuleDiagram(key, data);
+                
+                // Build links for children
+                const links = {};
+                if (data.children) {
+                    for (const [childKey, childData] of Object.entries(data.children)) {
+                        const childFormattedName = formatModuleName(childKey);
+                        links[childFormattedName] = childKey;
+                    }
+                }
+                
+                // Try to find documentation file
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                moduleData[key] = {
+                    name: formattedName,
+                    diagram: diagram,
+                    documentation: documentation,
+                    links: links,
+                    children: data.children || {}
+                };
+                
+                // Recursively build child modules
+                if (data.children) {
+                    buildModulesFromTree(data.children, moduleId);
                 }
             }
+        }
+
+        function generateOverviewDiagram() {
+            let diagram = 'graph TD\n';
+            const repoNodeId = 'REPO';
+            const repoLabel = escapeLabel(REPO_TITLE);
+            diagram += `    ${repoNodeId}["${repoLabel}"]\n`;
             
-            html += '</div>';
-            return html;
+            let nodeIndex = 0;
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const nodeId = `M${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(key));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${repoNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = key;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+
+        function generateModuleDiagram(moduleKey, moduleData) {
+            if (!moduleData.children || Object.keys(moduleData.children).length === 0) {
+                // Leaf module - no sub-diagram
+                return '';
+            }
+            
+            let diagram = 'graph TD\n';
+            const parentNodeId = 'PARENT';
+            const parentLabel = escapeLabel(formatModuleName(moduleKey));
+            diagram += `    ${parentNodeId}["${parentLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [childKey, childData] of Object.entries(moduleData.children)) {
+                const nodeId = `C${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(childKey));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${parentNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = childKey;
+                nodeIndex++;
+            }
+            
+            return diagram;
         }
         
-        function formatNavTitle(key) {
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+
+        function formatModuleName(key) {
             return key
                 .replace(/_/g, ' ')
                 .split(' ')
@@ -499,145 +494,682 @@
                 .join(' ');
         }
         
-        async function loadDocument(filename) {
-            const loading = document.getElementById('loading');
-            const content = document.getElementById('content');
-            
-            loading.style.display = 'flex';
-            content.style.display = 'none';
-            
-            try {
-                const docPath = DOCS_BASE_PATH ? `${DOCS_BASE_PATH}/${filename}` : filename;
-                const response = await fetch(docPath);
-                if (!response.ok) {
-                    throw new Error(`Failed to load ${filename}`);
-                }
-                
-                const markdown = await response.text();
-                const html = await renderMarkdown(markdown);
-                
-                content.innerHTML = html;
-                loading.style.display = 'none';
-                content.style.display = 'block';
-                
-                // Render mermaid diagrams
-                await renderMermaidDiagrams();
-                
-                // Add click handlers for internal markdown links
-                setupMarkdownLinks();
-                
-                // Scroll to top
-                window.scrollTo(0, 0);
-                
-            } catch (error) {
-                console.error('Error loading document:', error);
-                showError(`Failed to load document: ${filename}`);
-            }
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
         }
         
-        function setupMarkdownLinks() {
-            // Use event delegation to intercept all link clicks in markdown content
-            const content = document.getElementById('content');
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            buildModuleData();
+            loadModule('overview');
+        });
+
+        function loadModule(moduleId, skipHistoryUpdate = false) {
+            if (!moduleData || !moduleData[moduleId]) {
+                console.error('Module not found:', moduleId);
+                return;
+            }
+
+            const module = moduleData[moduleId];
+            currentModule = moduleId;
             
-            // Remove any existing listener to avoid duplicates
-            const oldListener = content._markdownLinkListener;
-            if (oldListener) {
-                content.removeEventListener('click', oldListener);
+            // Reset expansion state when loading new module
+            expandedNodes.clear();
+            selectedNodeId = null;
+            selectedModuleId = null;
+            baseDiagramCode = module.diagram || '';
+            currentDiagramCode = module.diagram || '';
+
+            // Update title
+            document.getElementById('moduleTitle').textContent = module.name;
+
+            // Update back button
+            const backButton = document.getElementById('backButton');
+            if (navigationHistory.length > 0) {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = false;
+            } else if (moduleId === 'overview') {
+                backButton.style.display = 'none';
+            } else {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = true;
+            }
+
+            // Render documentation
+            renderDocumentation(module.documentation);
+
+            // Render diagram
+            if (module.diagram && module.diagram.trim()) {
+                renderDiagram(module.diagram, module.links || {}, moduleId);
+            } else {
+                // No diagram - try to extract from markdown
+                const extracted = extractMermaidFromMarkdown(module.documentation);
+                if (extracted) {
+                    renderDiagram(extracted, module.links || {}, moduleId);
+                } else {
+                    document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available for this module.</p>';
+                }
+            }
+        }
+
+        function extractMermaidFromMarkdown(markdown) {
+            const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+            const match = mermaidRegex.exec(markdown);
+            return match ? match[1].trim() : null;
+        }
+
+        // Combine links from current module + all expanded modules
+        // This ensures that expanded subgraph children are clickable
+        function getCombinedLinks() {
+            const combined = {};
+            
+            // Add current module's links
+            const current = moduleData[currentModule];
+            if (current && current.links) {
+                Object.assign(combined, current.links);
             }
             
-            // Create new listener
-            const listener = function(e) {
-                // Find the closest anchor tag
-                const link = e.target.closest('a');
-                if (!link) return;
-                
-                const href = link.getAttribute('href');
-                if (!href) return;
-                
-                // Check if it's a markdown file link (ends with .md or .MD)
-                // Also handle cases with anchors like "file.md#section"
-                const mdMatch = href.match(/([^\/]*\.md(?:#.*)?$)/i);
-                if (mdMatch) {
+            // Add links from all expanded modules
+            for (const [nodeId, expansion] of expandedNodes.entries()) {
+                const expandedMod = moduleData[expansion.targetModuleId];
+                if (expandedMod && expandedMod.links) {
+                    // Prefix the links to match the prefixed node IDs in the subgraph
+                    const prefix = `${nodeId}_`;
+                    for (const [label, targetId] of Object.entries(expandedMod.links)) {
+                        combined[label] = targetId;
+                    }
+                }
+            }
+            
+            return combined;
+        }
+
+        function selectNode(nodeId, moduleId) {
+            
+            selectedNodeId = nodeId;
+            selectedModuleId = moduleId;
+            
+            // Load selected module's documentation
+            if (moduleData && moduleData[moduleId]) {
+                const module = moduleData[moduleId];
+                renderDocumentation(module.documentation || 'No documentation available.');
+                document.getElementById('moduleTitle').textContent = module.name || moduleId;
+            }
+            
+            // Re-render diagram to apply selected styling - use combined links for expanded nodes
+            renderDiagram(currentDiagramCode || baseDiagramCode, getCombinedLinks(), currentModule);
+        }
+
+        function renderDocumentation(markdown) {
+            // Remove mermaid blocks from display
+            const cleanMarkdown = markdown.replace(/```mermaid\n[\s\S]*?```/g, '');
+            const html = marked.parse(cleanMarkdown);
+            document.getElementById('docContent').innerHTML = html;
+
+            // Make .md links clickable
+            document.querySelectorAll('#docContent a[href$=".md"]').forEach(link => {
+                link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    e.stopPropagation();
+                const href = link.getAttribute('href');
+                    const moduleId = href.replace('.md', '');
+                    navigateToModule(moduleId);
+                });
+            });
+            
+            // Also handle anchor links that reference module documentation
+            // LLM-generated docs often use anchors like #file-management-tools-module-documentation
+            document.querySelectorAll('#docContent a[href^="#"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    // Convert anchor to potential module ID
+                    // E.g., #file-management-tools-module-documentation -> file_management_tools
+                    const anchor = href.substring(1); // Remove #
+                    const potentialModuleId = anchor
+                        .replace(/-module-documentation$/, '')
+                        .replace(/-module$/, '')
+                        .replace(/-/g, '_');
                     
-                    // Extract filename without anchor
-                    const fullMatch = mdMatch[1];
-                    const filename = fullMatch.split('#')[0];
+                    // Check if this maps to an existing module
+                    if (moduleData[potentialModuleId]) {
+                    e.preventDefault();
+                        navigateToModule(potentialModuleId);
+                    }
+                    // Otherwise let the normal anchor behavior proceed
+                });
+            });
+        }
+
+        function expandNodeInline(nodeId, targetModuleId) {
+            if (!nodeId || !targetModuleId || !moduleData[targetModuleId]) {
+                console.error(`Cannot expand: nodeId=${nodeId}, module=${targetModuleId}`);
+                return;
+            }
+            
+            if (expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is already expanded`);
+                return;
+            }
+            
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule.diagram) {
+                console.log(`Module ${targetModuleId} has no diagram - just selecting`);
+                selectNode(nodeId, targetModuleId);
+                return;
+            }
+            
+            
+            // Find node's original label in base diagram
+            let workingDiagram = baseDiagramCode;
+            const nodeDefPattern = new RegExp(`\\b${nodeId}\\s*\\["?([^"\\]]+)"?\\]`);
+            const baseNodeMatch = workingDiagram.match(nodeDefPattern);
+            
+            if (!baseNodeMatch) {
+                // Try current diagram
+                const currentNodeMatch = currentDiagramCode.match(nodeDefPattern);
+                if (!currentNodeMatch) {
+                    console.error(`Could not find node ${nodeId}`);
+                    return;
+                }
+            }
+            
+            const originalLabel = baseNodeMatch ? baseNodeMatch[1].trim() : formatModuleName(targetModuleId);
+            const subgraphId = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            expandedNodes.set(nodeId, {
+                originalLabel: originalLabel,
+                targetModuleId: targetModuleId,
+                subgraphId: subgraphId,
+                collapseNodeId: collapseNodeId
+            });
+            
+            // Rebuild diagram with all expansions
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                workingDiagram = applyExpansionToDiagram(workingDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = workingDiagram;
+            selectNode(subgraphId, targetModuleId);
+        }
+
+        function collapseNode(nodeId) {
+            if (!expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is not expanded`);
+                return;
+            }
+            
+            console.log(`[COLLAPSE] Collapsing node ${nodeId}`);
+            
+            // Also collapse child expansions
+            const nodesToCollapse = [nodeId];
+            for (const [expNodeId] of expandedNodes.entries()) {
+                if (expNodeId.startsWith(nodeId + '_') && !expNodeId.endsWith('_collapse')) {
+                    nodesToCollapse.push(expNodeId);
+                }
+            }
+            
+            for (const nodeToRemove of nodesToCollapse) {
+                expandedNodes.delete(nodeToRemove);
+            }
+            
+            // Rebuild from base
+            let rebuiltDiagram = baseDiagramCode;
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                rebuiltDiagram = applyExpansionToDiagram(rebuiltDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = rebuiltDiagram;
+            selectedNodeId = null;
+            selectedModuleId = null;
+            
+            // Use combined links for remaining expanded nodes
+            renderDiagram(rebuiltDiagram, getCombinedLinks(), currentModule);
+        }
+
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                return diagram;
+            }
+            
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            // Get target module's diagram content
+            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            
+            // Prefix all node IDs to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z]+\d*)\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Replace node definition with subgraph
+            const nodePattern = new RegExp(`(\\s*)${nodeId}\\["?[^"\\]]*"?\\]`, 'g');
+            const hasNodeDef = nodePattern.test(diagram);
+            
+            if (!hasNodeDef) {
+                console.log(`Node ${nodeId} definition not found`);
+                return diagram;
+            }
+            
+            // Build subgraph
+            const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+            const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+            const subgraphDef = `\n    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end\n`;
+            
+            // Replace node with subgraph - ensure newlines around the subgraph
+            let newDiagram = diagram.replace(
+                new RegExp(`\\s*${nodeId}\\["?[^"\\]]*"?\\]\\s*`),
+                subgraphDef
+            );
+            
+            // Update edges to point to subgraph
+            newDiagram = newDiagram.replace(
+                new RegExp(`(-->\\s*)${nodeId}(?!_)`, 'g'),
+                `$1${subgraphName}`
+            );
+            newDiagram = newDiagram.replace(
+                new RegExp(`${nodeId}(?!_)(\\s*-->)`, 'g'),
+                `${subgraphName}$1`
+            );
+            
+            // Ensure graph declaration
+            if (!newDiagram.trim().startsWith('graph')) {
+                newDiagram = 'graph TD\n' + newDiagram;
+            }
+            
+            return newDiagram;
+        }
+
+        function renderDiagram(diagramCode, links, currentModuleId) {
+            if (!diagramCode) {
+                document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available.</p>';
+                return;
+            }
+            
+            currentDiagramCode = diagramCode;
+            
+            // Build node mappings
+            const localNodeIdToModule = {};
+            const labelToNodeId = {};
+            
+            const nodePattern = /(\w+)\["?([^"\]]+)"?\]/g;
+            let match;
+            while ((match = nodePattern.exec(diagramCode)) !== null) {
+                const nodeId = match[1];
+                const label = match[2].trim();
+                labelToNodeId[label] = nodeId;
+                
+                // Match label to links
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    if (label.toLowerCase() === linkText.toLowerCase() ||
+                        label.toLowerCase().includes(linkText.toLowerCase()) ||
+                        linkText.toLowerCase().includes(label.toLowerCase())) {
+                        localNodeIdToModule[nodeId] = moduleId;
+                        break;
+                    }
+                }
+            }
+            
+            // Ensure graph declaration
+            let finalDiagramCode = diagramCode.trim();
+            if (!finalDiagramCode.startsWith('graph ')) {
+                finalDiagramCode = 'graph TD\n' + finalDiagramCode;
+            }
+            
+            const diagramDiv = document.getElementById('mermaid-diagram');
+            diagramDiv.innerHTML = '<div class="loading">Rendering diagram...</div>';
+            const diagramId = 'diagram-' + Date.now();
+
+            (async () => {
+                try {
+                    const { svg } = await mermaid.render(diagramId, finalDiagramCode);
+                    diagramDiv.innerHTML = svg;
                     
-                    // Load the document
-                    loadDocument(filename);
+                    const processedNodes = new WeakSet();
                     
-                    // Update active state in sidebar
-                    document.querySelectorAll('.nav-item').forEach(item => {
-                        if (item.getAttribute('data-file') === filename) {
-                            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                            item.classList.add('active');
+                    const processNodes = () => {
+                        const svgEl = diagramDiv.querySelector('svg');
+                        if (!svgEl) return;
+                        
+                        const nodeGroups = svgEl.querySelectorAll('g.node');
+                        
+                        nodeGroups.forEach((nodeGroup, idx) => {
+                            if (processedNodes.has(nodeGroup)) return;
+                            
+                            // Extract node ID from SVG element
+                            let svgNodeId = null;
+                            const groupId = nodeGroup.id || '';
+                            const idMatch = groupId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (idMatch) {
+                                svgNodeId = idMatch[1];
+                            }
+                            
+                            // Get text content - Mermaid 11.x may use different structures
+                            let fullText = '';
+                            
+                            // Method 1: Direct text/tspan elements
+                            const textElements = nodeGroup.querySelectorAll('text, tspan');
+                            textElements.forEach(el => {
+                                const text = el.textContent.trim();
+                                if (text && !fullText.includes(text)) {
+                                    fullText += (fullText ? ' ' : '') + text;
+                                }
+                            });
+                            
+                            // Method 2: foreignObject elements (Mermaid 11.x uses these)
+                            if (!fullText) {
+                                const foreignObjects = nodeGroup.querySelectorAll('foreignObject');
+                                foreignObjects.forEach(fo => {
+                                    const text = fo.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 3: span/div inside foreignObject
+                            if (!fullText) {
+                                const spans = nodeGroup.querySelectorAll('foreignObject span, foreignObject div, foreignObject p');
+                                spans.forEach(el => {
+                                    const text = el.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 4: Any text content in the node
+                            if (!fullText) {
+                                fullText = nodeGroup.textContent.trim();
+                            }
+                            
+                            fullText = fullText.trim();
+                            
+                            if (!fullText) return;
+                            
+                            // Check for collapse button
+                            if (fullText.includes('Collapse') || fullText === '[-] Collapse') {
+                                processedNodes.add(nodeGroup);
+                                
+                                let collapseNodeId = null;
+                                if (svgNodeId && svgNodeId.endsWith('_collapse')) {
+                                    collapseNodeId = svgNodeId.replace(/_collapse$/, '');
+                                }
+                                
+                                if (collapseNodeId && expandedNodes.has(collapseNodeId)) {
+                                    const capturedNodeId = collapseNodeId;
+                                    
+                                    nodeGroup.style.cursor = 'pointer';
+                                    nodeGroup.classList.add('collapse-button');
+                                    
+                                    const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                                    shapes.forEach(shape => {
+                                        shape.setAttribute('stroke', '#dc2626');
+                                        shape.setAttribute('stroke-width', '2');
+                                    });
+                                    
+                                    const collapseHandler = (e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        collapseNode(capturedNodeId);
+                                    };
+                                    
+                                    nodeGroup.addEventListener('click', collapseHandler, true);
+                                    nodeGroup.querySelectorAll('*').forEach(child => {
+                                        child.style.cursor = 'pointer';
+                                        child.addEventListener('click', collapseHandler, true);
+                                    });
+                                }
+                                return;
+                            }
+                            
+                            // Find target module
+                            let targetModule = null;
+                            let nodeId = svgNodeId;
+                            
+                            // Try to match by node ID
+                            if (svgNodeId && localNodeIdToModule[svgNodeId]) {
+                                targetModule = localNodeIdToModule[svgNodeId];
+                            }
+                            
+                            // Try to match by text
+                            if (!targetModule) {
+                                for (const [linkText, moduleId] of Object.entries(links)) {
+                                    if (fullText.toLowerCase() === linkText.toLowerCase() ||
+                                        fullText.toLowerCase().includes(linkText.toLowerCase())) {
+                                        targetModule = moduleId;
+                                        if (!nodeId) {
+                                            nodeId = labelToNodeId[fullText] || linkText.replace(/\s+/g, '_');
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (targetModule && moduleData[targetModule]) {
+                                processedNodes.add(nodeGroup);
+                                makeNodeBlueAndClickable(nodeGroup, targetModule, fullText, nodeId);
+                            }
+                        });
+                        
+                        // Apply selected styling to subgraphs
+                        if (selectedNodeId && selectedNodeId.endsWith('_sub')) {
+                            const subgraphs = svgEl.querySelectorAll('g.cluster');
+                            subgraphs.forEach(sg => {
+                                const sgId = sg.id || '';
+                                if (sgId.includes(selectedNodeId) || sgId.includes(selectedNodeId.replace('_sub', ''))) {
+                                    sg.classList.add('selected-subgraph');
+                                    const rects = sg.querySelectorAll('rect');
+                                    rects.forEach(rect => {
+                                        rect.setAttribute('stroke', '#10b981');
+                                        rect.setAttribute('stroke-width', '3');
+                                    });
+                                }
+                            });
                         }
-                    });
+                    };
+                    
+                    processNodes();
+                    setTimeout(processNodes, 100);
+                    setTimeout(processNodes, 500);
+                    
+                } catch (error) {
+                    console.error('Error rendering diagram:', error);
+                    diagramDiv.innerHTML = '<p style="color: #dc2626;">Error rendering diagram.</p>';
+                }
+            })();
+        }
+
+        function makeNodeBlueAndClickable(nodeGroup, targetModule, displayText, nodeId) {
+            // Make shapes blue
+            const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+            shapes.forEach(shape => {
+                shape.setAttribute('stroke', '#2563eb');
+                shape.setAttribute('stroke-width', '3');
+                shape.style.setProperty('stroke', '#2563eb', 'important');
+                shape.style.setProperty('stroke-width', '3px', 'important');
+            });
+            
+            // Bold text
+            const texts = nodeGroup.querySelectorAll('text, tspan');
+            texts.forEach(txt => {
+                txt.style.fontWeight = '600';
+            });
+            
+            // Make clickable
+            nodeGroup.style.cursor = 'pointer';
+            nodeGroup.classList.add('clickable-node');
+            nodeGroup.setAttribute('title', `Click to expand: ${displayText}`);
+            nodeGroup.setAttribute('data-node-id', nodeId);
+            
+            const capturedTargetModule = targetModule;
+            const capturedNodeId = nodeId;
+            
+            const clickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                    const targetModuleData = moduleData[capturedTargetModule];
+                    if (targetModuleData.diagram && targetModuleData.diagram.trim()) {
+                        if (!expandedNodes.has(capturedNodeId)) {
+                            expandNodeInline(capturedNodeId, capturedTargetModule);
+                        } else {
+                            selectNode(`${capturedNodeId}_sub`, capturedTargetModule);
+                        }
+                    } else {
+                        selectNode(capturedNodeId, capturedTargetModule);
+                    }
                 }
             };
             
-            // Store listener reference for cleanup
-            content._markdownLinkListener = listener;
+            nodeGroup.addEventListener('click', clickHandler, true);
+            nodeGroup.querySelectorAll('*').forEach(child => {
+                child.style.cursor = 'pointer';
+                child.addEventListener('click', clickHandler, true);
+            });
             
-            // Attach listener
-            content.addEventListener('click', listener);
-        }
-        
-        async function renderMarkdown(markdown) {
-            // Convert markdown to HTML using marked
-            let html = marked.parse(markdown);
+            // Hover effects
+            nodeGroup.addEventListener('mouseenter', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '4px';
+                    }
+                });
+            });
+            nodeGroup.addEventListener('mouseleave', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '3px';
+                    }
+                });
+            });
             
-            // Process mermaid code blocks
-            html = html.replace(
-                /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
-                (match, code) => {
-                    const decodedCode = code
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&amp;/g, '&')
-                        .replace(/&quot;/g, '"')
-                        .replace(/&#39;/g, "'");
-                    return `<div class="mermaid">${decodedCode}</div>`;
-                }
-            );
-            
-            return html;
-        }
-        
-        async function renderMermaidDiagrams() {
-            const mermaidElements = document.querySelectorAll('.mermaid');
-            
-            for (let i = 0; i < mermaidElements.length; i++) {
-                const element = mermaidElements[i];
-                const id = `mermaid-${Date.now()}-${i}`;
-                element.id = id;
-                
-                try {
-                    const { svg } = await mermaid.render(id + '-svg', element.textContent);
-                    element.innerHTML = svg;
-                } catch (error) {
-                    console.error('Mermaid rendering error:', error);
-                    element.innerHTML = `<pre>Error rendering diagram:\n${element.textContent}</pre>`;
-                }
+            // Apply selected styling if this node is selected
+            if (selectedNodeId === nodeId && selectedModuleId === targetModule) {
+                nodeGroup.classList.add('selected-node');
+                shapes.forEach(shape => {
+                    shape.setAttribute('stroke', '#10b981');
+                    shape.setAttribute('stroke-width', '4');
+                    shape.style.setProperty('stroke', '#10b981', 'important');
+                    shape.style.setProperty('stroke-width', '4px', 'important');
+                });
             }
         }
-        
-        function showError(message) {
-            const loading = document.getElementById('loading');
-            const content = document.getElementById('content');
+
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) {
+                console.error(`Module not found: ${moduleId}`);
+                return;
+            }
             
-            loading.style.display = 'none';
-            content.style.display = 'block';
-            content.innerHTML = `
-                <div class="error">
-                    <h3>⚠️ Error</h3>
-                    <p>${message}</p>
-                </div>
-            `;
+            if (currentModule !== moduleId) {
+                navigationHistory.push(currentModule);
+                loadModule(moduleId);
+            }
         }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const previousModule = navigationHistory.pop();
+                if (previousModule && moduleData[previousModule]) {
+                    loadModule(previousModule, true);
+                } else {
+                    navigationHistory = [];
+                    loadModule('overview', true);
+                }
+            } else if (currentModule !== 'overview') {
+                loadModule('overview', true);
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            goBack();
+        });
+
+        // Helper - click node by label (for testing)
+        window.clickNode = function(label) {
+            const nodes = document.querySelectorAll('.clickable-node');
+            for (const node of nodes) {
+                const title = node.getAttribute('title') || '';
+                if (title.toLowerCase().includes(label.toLowerCase())) {
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Keyboard shortcuts - press 1-9 to click on Nth clickable node in diagram
+        // Prioritizes child nodes in expanded subgraphs over their expanded parents
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const keyNum = parseInt(e.key);
+            if (keyNum >= 1 && keyNum <= 9) {
+                // Find all clickable nodes in the current diagram
+                const svg = document.querySelector('#mermaid-diagram svg');
+                if (!svg) return;
+                
+                const allClickableNodes = Array.from(svg.querySelectorAll('.clickable-node'));
+                
+                // Separate nodes: those inside subgraphs (children) vs those outside (parents)
+                const childNodes = [];
+                const parentNodes = [];
+                
+                allClickableNodes.forEach(node => {
+                    // Check if this node is inside a subgraph (cluster)
+                    const isInSubgraph = node.closest('g.cluster') !== null;
+                    if (isInSubgraph) {
+                        childNodes.push(node);
+                    } else {
+                        parentNodes.push(node);
+                    }
+                });
+                
+                // Prioritize child nodes first, then parent nodes
+                const prioritizedNodes = [...childNodes, ...parentNodes];
+                const index = keyNum - 1;
+                
+                if (index < prioritizedNodes.length) {
+                    const node = prioritizedNodes[index];
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                }
+            }
+        });
     </script>
 </body>
 </html>
-

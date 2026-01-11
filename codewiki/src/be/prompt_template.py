@@ -96,6 +96,10 @@ The overview should be a brief documentation of the repository, including:
 - The end-to-end architecture of the repository visualized by mermaid diagrams
 - The references to the core modules documentation
 
+IMPORTANT: When creating links to module documentation, use the module's markdown file name format: [Module Name](module_name.md). 
+For example, if a module is named "chat_module", link to it as [Chat Module](chat_module.md). 
+DO NOT link to source code files - only link to the generated markdown documentation files.
+
 Provide `{repo_name}` repo structure and its core modules documentation:
 <REPO_STRUCTURE>
 {repo_structure}
@@ -209,7 +213,7 @@ Reasoning at first, then return the list of relative paths in JSON format.
 """
 
 from typing import Dict, Any
-from codewiki.src.utils import file_manager
+from codewiki.src.file_manager import file_manager
 
 EXTENSION_TO_LANGUAGE = {
     ".py": "python",

@@ -1,0 +1,105 @@
+{
+  "total_repos": 5,
+  "successful": 5,
+  "failed": 0,
+  "success_rate": 100.0,
+  "timing": {
+    "min": 7.771956920623779,
+    "max": 21.01315426826477,
+    "mean": 12.016322469711303,
+    "median": 10.881592035293579,
+    "stdev": 5.415792444554423
+  },
+  "stage_1_timing": {
+    "min": 0.7285759449005127,
+    "max": 2.794543981552124,
+    "mean": 1.901298189163208,
+    "median": 2.023369073867798
+  },
+  "stage_2_timing": {
+    "min": 0.011944055557250977,
+    "max": 16.407312870025635,
+    "mean": 3.297584962844849,
+    "median": 0.023426055908203125
+  },
+  "files": {
+    "min": 4,
+    "max": 4,
+    "mean": 4,
+    "median": 4
+  },
+  "components": {
+    "min": 82,
+    "max": 675,
+    "mean": 327,
+    "median": 285
+  },
+  "modules": {
+    "min": 10,
+    "max": 10,
+    "mean": 10,
+    "median": 10
+  },
+  "correlations": {
+    "size_vs_duration": 0.5877200971159924,
+    "code_files_vs_duration": -0.12795593016416074,
+    "components_vs_duration": -0.3286017010103726
+  },
+  "repo_details": [
+    {
+      "name": "PowerUtilityDemos",
+      "duration": 21.01315426826477,
+      "files_created": 4,
+      "size_mb": 7.735614776611328,
+      "code_files": 42,
+      "components": 82,
+      "modules": 10,
+      "stage_1_time": 0.7285759449005127,
+      "stage_2_time": 16.407312870025635
+    },
+    {
+      "name": "openai-realtime-console-edit-figjam",
+      "duration": 12.502448081970215,
+      "files_created": 4,
+      "size_mb": 12.582901000976562,
+      "code_files": 234,
+      "components": 675,
+      "modules": 0,
+      "stage_1_time": 2.794543981552124,
+      "stage_2_time": 0.026530742645263672
+    },
+    {
+      "name": "openai-realtime-console-edit-v1-feature",
+      "duration": 10.881592035293579,
+      "files_created": 4,
+      "size_mb": 5.664765357971191,
+      "code_files": 92,
+      "components": 346,
+      "modules": 0,
+      "stage_1_time": 2.023369073867798,
+      "stage_2_time": 0.023426055908203125
+    },
+    {
+      "name": "openai-realtime-console-parser",
+      "duration": 7.771956920623779,
+      "files_created": 4,
+      "size_mb": 0.4966707229614258,
+      "code_files": 76,
+      "components": 285,
+      "modules": 0,
+      "stage_1_time": 1.914245843887329,
+      "stage_2_time": 0.018711090087890625
+    },
+    {
+      "name": "openai-realtime-console-main",
+      "duration": 7.912461042404175,
+      "files_created": 4,
+      "size_mb": 0.3458900451660156,
+      "code_files": 67,
+      "components": 247,
+      "modules": 0,
+      "stage_1_time": 2.0457561016082764,
+      "stage_2_time": 0.011944055557250977
+    }
+  ]
+}

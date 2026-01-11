@@ -1,0 +1,62 @@
+{
+  "timestamp": 1764741775.7417579,
+  "repos": [
+    {
+      "repo_name": "PowerUtilityDemos",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/PowerUtilityDemos",
+      "total_code_files": 42,
+      "size_mb": 7.735614776611328,
+      "success": false,
+      "duration": 1800,
+      "error": "Timeout after 30 minutes",
+      "files_created": 0
+    },
+    {
+      "repo_name": "invoice-audit-dashboard",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/invoice-audit-dashboard",
+      "total_code_files": 141,
+      "size_mb": 29.77445125579834,
+      "success": false,
+      "duration": 1800,
+      "error": "Timeout after 30 minutes",
+      "files_created": 0
+    },
+    {
+      "repo_name": "multimodal-live-api-web-console",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/multimodal-live-api-web-console",
+      "total_code_files": 23,
+      "size_mb": 2.1620264053344727,
+      "success": false,
+      "duration": 1800,
+      "error": "Timeout after 30 minutes",
+      "files_created": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-main",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-main",
+      "total_code_files": 67,
+      "size_mb": 0.3458900451660156,
+      "success": false,
+      "duration": 1800,
+      "error": "Timeout after 30 minutes",
+      "files_created": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-parser",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser",
+      "total_code_files": 76,
+      "size_mb": 0.4966707229614258,
+      "success": false,
+      "duration": 1800,
+      "error": "Timeout after 30 minutes",
+      "files_created": 0
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 0,
+    "failed": 5,
+    "avg_duration": 1800.0,
+    "avg_files_created": 0.0
+  }
+}

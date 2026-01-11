@@ -1,0 +1,262 @@
+{
+  "timestamp": 1764819960.8388228,
+  "repos": [
+    {
+      "repo_name": "PowerUtilityDemos",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/PowerUtilityDemos",
+      "total_code_files": 42,
+      "size_mb": 7.735614776611328,
+      "success": true,
+      "duration": 21.01315426826477,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 10,
+      "component_count": 82,
+      "stage_timings": {
+        "Dependency Analysis": 0.7285759449005127,
+        "Module Clustering": 16.407312870025635
+      },
+      "metrics": {
+        "repo_name": "PowerUtilityDemos",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/PowerUtilityDemos",
+        "repo_size_mb": 362037.4140625,
+        "total_files": 0,
+        "total_code_files": 42,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 0.7285759449005127,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 16.407312870025635,
+            "tokens_used": 3395,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 17.971862077713013,
+        "total_tokens": 3395,
+        "total_files_created": 0,
+        "start_time": 1764819942.656854,
+        "end_time": 1764819960.628716
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: PowerUtilityDemos\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.0s] _analyze_structure complete, 2 files found\n[DEBUG] [DEP] [0.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [0.7s] _analyze_call_graph complete, 82 functions found\n[DEBUG] [DEP] [0.7s] Building components from analysis...\n[DEBUG] [DEP] [0.7s] parse_repository complete: 82 components, 15 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs\n\nStatistics:\n  Total modules:     10\n  Files analyzed:    82\n  Generation time:   0 minutes 19 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/PowerUtilityDemos/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: PowerUtilityDemos, 42 code files, 362037.41 MB\n[DEBUG] [0.8s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [0.7s] Stage 1 complete: 82 components, 81 leaf nodes\n[DEBUG] [1.6s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 81 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 81 leaf nodes, 82 total components\n[DEBUG] [16.4s] Stage 2 complete: 10 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 10\n[DEBUG] Total duration: 18.0s\n[DEBUG] Module names: ['runtime', 'chat', 'fleet_management', 'route_replay', 'theme_management', 'vehicle_info', 'hooks', 'api_endpoints', 'main_page', 'testing']\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-edit-figjam",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam",
+      "total_code_files": 234,
+      "size_mb": 12.582901000976562,
+      "success": true,
+      "duration": 12.502448081970215,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 675,
+      "stage_timings": {
+        "Dependency Analysis": 2.794543981552124,
+        "Module Clustering": 0.026530742645263672
+      },
+      "metrics": {
+        "repo_name": "openai-realtime-console-edit-figjam",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam",
+        "repo_size_mb": 362039.21484375,
+        "total_files": 0,
+        "total_code_files": 234,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 2.794543981552124,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.026530742645263672,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 4.541399240493774,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819947.6339798,
+        "end_time": 1764819952.175379
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: openai-realtime-console-edit-figjam\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [0.9s] _analyze_structure complete, 31 files found\n[DEBUG] [DEP] [0.9s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [2.6s] _analyze_call_graph complete, 675 functions found\n[DEBUG] [DEP] [2.6s] Building components from analysis...\n[DEBUG] [DEP] [2.8s] parse_repository complete: 675 components, 183 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    675\n  Generation time:   0 minutes 11 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-figjam/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: openai-realtime-console-edit-figjam, 234 code files, 362039.21 MB\n[DEBUG] [1.7s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [2.8s] Stage 1 complete: 675 components, 148 leaf nodes\n[DEBUG] [4.5s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 148 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 148 leaf nodes, 675 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 4.5s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-edit-v1-feature",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature",
+      "total_code_files": 92,
+      "size_mb": 5.664765357971191,
+      "success": true,
+      "duration": 10.881592035293579,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 346,
+      "stage_timings": {
+        "Dependency Analysis": 2.023369073867798,
+        "Module Clustering": 0.023426055908203125
+      },
+      "metrics": {
+        "repo_name": "openai-realtime-console-edit-v1-feature",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature",
+        "repo_size_mb": 362038.1171875,
+        "total_files": 0,
+        "total_code_files": 92,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 2.023369073867798,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.023426055908203125,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 3.959029197692871,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819946.591408,
+        "end_time": 1764819950.5504372
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: openai-realtime-console-edit-v1-feature\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.0s] _analyze_structure complete, 26 files found\n[DEBUG] [DEP] [1.0s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [2.0s] _analyze_call_graph complete, 346 functions found\n[DEBUG] [DEP] [2.0s] Building components from analysis...\n[DEBUG] [DEP] [2.0s] parse_repository complete: 346 components, 86 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    346\n  Generation time:   0 minutes 9 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/openai-realtime-console-edit-v1-feature/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: openai-realtime-console-edit-v1-feature, 92 code files, 362038.12 MB\n[DEBUG] [1.9s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [2.0s] Stage 1 complete: 346 components, 86 leaf nodes\n[DEBUG] [3.9s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 86 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 86 leaf nodes, 346 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 4.0s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-parser",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser",
+      "total_code_files": 76,
+      "size_mb": 0.4966707229614258,
+      "success": true,
+      "duration": 7.771956920623779,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 285,
+      "stage_timings": {
+        "Dependency Analysis": 1.914245843887329,
+        "Module Clustering": 0.018711090087890625
+      },
+      "metrics": {
+        "repo_name": "openai-realtime-console-parser",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser",
+        "repo_size_mb": 362037.4765625,
+        "total_files": 0,
+        "total_code_files": 76,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 1.914245843887329,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.018711090087890625,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 3.2501020431518555,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819944.125727,
+        "end_time": 1764819947.375829
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: openai-realtime-console-parser\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.1s] _analyze_structure complete, 21 files found\n[DEBUG] [DEP] [1.1s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [1.9s] _analyze_call_graph complete, 285 functions found\n[DEBUG] [DEP] [1.9s] Building components from analysis...\n[DEBUG] [DEP] [1.9s] parse_repository complete: 285 components, 69 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    285\n  Generation time:   0 minutes 6 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/openai-realtime-console-parser/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: openai-realtime-console-parser, 76 code files, 362037.48 MB\n[DEBUG] [1.3s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [1.9s] Stage 1 complete: 285 components, 74 leaf nodes\n[DEBUG] [3.2s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 74 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 74 leaf nodes, 285 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 3.3s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    },
+    {
+      "repo_name": "openai-realtime-console-main",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-main",
+      "total_code_files": 67,
+      "size_mb": 0.3458900451660156,
+      "success": true,
+      "duration": 7.912461042404175,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "module_count": 0,
+      "component_count": 247,
+      "stage_timings": {
+        "Dependency Analysis": 2.0457561016082764,
+        "Module Clustering": 0.011944055557250977
+      },
+      "metrics": {
+        "repo_name": "openai-realtime-console-main",
+        "repo_path": "/Users/shreyaspatel/Desktop/Code/openai-realtime-console-main",
+        "repo_size_mb": 362037.4765625,
+        "total_files": 0,
+        "total_code_files": 67,
+        "stages": {
+          "Dependency Analysis": {
+            "stage_name": "Dependency Analysis",
+            "duration": 2.0457561016082764,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          },
+          "Module Clustering": {
+            "stage_name": "Module Clustering",
+            "duration": 0.011944055557250977,
+            "tokens_used": 0,
+            "files_created": 0,
+            "files_created_list": []
+          }
+        },
+        "time_to_first_overview": null,
+        "first_overview_file": null,
+        "total_duration": 3.418948173522949,
+        "total_tokens": 0,
+        "total_files_created": 0,
+        "start_time": 1764819944.116212,
+        "end_time": 1764819947.53516
+      },
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: openai-realtime-console-main\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[DEBUG] [DEP] Starting parse_repository at /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main\n[DEBUG] [DEP] [0.0s] Calling _analyze_structure...\n[DEBUG] [DEP] [1.6s] _analyze_structure complete, 19 files found\n[DEBUG] [DEP] [1.6s] Calling _analyze_call_graph...\n[DEBUG] [DEP] [2.0s] _analyze_call_graph complete, 247 functions found\n[DEBUG] [DEP] [2.0s] Building components from analysis...\n[DEBUG] [DEP] [2.0s] parse_repository complete: 247 components, 63 modules\n[2/5] Module Clustering\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    247\n  Generation time:   0 minutes 6 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/openai-realtime-console-main/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "[DEBUG] Repo: openai-realtime-console-main, 67 code files, 362037.48 MB\n[DEBUG] [1.4s] Starting Stage 1: Dependency Analysis\n[DEBUG] [0.0s] Parsing source files...\n[DEBUG] [2.0s] Stage 1 complete: 247 components, 68 leaf nodes\n[DEBUG] [3.4s] Starting Stage 2: Module Clustering\n[DEBUG] [0.0s] Clustering 68 leaf nodes...\n[DEBUG] [0.0s] Calling cluster_modules (this may take a while)...\n[DEBUG] Input: 68 leaf nodes, 247 total components\n[DEBUG] [0.0s] Stage 2 complete: 0 modules created\n\n[DEBUG] ===== STOPPING AT STAGE 2 =====\n[DEBUG] Module count: 0\n[DEBUG] Total duration: 3.4s\n[DEBUG] ===== EXITING AT STAGE 2 =====\n",
+      "returncode": 0
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 5,
+    "failed": 0,
+    "avg_duration": 12.016322469711303,
+    "avg_files_created": 4.0
+  }
+}

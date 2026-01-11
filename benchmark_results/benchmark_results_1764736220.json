@@ -1,0 +1,92 @@
+{
+  "timestamp": 1764736220.000196,
+  "repos": [
+    {
+      "repo_name": "local-postman-server",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/local-postman-server",
+      "total_code_files": 1,
+      "size_mb": 0.0007295608520507812,
+      "success": true,
+      "duration": 22.367804050445557,
+      "files_created": 9,
+      "md_files": 5,
+      "json_files": 4,
+      "has_overview": true,
+      "first_overview_time": 1764735997.5448847,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: local-postman-server\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/local-postman-server/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[2/5] Module Clustering\n[3/5] Documentation Generation\nWarning: IPython is not installed. Mermaidjs magic function is not available.\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/local-postman-server/docs\n\nGenerated files:\n  - ipaddr-js.md\n  - overview.md\n  - safe-buffer.md\n  - first_module_tree.json\n  - metadata.json\n  - module_tree.json\n  - iconv-lite.md\n  - raw-body.md\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    479\n  Generation time:   0 minutes 20 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/local-postman-server/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "repo_name": "miller-analysis",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/miller-analysis",
+      "total_code_files": 4,
+      "size_mb": 0.04296398162841797,
+      "success": true,
+      "duration": 69.66467499732971,
+      "files_created": 9,
+      "md_files": 5,
+      "json_files": 4,
+      "has_overview": true,
+      "first_overview_time": 1764736024.6219065,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: miller-analysis\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/miller-analysis/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[2/5] Module Clustering\n[3/5] Documentation Generation\nWarning: IPython is not installed. Mermaidjs magic function is not available.\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/miller-analysis/docs\n\nGenerated files:\n  - data_analysis.md\n  - loadings.md\n  - overview.md\n  - first_module_tree.json\n  - assumptions.md\n  - metadata.json\n  - post_survey.md\n  - module_tree.json\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    42\n  Generation time:   1 minutes 8 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/miller-analysis/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "repo_name": "amwell-data-scrape",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/amwell-data-scrape",
+      "total_code_files": 1,
+      "size_mb": 0.012493133544921875,
+      "success": true,
+      "duration": 17.151891946792603,
+      "files_created": 4,
+      "md_files": 0,
+      "json_files": 4,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: amwell-data-scrape\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/amwell-data-scrape/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[2/5] Module Clustering\n[3/5] Documentation Generation\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/amwell-data-scrape/docs\n\nGenerated files:\n  - first_module_tree.json\n  - metadata.json\n  - module_tree.json\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    16\n  Generation time:   0 minutes 15 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/amwell-data-scrape/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "repo_name": "epic-ehr-test",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/epic-ehr-test",
+      "total_code_files": 1,
+      "size_mb": 0.0018320083618164062,
+      "success": false,
+      "duration": 230.97384667396545,
+      "files_created": 22,
+      "md_files": 20,
+      "json_files": 2,
+      "has_overview": false,
+      "first_overview_time": null,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: epic-ehr-test\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/epic-ehr-test/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[2/5] Module Clustering\n[3/5] Documentation Generation\nWarning: IPython is not installed. Mermaidjs magic function is not available.\n",
+      "stderr": "[10:00:11] ERROR    Error generating parent documentation for web-streams-polyfill: list index out of range\n[10:00:11] ERROR    Failed to process module web-streams-polyfill: list index out of range\n[10:00:11] WARNING  Module docs not found at /Users/shreyaspatel/Desktop/Code/epic-ehr-test/docs/web-streams-polyfill.md\n[10:00:19] ERROR    Error generating parent documentation for epic-ehr-test: list index out of range\n\u2717 Documentation generation failed: list index out of range\n",
+      "returncode": 4
+    },
+    {
+      "repo_name": "linkedin-scraper",
+      "repo_path": "/Users/shreyaspatel/Desktop/Code/linkedin-scraper",
+      "total_code_files": 1,
+      "size_mb": 0.04641437530517578,
+      "success": true,
+      "duration": 38.67436695098877,
+      "files_created": 5,
+      "md_files": 1,
+      "json_files": 4,
+      "has_overview": true,
+      "first_overview_time": 1764736024.3565278,
+      "stdout": "[1/4] Validating configuration...\n\u2713 Configuration valid\n[2/4] Validating repository...\n\u2713 Repository valid: linkedin-scraper\n\u26a0\ufe0f  Not a git repository. Git features unavailable.\n\u2713 Output directory: /Users/shreyaspatel/Desktop/Code/linkedin-scraper/docs\n[4/4] Generating documentation...\n\n[1/5] Dependency Analysis\n[2/5] Module Clustering\n[3/5] Documentation Generation\nWarning: IPython is not installed. Mermaidjs magic function is not available.\n\n\u2713 Documentation generated successfully!\n\nOutput directory:\n  /Users/shreyaspatel/Desktop/Code/linkedin-scraper/docs\n\nGenerated files:\n  - overview.md\n  - first_module_tree.json\n  - metadata.json\n  - module_tree.json\n\nStatistics:\n  Total modules:     0\n  Files analyzed:    11\n  Generation time:   0 minutes 37 seconds\n\nNext steps:\n\n1. Review the generated documentation:\n   cat /Users/shreyaspatel/Desktop/Code/linkedin-scraper/docs/overview.md\n\n2. Commit the documentation:\n   git add docs/\n   git commit -m \"Add generated documentation\"\n\n3. Push to GitHub:\n   git push origin main\n\n4. Enable GitHub Pages:\n   - Go to repository Settings \u2192 Pages\n   - Source: Deploy from a branch\n   - Branch: main, folder: /docs\n\n",
+      "stderr": "",
+      "returncode": 0
+    }
+  ],
+  "summary": {
+    "total_repos": 5,
+    "successful": 4,
+    "failed": 1,
+    "avg_duration": 75.76651692390442,
+    "avg_files_created": 9.8
+  }
+}

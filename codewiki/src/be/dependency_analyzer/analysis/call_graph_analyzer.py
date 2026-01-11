@@ -78,9 +78,19 @@ class CallGraphAnalyzer:
             List of code file information dictionaries
         """
         code_files = []
+        
+        # Excluded directories - skip these entirely
+        excluded_dirs = {"node_modules", "vendor", "bower_components", ".git", "__pycache__", 
+                         ".venv", "venv", "env", ".env", "dist", "build", "target", "bin", "obj",
+                         ".npm", ".yarn", ".pnpm-store"}
 
         def traverse(tree):
             if tree["type"] == "file":
+                # Check if path contains excluded directories
+                path = tree.get("path", "")
+                if any(excluded in path for excluded in excluded_dirs):
+                    return
+                    
                 ext = tree.get("extension", "").lower()
                 if ext in CODE_EXTENSIONS:
                     name = tree["name"].lower()
@@ -94,6 +104,11 @@ class CallGraphAnalyzer:
                             }
                         )
             elif tree["type"] == "directory" and tree.get("children"):
+                # Skip excluded directories entirely
+                dir_name = tree.get("name", "")
+                if dir_name in excluded_dirs:
+                    return
+                    
                 for child in tree["children"]:
                     traverse(child)
 

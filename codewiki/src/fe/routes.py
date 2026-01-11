@@ -19,7 +19,7 @@ from .cache_manager import CacheManager
 from .templates import WEB_INTERFACE_TEMPLATE
 from .template_utils import render_template
 from .config import WebAppConfig
-from codewiki.src.utils import file_manager
+from codewiki.src.file_manager import file_manager
 
 
 class WebRoutes:

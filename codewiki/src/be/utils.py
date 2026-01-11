@@ -37,6 +37,50 @@ def count_tokens(text: str) -> int:
     return length
 
 
+def count_module_tokens(component_ids: list[str], components: dict[str, any]) -> int:
+    """
+    Count tokens for a set of components using full file contents.
+    
+    This matches how format_user_prompt builds the actual LLM prompt,
+    ensuring consistent token counting between the clustering threshold
+    check and the actual prompt sent to the LLM.
+    
+    Args:
+        component_ids: List of component IDs to count tokens for
+        components: Dictionary mapping component IDs to component objects
+        
+    Returns:
+        Number of tokens for the full file contents
+    """
+    from codewiki.src.file_manager import file_manager
+    
+    # Group components by file path (same logic as format_user_prompt)
+    grouped: dict[str, list[str]] = {}
+    for comp_id in component_ids:
+        if comp_id not in components:
+            continue
+        path = components[comp_id].relative_path
+        if path not in grouped:
+            grouped[path] = []
+        grouped[path].append(comp_id)
+    
+    # Build content string using full files (same as format_user_prompt)
+    content = ""
+    for path, comp_ids_in_file in grouped.items():
+        content += f"# File: {path}\n\n"
+        content += f"## Core Components in this file:\n"
+        for comp_id in comp_ids_in_file:
+            content += f"- {comp_id}\n"
+        content += "\n## File Content:\n"
+        try:
+            content += file_manager.load_text(components[comp_ids_in_file[0]].file_path)
+        except (FileNotFoundError, IOError):
+            pass
+        content += "\n\n"
+    
+    return count_tokens(content)
+
+
 # ------------------------------------------------------------
 # ---------------------- Mermaid Validation -----------------
 # ------------------------------------------------------------

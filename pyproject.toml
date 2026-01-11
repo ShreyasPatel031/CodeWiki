@@ -86,6 +86,7 @@ packages = [
     "codewiki.cli.utils", 
     "codewiki.cli.adapters",
     "codewiki.src",
+    "codewiki.src.utils",
     "codewiki.src.be",
     "codewiki.src.be.agent_tools",
     "codewiki.src.be.dependency_analyzer",

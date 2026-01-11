@@ -23,7 +23,7 @@ from markdown_it import MarkdownIt
 
 from .template_utils import render_template
 from .templates import DOCS_VIEW_TEMPLATE
-from codewiki.src.utils import file_manager
+from codewiki.src.file_manager import file_manager
 
 app = FastAPI(title="Documentation Server", description="Simple documentation server for hosting markdown documentation folders")
 
