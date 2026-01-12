@@ -610,8 +610,15 @@
                 const moduleId = parentPath ? `${parentPath}/${key}` : key;
                 const formattedName = formatModuleName(key);
                 
-                // Generate diagram for this module showing its children
-                const diagram = generateModuleDiagram(key, data);
+                // First try to extract diagram from documentation markdown
+                const docFilename = `${key}.md`;
+                const docContent = DOCS_CONTENT[docFilename] || '';
+                let diagram = extractMermaidFromMarkdown(docContent);
+                
+                // If no diagram in markdown, generate one from children
+                if (!diagram) {
+                    diagram = generateModuleDiagram(key, data);
+                }
                 
                 // Build links for children
                 const links = {};
@@ -624,9 +631,8 @@
                     }
                 }
                 
-                // Try to find documentation file
-                const docFilename = `${key}.md`;
-                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                // Documentation already loaded above
+                const documentation = docContent || `# ${formattedName}\n\nNo documentation available.`;
                 
                 moduleData[moduleId] = {
                     name: formattedName,
@@ -715,6 +721,41 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             buildModuleData();
+        
+        // Test function to simulate clicking a node
+        window.testExpandNode = function(nodeId) {
+            const localNodeIdToModule = {};
+            // Build mapping from currentDiagramCode
+            const nodePattern = /(\w+)(?:\["?([^"\]]+)"?\]|\("?([^"\)]+)"?\)|\{"?([^"\}]+)"?\}|\(\("?([^"\)]+)"?\)\))/g;
+            let match;
+            while ((match = nodePattern.exec(currentDiagramCode)) !== null) {
+                const id = match[1];
+                const label = (match[2] || match[3] || match[4] || match[5] || '').trim();
+                if (label) {
+                    // Map by node ID to module ID
+                    const modId = nodeId.replace(/_/g, '/');
+                    if (moduleData[modId]) {
+                        localNodeIdToModule[id] = modId;
+                    }
+                }
+            }
+            
+            // Find the target module
+            const targetModuleId = nodeId.replace(/_/g, '/');
+            if (moduleData[targetModuleId]) {
+                console.log('Testing expand for:', nodeId, '->', targetModuleId);
+                console.log('Module diagram:', moduleData[targetModuleId].diagram?.substring(0, 100));
+                expandNodeInline(nodeId, targetModuleId);
+            } else {
+                console.error('Module not found:', targetModuleId);
+            }
+        };
+
+        // Debug: log all modules and their diagram status
+        console.warn('[MODULE-DIAGRAMS]', Object.entries(moduleData).map(([k,v]) => 
+            `${k}: ${v.diagram ? 'HAS DIAGRAM (' + v.diagram.substring(0, 50) + '...)' : 'NO DIAGRAM'}`
+        ).join('\n'));
+
             loadModule('overview');
         });
 
