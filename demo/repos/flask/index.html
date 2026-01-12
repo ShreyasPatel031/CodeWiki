@@ -320,6 +320,7 @@
 <body>
     <div class="header">
         <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+
         <div class="title" id="moduleTitle">📚 flask</div>
             <a href="https://github.com/pallets/flask" class="repo-link" target="_blank">🔗 View Repository</a>
             </div>
@@ -928,6 +929,15 @@
             if (!targetModule.diagram) {
                 console.log(`Module ${targetModuleId} has no diagram - just selecting`);
                 selectNode(nodeId, targetModuleId);
+                return;
+            }
+            
+            // Check if the diagram is compatible for inline expansion
+            // Only graph/flowchart diagrams can be inlined into the parent diagram
+            const diagramType = targetModule.diagram.trim().split('\n')[0].toLowerCase();
+            if (!diagramType.startsWith('graph') && !diagramType.startsWith('flowchart')) {
+                console.log(`Module ${targetModuleId} has incompatible diagram type (${diagramType}) - navigating instead`);
+                navigateToModule(targetModuleId);
                 return;
             }
             
