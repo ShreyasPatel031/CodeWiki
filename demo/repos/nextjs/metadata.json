@@ -1,0 +1,26 @@
+{
+    "generation_info": {
+        "timestamp": "2026-01-12T09:44:30.745207",
+        "main_model": "gemini-2.0-flash",
+        "generator_version": "1.0.0",
+        "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/nextjs",
+        "commit_id": null
+    },
+    "statistics": {
+        "total_components": 38133,
+        "leaf_nodes": 932,
+        "max_depth": 10
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "turbopack.md",
+        "part_1.md",
+        "scripts.md",
+        "rspack.md",
+        "part_2.md",
+        "browser_runtime.md",
+        "apps.md"
+    ]
+}

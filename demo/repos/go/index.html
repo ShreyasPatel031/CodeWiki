@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+        
+        .repo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: white;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .repo-link:hover {
+            background: #f8fafc;
+            border-color: #2563eb;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        #mermaid-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .doc-content {
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .doc-content h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .doc-content p {
+            margin-bottom: 1rem;
+            color: #475569;
+        }
+        
+        .doc-content ul, .doc-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .doc-content li {
+            margin: 8px 0;
+        }
+
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            color: #e11d48;
+        }
+        
+        .doc-content pre {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .doc-content pre code {
+            background: transparent;
+            padding: 0;
+            color: #334155;
+        }
+
+        .doc-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 16px 16px 16px 24px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .doc-content th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        /* Make clickable nodes have blue border only - don't change fill or edges */
+        /* High specificity selectors to override Mermaid's inline styles */
+        svg g.node.clickable-node rect,
+        svg g.node.clickable-node circle,
+        svg g.node.clickable-node polygon,
+        svg g.node.clickable-node ellipse,
+        .mermaid g.node.clickable-node rect,
+        .mermaid g.node.clickable-node circle,
+        .mermaid g.node.clickable-node polygon,
+        .mermaid g.node.clickable-node ellipse,
+        #mermaid-diagram g.node.clickable-node rect,
+        #mermaid-diagram g.node.clickable-node circle,
+        #mermaid-diagram g.node.clickable-node polygon,
+        #mermaid-diagram g.node.clickable-node ellipse,
+        g.clickable-node rect,
+        g.clickable-node circle,
+        g.clickable-node polygon,
+        g.clickable-node ellipse,
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path:not(.edgePath *),
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            font-weight: 600 !important;
+        }
+
+        .clickable-node,
+        g.node.clickable-node {
+            cursor: pointer !important;
+        }
+        
+        /* Ensure pointer events work */
+        .clickable-node *,
+        g.node.clickable-node * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        /* Don't change edge colors */
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
+        }
+        
+        /* Selected node/subgraph styling - green border for selected */
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+
+        /* Collapse button styling */
+        .collapse-button rect,
+        .collapse-button circle,
+        .collapse-button polygon {
+            stroke: #dc2626 !important;
+            stroke-width: 2px !important;
+        }
+
+        .collapse-button {
+            cursor: pointer !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .diagram-pane, .doc-pane {
+                width: 100%;
+                height: 50%;
+            }
+            .diagram-pane {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <div class="title" id="moduleTitle">📚 go</div>
+            <a href="https://github.com/golang/go" class="repo-link" target="_blank">🔗 View Repository</a>
+            </div>
+            
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
+                </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
+            </div>
+    </div>
+    
+    <script>
+        // Embedded configuration
+        const CONFIG = {};
+        const MODULE_TREE = {
+  "cgo_testcarchive_testdata": {
+    "path": "src/cmd/cgo/internal/testcarchive/testdata",
+    "components": [
+      "src.cmd.cgo.internal.testcarchive.testdata.main2.sigaction",
+      "src.cmd.cgo.internal.testcarchive.testdata.main2.timespec",
+      "src.cmd.cgo.internal.testcarchive.testdata.main3.sigaction",
+      "src.cmd.cgo.internal.testcarchive.testdata.main3.timespec",
+      "src.cmd.cgo.internal.testcarchive.testdata.main4.sigaction",
+      "src.cmd.cgo.internal.testcarchive.testdata.main4.timespec",
+      "src.cmd.cgo.internal.testcarchive.testdata.main5.timeval",
+      "src.cmd.cgo.internal.testcarchive.testdata.main6.timeval",
+      "src.cmd.cgo.internal.testcarchive.testdata.main_unix.sigaction"
+    ],
+    "children": {}
+  },
+  "cgo_testcshared_testdata": {
+    "path": "src/cmd/cgo/internal/testcshared/testdata",
+    "components": [
+      "src.cmd.cgo.internal.testcshared.testdata.main2.timespec",
+      "src.cmd.cgo.internal.testcshared.testdata.main4.sigaction",
+      "src.cmd.cgo.internal.testcshared.testdata.main4.timespec",
+      "src.cmd.cgo.internal.testcshared.testdata.main5.sigaction",
+      "src.cmd.cgo.internal.testcshared.testdata.main5.timespec"
+    ],
+    "children": {}
+  },
+  "cgo_testlife_testdata": {
+    "path": "src/cmd/cgo/internal/testlife/testdata",
+    "components": [
+      "src.cmd.cgo.internal.testlife.testdata.c-life.GoStart_return"
+    ],
+    "children": {}
+  },
+  "cgo_testplugin_testdata": {
+    "path": "src/cmd/cgo/internal/testplugin/testdata/issue25756/plugin",
+    "components": [
+      "src.cmd.cgo.internal.testplugin.testdata.issue25756.plugin.c-life.GoStart_return"
+    ],
+    "children": {}
+  },
+  "cgo_testsanitizers_testdata": {
+    "path": "src/cmd/cgo/internal/testsanitizers/testdata/tsan_tracebackctxt",
+    "components": [
+      "src.cmd.cgo.internal.testsanitizers.testdata.tsan_tracebackctxt.tracebackctxt_c.cgoTracebackArg",
+      "src.cmd.cgo.internal.testsanitizers.testdata.tsan_tracebackctxt.tracebackctxt_c.cgoSymbolizerArg",
+      "src.cmd.cgo.internal.testsanitizers.testdata.tsan_tracebackctxt.tracebackctxt_c.cgoContextArg"
+    ],
+    "children": {}
+  },
+  "crypto_internal_boring": {
+    "path": "src/crypto/internal/boring",
+    "components": [
+      "src.crypto.internal.boring.goboringcrypto.GO_EVP_PKEY",
+      "src.crypto.internal.boring.goboringcrypto.GO_EVP_PKEY_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_EC_GROUP",
+      "src.crypto.internal.boring.goboringcrypto.GO_SHA512_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_ENGINE",
+      "src.crypto.internal.boring.goboringcrypto.GO_SHA_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_EC_KEY",
+      "src.crypto.internal.boring.goboringcrypto.GO_HMAC_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_BN_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_BIGNUM",
+      "src.crypto.internal.boring.goboringcrypto.GO_SHA256_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_RSA",
+      "src.crypto.internal.boring.goboringcrypto.GO_EVP_AEAD_CTX",
+      "src.crypto.internal.boring.goboringcrypto.GO_EVP_MD",
+      "src.crypto.internal.boring.goboringcrypto.GO_EC_POINT",
+      "src.crypto.internal.boring.goboringcrypto.GO_ECDSA_SIG",
+      "src.crypto.internal.boring.goboringcrypto.GO_BN_GENCB",
+      "src.crypto.internal.boring.goboringcrypto.GO_EVP_AEAD",
+      "src.crypto.internal.boring.goboringcrypto.GO_AES_KEY"
+    ],
+    "children": {}
+  },
+  "debug_dwarf_testdata": {
+    "path": "src/debug/dwarf/testdata",
+    "components": [
+      "src.debug.dwarf.testdata.bitfields.t_another_struct",
+      "src.debug.dwarf.testdata.bitfields.another_struct",
+      "src.debug.dwarf.testdata.cycle.aaa",
+      "src.debug.dwarf.testdata.typedef.t_my_struct",
+      "src.debug.dwarf.testdata.typedef.t_my_struct1",
+      "src.debug.dwarf.testdata.typedef.t_my_list",
+      "src.debug.dwarf.testdata.typedef.t_my_tree",
+      "src.debug.dwarf.testdata.typedef.my_struct",
+      "src.debug.dwarf.testdata.typedef.list",
+      "src.debug.dwarf.testdata.typedef.tree",
+      "src.debug.dwarf.testdata.typedef.my_struct1"
+    ],
+    "children": {}
+  },
+  "regexp_testdata": {
+    "path": "src/regexp/testdata",
+    "components": [
+      "src.regexp.testdata.testregex.Disc_s",
+      "src.regexp.testdata.testregex.Disc_t"
+    ],
+    "children": {}
+  },
+  "runtime_cgo": {
+    "path": "src/runtime/cgo",
+    "components": [
+      "src.runtime.cgo.gcc_context.cgoContextArg",
+      "src.runtime.cgo.gcc_freebsd_sigaction.sigaction",
+      "src.runtime.cgo.gcc_freebsd_sigaction.go_sigset_t",
+      "src.runtime.cgo.gcc_freebsd_sigaction.go_sigaction_t",
+      "src.runtime.cgo.gcc_sigaction.go_sigaction_t",
+      "src.runtime.cgo.gcc_sigaction.sigaction",
+      "src.runtime.cgo.gcc_traceback.cgoTracebackArg",
+      "src.runtime.cgo.libcgo.cgoTracebackArg",
+      "src.runtime.cgo.libcgo.G",
+      "src.runtime.cgo.libcgo.cgoSymbolizerArg",
+      "src.runtime.cgo.libcgo.cgoSetTracebackFunctionsArg",
+      "src.runtime.cgo.libcgo.cgoContextArg",
+      "src.runtime.cgo.libcgo.ThreadStart",
+      "src.runtime.cgo.linux_syscall.argset_t"
+    ],
+    "children": {}
+  },
+  "runtime_gdb": {
+    "path": "src/runtime",
+    "components": [
+      "src.runtime.runtime-gdb.GoIfaceCmd",
+      "src.runtime.runtime-gdb.DTypeFunc",
+      "src.runtime.runtime-gdb.SliceTypePrinter",
+      "src.runtime.runtime-gdb.GoroutineCmd",
+      "src.runtime.runtime-gdb.GoLenFunc",
+      "src.runtime.runtime-gdb.StringTypePrinter",
+      "src.runtime.runtime-gdb.IfacePrinter",
+      "src.runtime.runtime-gdb.ChanTypePrinter",
+      "src.runtime.runtime-gdb.GoroutinesCmd",
+      "src.runtime.runtime-gdb.MapTypePrinter",
+      "src.runtime.runtime-gdb.GoCapFunc",
+      "src.runtime.runtime-gdb.SliceValue"
+    ],
+    "children": {}
+  },
+  "runtime_testdata_testprogcgo": {
+    "path": "src/runtime/testdata/testprogcgo",
+    "components": [
+      "src.runtime.testdata.testprogcgo.gprof_c.cgoContextArg",
+      "src.runtime.testdata.testprogcgo.traceback_c.cgoTracebackArg",
+      "src.runtime.testdata.testprogcgo.traceback_c.cgoSymbolizerArg",
+      "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoContextArg",
+      "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoTracebackArg",
+      "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoSymbolizerArg"
+    ],
+    "children": {
+      "tracebackctxt_c": {
+        "components": [
+          "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoContextArg",
+          "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoTracebackArg",
+          "src.runtime.testdata.testprogcgo.tracebackctxt_c.cgoSymbolizerArg"
+        ],
+        "children": {}
+      },
+      "traceback_c": {
+        "components": [
+          "src.runtime.testdata.testprogcgo.traceback_c.cgoTracebackArg",
+          "src.runtime.testdata.testprogcgo.traceback_c.cgoSymbolizerArg"
+        ],
+        "children": {}
+      }
+    }
+  }
+};
+        const METADATA = {
+  "generation_info": {
+    "timestamp": "2026-01-12T09:51:33.134971",
+    "main_model": "gemini-2.0-flash",
+    "generator_version": "1.0.0",
+    "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/go",
+    "commit_id": null
+  },
+  "statistics": {
+    "total_components": 336,
+    "leaf_nodes": 83,
+    "max_depth": 10
+  },
+  "files_generated": [
+    "overview.md",
+    "module_tree.json",
+    "first_module_tree.json",
+    "regexp_testdata.md",
+    "runtime_cgo.md",
+    "main2.md",
+    "cgo_testcshared_testdata.md",
+    "cycle.md",
+    "typedef.md",
+    "runtime_testdata_testprogcgo.md",
+    "debug_dwarf_testdata.md",
+    "cgo_testcarchive_testdata.md",
+    "Signal Handling.md"
+  ]
+};
+        const DOCS_BASE_PATH = '';
+        const DOCS_CONTENT = {
+  "overview.md": "# Go Repository Overview\n\nThe Go repository contains the source code for the Go programming language, including the compiler, standard library, and related tools. It is the central repository for the development and maintenance of the Go ecosystem.\n\n## Architecture\n\nThe Go repository is organized into several key modules, each responsible for a specific aspect of the language and its tooling. The following diagram provides a high-level overview of the repository's architecture:\n\n```mermaid\ngraph LR\n    A[cmd] --> B(Compiler and Tools)\n    C[runtime] --> D(Go Runtime Environment)\n    E[net] --> F(Networking Library)\n    G[os] --> H(Operating System Interface)\n    I[sync] --> J(Synchronization Primitives)\n    K[testing] --> L(Testing Framework)\n    M[crypto] --> N(Cryptography Library)\n    O[debug] --> P(Debugging Tools)\n    Q[regexp] --> R(Regular Expression Library)\n    S[cgo] --> T(Cgo Tool)\n    subgraph Standard Library\n    F -- H -- J -- N -- R\n    end\n    B -- D\n    P -- D\n    T -- D\n```\n\n## Core Modules\n\nThe Go repository includes the following core modules:\n\n*   **[cmd](cmd.md)**: Contains the source code for the Go compiler (`go`) and other command-line tools like `go fmt`, `go vet`, and `go doc`.\n*   **[runtime](runtime.md)**: Implements the Go runtime environment, including memory management (garbage collection), concurrency (goroutines and channels), and low-level system interactions.\n*   **Standard Library**: A comprehensive set of packages providing essential functionalities such as networking ([net](net.md)), operating system interfaces ([os](os.md)), synchronization primitives ([sync](sync.md)), cryptography ([crypto](crypto.md)), regular expressions ([regexp](regexp.md)), and testing ([testing](testing.md)).\n*   **[debug](debug.md)**: Provides debugging tools and utilities, including support for DWARF debugging information.\n*   **[cgo](cgo.md)**: Enables Go programs to call C code and vice versa.\n\n## Key Sub-modules Documentation\n\nThe following modules have detailed documentation available:\n\n*   [cgo_testcarchive_testdata](cgo_testcarchive_testdata.md)\n*   [cgo_testcshared_testdata](cgo_testcshared_testdata.md)\n*   [debug_dwarf_testdata](debug_dwarf_testdata.md)\n*   [regexp_testdata](regexp_testdata.md)\n*   [runtime_cgo](runtime_cgo.md)\n*   [runtime_testdata_testprogcgo](runtime_testdata_testprogcgo.md)",
+  "regexp_testdata.md": "# regexp_testdata Module Documentation\n\n## Introduction\n\nThe `regexp_testdata` module primarily serves as a test suite for regular expression functionalities. It defines data structures necessary for testing and benchmarking regular expression engines.\n\n## Architecture\n\nThe module revolves around a central data structure, `Disc_t`, used to manage regular expression testing within a specific discipline. This structure holds vital context for the tests, facilitating organized and repeatable testing.\n\n```mermaid\nclassDiagram\n    class Disc_t {\n        regdisc_t disc\n        int ordinal\n        Sfio_t* sp\n    }\n    class regdisc_t\n    class Sfio_t\n\n    Disc_t -- regdisc_t : contains\n    Disc_t -- Sfio_t : contains\n\n```\n\n### Component Details\n\n#### `Disc_t`\n\nThis structure is the core of the module, it is defined as:\n\n```c\ntypedef struct Disc_s\n{\n\tregdisc_t\tdisc;\n\tint\t\tordinal;\n\tSfio_t*\tsp;\n} Disc_t;\n```\n\n*   `disc`: An instance of `regdisc_t`, likely containing discipline-specific information for regular expression operations.\n*   `ordinal`: An integer representing the ordinal number or index of the discipline.\n*   `sp`: A pointer to an `Sfio_t` stream, probably used for input/output operations during regular expression testing.\n\n## Relationships to Other Modules\n\nWhile this module primarily focuses on testing regular expressions, it doesn't have direct dependencies on other modules in the provided module tree. However, it is possible that the `Sfio_t` type has its definitions and implementations in another module not present in the provided module tree. The `regexp_testdata` module relies on external functionalities for regular expression processing and input/output operations, which would typically reside in separate modules dedicated to those tasks.\n",
+  "runtime_cgo.md": "# runtime_cgo Module Documentation\n\n## Introduction\n\nThe `runtime_cgo` module provides the necessary functionality for Go programs to interact with C code. It enables calling C functions from Go and vice versa, allowing Go programs to leverage existing C libraries and system interfaces. This module handles the complexities of data conversion, memory management, and signal handling between the Go runtime and the C environment.\n\n## Architecture\n\nThe `runtime_cgo` module can be conceptually divided into several sub-modules, each responsible for a specific aspect of CGO integration:\n\n- **Context Management:** Handles the creation and management of C contexts.\n- **Signal Handling:**  Deals with signal handling between Go and C, ensuring proper signal delivery and execution.\n- **Traceback Generation:** Provides support for generating tracebacks that include both Go and C code.\n- **Thread Management:** Manages the creation and execution of threads when interacting with C code.\n- **System Calls:** Provides support for making system calls from C code.\n\n```mermaid\ngraph LR\n    subgraph runtime_cgo\n        A[Context Management] --> E(Signal Handling)\n        A --> F(Traceback Generation)\n        A --> G(Thread Management)\n        A --> H(System Calls)\n    end\n```\n\n## Sub-modules Functionality\n\n### Context Management\n\nThis sub-module is responsible for managing the C context required for CGO calls. It includes the `cgoContextArg` structure, which is used to pass context information between Go and C. See [Context Management Documentation](context_management.md) for more details.\n\n### Signal Handling\n\nThis sub-module handles signal delivery and execution within the CGO environment. It includes structures like `sigaction`, `go_sigset_t`, and `go_sigaction_t` to manage signal handlers and masks. See [Signal Handling Documentation](signal_handling.md) for more details.\n\n### Traceback Generation\n\nThis sub-module provides the functionality to generate tracebacks that include both Go and C code. It uses structures like `cgoTracebackArg` and `cgoSymbolizerArg` to collect information about the call stack and symbol names. See [Traceback Generation Documentation](traceback_generation.md) for more details.\n\n### Thread Management\n\nThis sub-module manages the creation and execution of threads when interacting with C code. It includes the `ThreadStart` structure, which is used to start new threads with a specified Go function and TLS. See [Thread Management Documentation](thread_management.md) for more details.\n\n### System Calls\n\nThis sub-module supports making system calls from C code, using the `argset_t` structure to pass arguments and retrieve return values. See [System Calls Documentation](system_calls.md) for more details.\n\n## Integration with Other Modules\n\nThe `runtime_cgo` module interacts with other Go runtime modules to provide complete CGO functionality. These interactions include:\n\n- **runtime:** The `runtime` module provides the Go runtime environment, including memory management, garbage collection, and scheduling.\n\n## Notes\n\nThe specifics of signal handling may vary depending on the target operating system (e.g., FreeBSD, Linux).\n",
+  "main2.md": "# Main2 Module Documentation\n\n## Introduction\n\nThis module, `main2`, is part of the `cgo_testcarchive_testdata` package and focuses on testing the `cgo` tool's ability to handle struct definitions when creating archives. It defines and uses structures related to signal handling and time specifications, specifically `sigaction` and `timespec`. These structures are commonly used in Unix-like systems for asynchronous signal handling and precise time management.\n\n## Architecture\n\nThe module primarily deals with the declaration of two C structures: `sigaction` and `timespec`. These structures are used within the larger test suite to verify `cgo`'s handling of C structures when creating static archives.\n\n```mermaid\nclassDiagram\n    main2 --|> sigaction : Defines\n    main2 --|> timespec : Defines\n    class main2{\n        \n    }\n    class sigaction{\n        //Refer to main_unix.md for details\n    }\n    class timespec{\n       //Refer to main4.md for details\n    }\n\n```\n\n## Component Details\n\n### sigaction\n\n*   **Definition:** `struct sigaction sa;` (Line 98)\n*   **Description:** This structure is fundamental to POSIX signal handling. It allows a process to specify the action to be taken upon receiving a specific signal. The `sigaction` structure includes fields to specify a signal handler function, a set of signals to be blocked during the execution of the handler, and a set of flags that modify the behavior of the signal handling.\n*   **See Also:** For detailed information about the `sigaction` structure, refer to the [main_unix module documentation](main_unix.md), where `sigaction` is also used and potentially described in more detail.\n\n### timespec\n\n*   **Definition:** `struct timespec ts;` (Line 125)\n*   **Description:** The `timespec` structure is used to represent time with nanosecond precision. It is commonly used in system calls dealing with time, such as `clock_gettime` and `nanosleep`. It contains fields for seconds and nanoseconds.\n*   **See Also:** For detailed information about the `timespec` structure, refer to the [main4 module documentation](main4.md), where `timespec` is also used and potentially described in more detail.\n\n## Module Relationships\n\nThis module is closely related to other `mainX` modules within the `cgo_testcarchive_testdata` package, such as `main3`, `main4`, and `main_unix`. These modules likely share similar goals of testing `cgo` with different structure definitions. The `sigaction` structure is also present in `main_unix`, and the `timespec` structure is also present in `main3` and `main4`.\n\n```mermaid\ngraph TD\n    main2 --> main_unix\n    main2 --> main3\n    main2 --> main4\n    subgraph cgo_testcarchive_testdata\n        main2\n        main3\n        main4\n        main_unix\n    end\n    \n    style main2 fill:#f9f,stroke:#333,stroke-width:2px\n    style main3 fill:#ccf,stroke:#333,stroke-width:2px\n    style main4 fill:#ccf,stroke:#333,stroke-width:2px\n    style main_unix fill:#ccf,stroke:#333,stroke-width:2px\n\n\n```\n\n## Usage\n\nThe `main2` module, as part of the `cgo_testcarchive_testdata` test suite, doesn't have direct usage in application code. Instead, it is used internally by the Go toolchain to ensure that `cgo` correctly handles C structure definitions during archive creation.\n",
+  "cgo_testcshared_testdata.md": "# cgo_testcshared_testdata Module Documentation\n\n## Overview\n\nThe `cgo_testcshared_testdata` module contains test data and C code snippets used for testing the `cgo` tool, specifically focusing on scenarios involving shared libraries. It provides various C structs like `timespec` and `sigaction` to validate the behavior of `cgo` when interacting with C code in shared library contexts.\n\n## Architecture\n\nThe module consists of several C files (e.g., `main2.c`, `main4.c`, `main5.c`), each containing different test cases. These test cases often involve the definition and usage of C structs. The module's architecture is relatively simple, with each C file representing a distinct test scenario.\n\n```mermaid\ngraph LR\n    subgraph cgo_testcshared_testdata\n        main2(main2.c) --> timespec2(timespec)\n        main4(main4.c) --> sigaction4(sigaction)\n        main4 --> timespec4(timespec)\n        main5(main5.c) --> sigaction5(sigaction)\n        main5 --> timespec5(timespec)\n    end\n    style cgo_testcshared_testdata fill:#f9f,stroke:#333,stroke-width:2px\n    style main2 fill:#ccf,stroke:#333,stroke-width:2px\n    style main4 fill:#ccf,stroke:#333,stroke-width:2px\n    style main5 fill:#ccf,stroke:#333,stroke-width:2px\n    style timespec2 fill:#ddf,stroke:#333,stroke-width:2px\n    style sigaction4 fill:#ddf,stroke:#333,stroke-width:2px\n    style timespec4 fill:#ddf,stroke:#333,stroke-width:2px\n    style sigaction5 fill:#ddf,stroke:#333,stroke-width:2px\n    style timespec5 fill:#ddf,stroke:#333,stroke-width:2px\n\n\n```\n\n## Core Functionality\n\n*   **main2.c:** Defines and uses the `timespec` struct. See [main2.md](main2.md) for details.\n*   **main4.c:** Defines and uses the `sigaction` and `timespec` structs. See [main4.md](main4.md) for details.\n*   **main5.c:** Defines and uses the `sigaction` and `timespec` structs. See [main5.md](main5.md) for details.\n\n## Relationship to Other Modules\n\nThis module is part of the `cmd/cgo` toolchain and is used for testing. It shares some common C struct definitions (e.g., `sigaction`, `timespec`) with other `cgo` test modules, such as `cgo_testcarchive_testdata`, but the specific test scenarios and usage may differ.\n",
+  "cycle.md": "# Cycle Module Documentation\n\n## Introduction\n\nThe `cycle` module, located within the `debug_dwarf_testdata` package, is designed to test the DWARF debugging information generation for programs containing cyclic data structures. Specifically, it examines how the debugger handles structures that refer to each other, creating a cycle.\n\n## Architecture\n\nThe module consists of a single core component, `src.debug.dwarf.testdata.cycle.aaa`, which defines a structure `aaa` containing a member `val` of type `BBB`. The `BBB` type is assumed to be defined elsewhere (likely in another file within the same `testdata` directory) and refers back to `aaa`, creating a cycle.\n\n```mermaid\ngraph TD\n    A[aaa] -- val --> B[BBB]\n    B --> A\n```\n\n## Component Details\n\n### src.debug.dwarf.testdata.cycle.aaa\n\nThis component defines the structure `aaa`:\n\n```c\nstruct aaa { BBB val; };\n```\n\nIt contains a single field `val` of type `BBB`. This structure is part of a larger test case designed to evaluate how debuggers handle cyclic data structures.\n\n## Relationships with Other Modules\n\nThis module is a part of the `debug_dwarf_testdata` module. It shares the same parent directory with the [bitfields](bitfields.md) and [typedef](typedef.md) modules, and likely interacts with them or other modules within the `debug_dwarf_testdata` when running complete test scenarios for DWARF generation.\n\n## Data Flow\n\nThe module itself does not involve complex data flows. It primarily serves as a data structure definition for testing purposes. The data flow would occur during debugging, when the debugger attempts to inspect instances of the `aaa` structure and navigate the cyclic relationship between `aaa` and `BBB`.\n\n## Usage\n\nThis module is used as part of the test suite for the DWARF debugging information generator. It helps ensure that the debugger can correctly handle cyclic data structures, providing accurate information about the structure's members and relationships.\n",
+  "typedef.md": "# debug_dwarf_testdata - typedef Module Documentation\n\n## Introduction\n\nThis module, `typedef`, is part of the `debug_dwarf_testdata` suite and focuses on testing the handling of typedefs in DWARF debugging information. It defines several structures and typedefs, including `t_my_struct`, `t_my_struct1`, `t_my_list`, and `t_my_tree`, to represent different data structures and their type definitions. This module is designed to verify that debuggers can correctly interpret and display variables and data structures that involve typedefs.\n\n## Architecture\n\nThe module consists of a single C file (`typedef.c`) that defines several structs and their corresponding typedefs. The primary purpose is to create a variety of typedef scenarios for testing DWARF debugging capabilities.\n\n```mermaid\nclassDiagram\n    direction LR\n    class t_my_struct {\n        volatile int vi\n        char x : 1\n        int y : 4\n        int z[0]\n        long long array[40]\n        int zz[0]\n    }\n    class my_struct {\n        volatile int vi\n        char x : 1\n        int y : 4\n        int z[0]\n        long long array[40]\n        int zz[0]\n    }\n    class t_my_struct1 {\n        int zz[1]\n    }\n    class my_struct1 {\n        int zz[1]\n    }\n    class t_my_list\n    class list {\n        short val\n        t_my_list *next\n    }\n    class t_my_tree {\n     struct tree *left\n     struct tree *right\n        unsigned long long val\n    }\n    class tree {\n     struct tree *left\n     struct tree *right\n    }\n\n    t_my_struct -- my_struct : typedef\n    t_my_struct1 -- my_struct1 : typedef\n    t_my_list -- list : typedef\n    t_my_tree -- tree : typedef\n\n    list -- t_my_list : next\n    t_my_tree -- tree : left, right\n\n\n\n```\n\n## Component Details\n\n### 1. `t_my_struct` and `my_struct`\n\n```c\ntypedef struct my_struct {\n\tvolatile int vi;\n\tchar x : 1;\n\tint y : 4;\n\tint z[0];\n\tlong long array[40];\n\tint zz[0];\n} t_my_struct;\n```\n\n- `t_my_struct` is a typedef for `struct my_struct`.\n- `my_struct` contains a volatile integer (`vi`), bit fields (`x`, `y`), zero-length arrays (`z`, `zz`), and a large array (`array`).\n- The purpose is to test the debugger's ability to handle various data types and array sizes within a struct, as well as bitfields and volatile variables.\n\n### 2. `t_my_struct1` and `my_struct1`\n\n```c\ntypedef struct my_struct1 {\n\tint zz [1];\n} t_my_struct1;\n```\n\n- `t_my_struct1` is a typedef for `struct my_struct1`.\n- `my_struct1` contains a single-element integer array.\n- This tests the debugger's handling of simple structs with small arrays.\n\n### 3. `t_my_list` and `list`\n\n```c\ntypedef struct list t_my_list;\n\nstruct list {\n\tshort val;\n\tt_my_list *next;\n};\n```\n\n- `t_my_list` is a typedef for `struct list`.\n- `list` represents a node in a linked list, containing a short value (`val`) and a pointer (`next`) to the next node.\n- This tests the debugger's ability to handle forward declarations and linked data structures.\n\n### 4. `t_my_tree` and `tree`\n\n```c\ntypedef struct tree {\n\tstruct tree *left, *right;\n\tunsigned long long val;\n} t_my_tree;\n```\n\n- `t_my_tree` is a typedef for `struct tree`.\n- `tree` represents a node in a binary tree, containing pointers to the left and right child nodes and an unsigned long long value.\n- This tests the debugger's handling of self-referential structures and tree-like data structures.\n\n## Data Flow\n\nThere isn't explicit data flow in the sense of a running program. This module primarily defines data structures. However, a debugger might traverse these structures to inspect their contents. For example, when inspecting a `t_my_list`, the debugger would follow the `next` pointer to iterate through the list.\n\n```mermaid\nsequenceDiagram\n    participant Debugger\n    participant t_my_list\n    participant list\n\n    Debugger->>t_my_list: Inspect t_my_list instance\n    activate t_my_list\n    t_my_list->>list: Access list members (val, next)\n    activate list\n    list-->>Debugger: Return val and next pointer\n    deactivate list\n    alt next != NULL\n    Debugger->>t_my_list: Inspect next t_my_list instance\n    activate t_my_list\n    t_my_list->>list: Access list members (val, next)\n    activate list\n    list-->>Debugger: Return val and next pointer\n    deactivate list\n    deactivate t_my_list\n    else next == NULL\n    deactivate t_my_list\n    end\n\n```\n\n## Relationships to Other Modules\n\nThis module is part of the `debug_dwarf_testdata` suite. It is related to other modules like `bitfields` ([bitfields.md]) and `cycle` ([cycle.md]) in that they all serve as test cases for the DWARF debugging information. This module focuses specifically on typedefs, while others test different aspects of DWARF, such as bitfields or cyclic data structures.\n\n## Usage\n\nThis module is not intended for direct use in applications. Instead, it provides data structures that are inspected by debuggers to verify their correct handling of DWARF debugging information related to typedefs.\n",
+  "runtime_testdata_testprogcgo.md": "# runtime_testdata_testprogcgo\n\nThis module contains test data and C code to test CGO functionality within the Go runtime. It specifically focuses on testing aspects like profiling with gprof and generating/handling tracebacks in CGO scenarios. The tests within this module verify that the Go runtime correctly interacts with C code, particularly when dealing with function calls between Go and C.\n\n## Architecture\n\nThis module primarily consists of C files that define functions callable from Go code via CGO. These C functions often manipulate data structures passed from Go or trigger scenarios that test the runtime's behavior. Below is a high-level diagram of the module's architecture.\n\n```mermaid\ngraph LR\n    subgraph C Files\n        gprof_c([gprof_c.c])\n        traceback_c([traceback_c.c])\n        tracebackctxt_c([tracebackctxt_c.c])\n    end\n\n    subgraph Go Runtime\n        CGO\n        Go_Code([Go Test Code])\n    end\n\n    Go_Code --> CGO\n    CGO --> gprof_c\n    CGO --> traceback_c\n    CGO --> tracebackctxt_c\n\n    style C Files fill:#f9f,stroke:#333,stroke-width:2px\n    style Go Runtime fill:#ccf,stroke:#333,stroke-width:2px\n\n```\n\n## Sub-modules and Functionality\n\n*   **gprof_c:** This sub-module (`gprof_c.c`) contains C code related to testing profiling functionality with `gprof`. It includes definitions necessary for interacting with the Go runtime and verifying that profiling data is correctly generated.\n*   **traceback_c:** This sub-module (`traceback_c.c`) provides C functions for testing traceback generation in CGO scenarios. These functions are called from Go test code to trigger specific conditions and verify the correctness of the generated tracebacks. See [traceback_c.md](traceback_c.md) for more details.\n*   **tracebackctxt_c:** Similar to `traceback_c`, the `tracebackctxt_c` sub-module (`tracebackctxt_c.c`) focuses on testing tracebacks, but it seems to emphasize context handling during traceback generation. See [tracebackctxt_c.md](tracebackctxt_c.md) for more details. \n",
+  "debug_dwarf_testdata.md": "# debug_dwarf_testdata Module Documentation\n\n## Overview\n\nThe `debug_dwarf_testdata` module provides a collection of C data structures used for testing the `debug/dwarf` package in Go. It includes various data types, such as structures with bitfields, typedefs, and cyclic dependencies, which are designed to test the DWARF expression evaluation and type parsing capabilities of the `debug/dwarf` package.\n\n## Architecture\n\nThe module consists of several sub-modules, each focusing on a specific aspect of DWARF testing. The relationships between these sub-modules are illustrated below:\n\n```mermaid\ngraph TD\n    A[bitfields] --> B[typedef]\n    B --> C[cycle]\n```\n\n### Sub-modules:\n\n- **bitfields**: Contains structures with bitfield members. See [bitfields.md](bitfields.md) for details.\n- **typedef**: Defines various typedefs, including structs and lists. See [typedef.md](typedef.md) for details.\n- **cycle**: Defines structs with cyclic dependencies. See [cycle.md](cycle.md) for details.\n\n## Core Functionality\n\nThe `debug_dwarf_testdata` module serves as a data source for tests in the `debug/dwarf` package. It defines a variety of C data structures with different complexities and features. These data structures are then compiled into object files, and the DWARF debugging information embedded in these files is used by the `debug/dwarf` package to test its ability to parse and interpret DWARF data.\n",
+  "cgo_testcarchive_testdata.md": "# cgo_testcarchive_testdata Module Documentation\n\n## Overview\n\nThe `cgo_testcarchive_testdata` module contains test data and C code used to test the `cgo` tool's archive functionality. It includes several `mainX.c` files and `main_unix.c`, each focusing on different aspects of signal handling, time management, and interaction with the operating system. This module is crucial for ensuring the correct behavior of `cgo` when creating and using C archives.\n\n## Architecture\n\nThe module consists of multiple C files, each acting as a separate test case. These files primarily define `struct sigaction` and `struct timespec` variables and demonstrate their usage in various contexts. The `main_unix.c` file contains unix-specific code, dealing with signal actions.\n\n```mermaid\ngraph LR\n    subgraph cgo_testcarchive_testdata\n        main2[main2.c] --> sigaction2((sigaction))\n        main2 --> timespec2((timespec))\n        main3[main3.c] --> sigaction3((sigaction))\n        main3 --> timespec3((timespec))\n        main4[main4.c] --> sigaction4((sigaction))\n        main4 --> timespec4((timespec))\n        main5[main5.c] --> timeval5((timeval))\n        main6[main6.c] --> timeval6((timeval))\n        main_unix[main_unix.c] --> sigaction_unix((sigaction))\n    end\n\n    style sigaction2 fill:#f9f,stroke:#333,stroke-width:2px\n    style timespec2 fill:#f9f,stroke:#333,stroke-width:2px\n    style sigaction3 fill:#f9f,stroke:#333,stroke-width:2px\n    style timespec3 fill:#f9f,stroke:#333,stroke-width:2px\n    style sigaction4 fill:#f9f,stroke:#333,stroke-width:2px\n    style timespec4 fill:#f9f,stroke:#333,stroke-width:2px\n    style timeval5 fill:#f9f,stroke:#333,stroke-width:2px\n    style timeval6 fill:#f9f,stroke:#333,stroke-width:2px\n    style sigaction_unix fill:#f9f,stroke:#333,stroke-width:2px\n\n\n```\n\n## Functionality\n\n- **main2.c**: Defines `struct sigaction` and `struct timespec`.\n- **main3.c**: Defines `struct sigaction` and `struct timespec`.\n- **main4.c**: Defines `struct sigaction` and `struct timespec`.\n- **main5.c**: Defines `struct timeval`.\n- **main6.c**: Defines `struct timeval`.\n- **main_unix.c**: Defines `struct sigaction`.\n\n## Core Components\n\n- `sigaction`: Structure for defining signal handling actions.\n- `timespec`: Structure for specifying time intervals with nanosecond precision.\n- `timeval`: Structure for specifying time intervals with microsecond precision.\n\n## Relationships to Other Modules\n\nThis module is related to the `runtime_cgo` module as it tests the C-Go interface, especially signal handling aspects. Refer to the [runtime_cgo.md](runtime_cgo.md) documentation for more details on the runtime aspects of C-Go integration.\n",
+  "Signal Handling.md": "# Signal Handling\n\n## Introduction\n\nThis module focuses on signal handling within the `runtime/cgo` package. It provides the necessary structures and functions to manage signals when Go code interacts with C code using cgo. Signal handling is crucial for maintaining the stability and predictability of applications that rely on both Go and C components. This documentation outlines the key components involved in signal management, their relationships, and how they contribute to the overall system.\n\n## Overview\n\nSignal handling in `runtime/cgo` involves defining signal actions, managing signal masks, and ensuring that signals are delivered and processed correctly. The module deals with the differences in signal handling mechanisms between Go and C, particularly in the context of cgo, where Go code calls C code and vice versa.\n\n## Architecture\n\nThe architecture of the Signal Handling module revolves around the `sigaction` structure, `go_sigaction_t` and `go_sigset_t`. These structures are used to define the action to be taken when a signal is received, the set of signals to block during the execution of a signal handler, and related signal information.\n\n```mermaid\nclassDiagram\n    go_sigaction_t -- go_sigset_t : has\n    class go_sigaction_t{\n        uintptr_t handler\n        int32_t flags\n        go_sigset_t mask\n    }\n    class go_sigset_t{\n        uint32_t __bits[_SIG_WORDS]\n    }\n    class sigaction{\n    }\n    class main2_sigaction{\n\t\tstruct sigaction sa\n\t}\n    class main3_sigaction{\n\t\tstruct sigaction sa\n\t}\n    class main4_sigaction{\n\t\tstruct sigaction sa\n\t}\n    class main_unix_sigaction{\n\t\tstruct sigaction osa\n\t}\n    class main4_sigaction_testcshared{\n\t\tstruct sigaction sa\n\t}\n    class main5_sigaction_testcshared{\n\t\tstruct sigaction sa\n\t}\n\n\n    \n\n\n```\n\n## Component Details\n\n### 1. `sigaction` Structure\n\n- **Location:** `src/runtime/cgo/gcc_freebsd_sigaction.c`, `src/runtime/cgo/gcc_sigaction.c`, `src/cmd/cgo/internal/testcarchive/testdata/main2.c`, `src/cmd/cgo/internal/testcarchive/testdata/main3.c`, `src/cmd/cgo/internal/testcarchive/testdata/main4.c`, `src/cmd/cgo/internal/testcarchive/testdata/main_unix.c`, `src/cmd/cgo/internal/testcshared/testdata/main4.c`, `src/cmd/cgo/internal/testcshared/testdata/main5.c`\n- **Description:** This structure, part of the standard C library, defines how a signal is handled. It typically includes a handler function (or a predefined action) and a set of flags.\n- **Usage:** Used to set up signal handlers for specific signals.\n\n### 2. `go_sigaction_t` Structure\n\n- **Location:** `src/runtime/cgo/gcc_freebsd_sigaction.c`, `src/runtime/cgo/gcc_sigaction.c`\n- **Description:** This structure represents a Go-compatible signal action.\n- **Fields:**\n  - `handler`: A uintptr_t representing the signal handler function.\n  - `flags`: Flags associated with the signal action.\n  - `mask`: A `go_sigset_t` representing the signal mask.\n\n### 3. `go_sigset_t` Structure\n\n- **Location:** `src/runtime/cgo/gcc_freebsd_sigaction.c`\n- **Description:** Represents a set of signals to be blocked during the execution of a signal handler.\n- **Fields:**\n  - `__bits`: An array of `uint32_t` representing the signal set.\n\n## Data Flow\n\nThe data flow in signal handling involves setting up signal actions, receiving signals, and executing the corresponding handlers. When a signal is received, the operating system consults the `sigaction` structure (or its Go equivalent, `go_sigaction_t`) to determine the appropriate action. The signal mask is applied to block certain signals during the execution of the handler.\n\n```mermaid\nsequenceDiagram\n    participant OS as Operating System\n    participant Process as Go/Cgo Process\n    participant SignalHandler as Signal Handler Function\n\n    OS->>Process: Signal Received\n    Process->>Process: Consult sigaction/go_sigaction_t\n    Process->>Process: Apply Signal Mask\n    Process->>SignalHandler: Execute Handler\n    SignalHandler->>Process: Return\n    Process->>Process: Restore Signal Mask\n```\n\n## Relationships to Other Modules\n\nThe Signal Handling module interacts closely with other modules within the `runtime/cgo` package. Specifically, it relates to:\n\n- **Context Management:** The execution context of signal handlers might require coordination with context management to ensure proper state and resource handling. See [Context Management](Context Management.md).\n- **Thread Management:** Signal handling can affect thread execution, especially when signals interrupt C code running in separate threads. See [Thread Management](Thread Management.md).\n\n## Notes\n\nThe `sigaction` structures found in `src/cmd/cgo/internal/testcarchive/testdata` and `src/cmd/cgo/internal/testcshared/testdata` are primarily used for testing purposes within the cgo toolchain. They demonstrate how signal handling is set up and used in specific test cases.\n"
+};
+        const REPO_TITLE = 'go';
+
+        // State management
+        let currentModule = 'overview';
+        let navigationHistory = [];
+        let expandedNodes = new Map(); // Track expanded nodes: nodeId -> {originalLabel, targetModuleId, subgraphId}
+        let currentDiagramCode = '';
+        let baseDiagramCode = '';
+        let selectedNodeId = null;
+        let selectedModuleId = null;
+        
+        // Module data structure (built from MODULE_TREE)
+        let moduleData = {};
+        let nodeIdToModule = {}; // Maps node IDs to module keys
+        let moduleLinkMap = {}; // Maps module names to their links
+
+        // Initialize marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+        
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Build module data from MODULE_TREE
+        function buildModuleData() {
+            // Create overview module - prefer extracted diagram from overview.md
+            const fallbackDiagram = generateOverviewDiagram();
+            const overviewMd = DOCS_CONTENT['overview.md'] || '';
+            const extractedDiagram = extractMermaidFromMarkdown(overviewMd);
+            const overviewDiagram = extractedDiagram || fallbackDiagram;
+            
+            const overviewLinks = {};
+            
+            // Build links for overview - each top-level module is a link
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const formattedName = formatModuleName(key);
+                overviewLinks[formattedName] = key;
+            }
+            
+            // If using extracted diagram, also build links from diagram node labels
+            if (extractedDiagram) {
+                // Parse all node definitions: A[text], A(text), A{text}, A((text))
+                const nodePattern = /([A-Za-z_][A-Za-z0-9_]*)\s*(?:\["?([^"\]]+)"?\]|\("?([^"\)]+)"?\)|\{"?([^"\}]+)"?\}|\(\("?([^"\)]+)"?\)\))/g;
+                let match;
+                while ((match = nodePattern.exec(extractedDiagram)) !== null) {
+                    const label = (match[2] || match[3] || match[4] || match[5] || '').trim();
+                    if (!label) continue;
+                    
+                    // Try to match label to a module in MODULE_TREE
+                    const labelLower = label.toLowerCase();
+                    // Convert "torch.nn" to "torch_nn" for matching
+                    const labelNormalized = labelLower.replace(/[^a-z0-9]/g, '_');
+                    
+                    // Direct match with module keys (including children recursively)
+                    function findModuleRecursive(tree) {
+                        for (const [modKey, modData] of Object.entries(tree)) {
+                            const modKeyLower = modKey.toLowerCase();
+                            // Match by key or formatted name
+                            if (modKeyLower === labelNormalized || 
+                                modKeyLower === labelLower ||
+                                formatModuleName(modKey).toLowerCase() === labelLower) {
+                                return modKey;
+                            }
+                            // Also match dotted notation: "torch.nn" matches "torch_nn"
+                            const dottedLabel = labelLower.replace(/\./g, '_');
+                            if (modKeyLower === dottedLabel) {
+                                return modKey;
+                            }
+                            // Search children
+                            if (modData.children) {
+                                const found = findModuleRecursive(modData.children);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    const foundModule = findModuleRecursive(MODULE_TREE);
+                    if (foundModule) {
+                        overviewLinks[label] = foundModule;
+                        console.log('[LINK] Mapped diagram label "' + label + '" to module "' + foundModule + '"');
+                    }
+                }
+            }
+            
+            moduleData['overview'] = {
+                name: REPO_TITLE + ' Overview',
+                diagram: overviewDiagram,
+                documentation: DOCS_CONTENT['overview.md'] || '# Overview\n\nNo overview available.',
+                links: overviewLinks
+            };
+            
+            // Build modules from tree
+            buildModulesFromTree(MODULE_TREE, '');
+        }
+
+        function buildModulesFromTree(tree, parentPath) {
+            for (const [key, data] of Object.entries(tree)) {
+                const moduleId = parentPath ? `${parentPath}/${key}` : key;
+                const formattedName = formatModuleName(key);
+                
+                // Generate diagram for this module showing its children
+                const diagram = generateModuleDiagram(key, data);
+                
+                // Build links for children
+                const links = {};
+                if (data.children) {
+                    for (const [childKey, childData] of Object.entries(data.children)) {
+                        const childFormattedName = formatModuleName(childKey);
+                        links[childFormattedName] = childKey;
+                    }
+                }
+                
+                // Try to find documentation file
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                moduleData[key] = {
+                    name: formattedName,
+                    diagram: diagram,
+                    documentation: documentation,
+                    links: links,
+                    children: data.children || {}
+                };
+                
+                // Recursively build child modules
+                if (data.children) {
+                    buildModulesFromTree(data.children, moduleId);
+                }
+            }
+        }
+
+        function generateOverviewDiagram() {
+            let diagram = 'graph TD\n';
+            const repoNodeId = 'REPO';
+            const repoLabel = escapeLabel(REPO_TITLE);
+            diagram += `    ${repoNodeId}["${repoLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const nodeId = `M${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(key));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${repoNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = key;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+
+        function generateModuleDiagram(moduleKey, moduleData) {
+            if (!moduleData.children || Object.keys(moduleData.children).length === 0) {
+                // Leaf module - no sub-diagram
+                return '';
+            }
+            
+            let diagram = 'graph TD\n';
+            const parentNodeId = 'PARENT';
+            const parentLabel = escapeLabel(formatModuleName(moduleKey));
+            diagram += `    ${parentNodeId}["${parentLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [childKey, childData] of Object.entries(moduleData.children)) {
+                const nodeId = `C${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(childKey));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${parentNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = childKey;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+
+        function formatModuleName(key) {
+            return key
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            buildModuleData();
+            loadModule('overview');
+        });
+
+        function loadModule(moduleId, skipHistoryUpdate = false) {
+            if (!moduleData || !moduleData[moduleId]) {
+                console.error('Module not found:', moduleId);
+                return;
+            }
+
+            const module = moduleData[moduleId];
+            currentModule = moduleId;
+            
+            // Reset expansion state when loading new module
+            expandedNodes.clear();
+            selectedNodeId = null;
+            selectedModuleId = null;
+            baseDiagramCode = module.diagram || '';
+            currentDiagramCode = module.diagram || '';
+
+            // Update title
+            document.getElementById('moduleTitle').textContent = module.name;
+
+            // Update back button
+            const backButton = document.getElementById('backButton');
+            if (navigationHistory.length > 0) {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = false;
+            } else if (moduleId === 'overview') {
+                backButton.style.display = 'none';
+            } else {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = true;
+            }
+
+            // Render documentation
+            renderDocumentation(module.documentation);
+
+            // Render diagram
+            if (module.diagram && module.diagram.trim()) {
+                renderDiagram(module.diagram, module.links || {}, moduleId);
+            } else {
+                // No diagram - try to extract from markdown
+                const extracted = extractMermaidFromMarkdown(module.documentation);
+                if (extracted) {
+                    renderDiagram(extracted, module.links || {}, moduleId);
+                } else {
+                    document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available for this module.</p>';
+                }
+            }
+        }
+
+        function extractMermaidFromMarkdown(markdown) {
+            const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+            const match = mermaidRegex.exec(markdown);
+            return match ? match[1].trim() : null;
+        }
+
+        // Combine links from current module + all expanded modules
+        // This ensures that expanded subgraph children are clickable
+        function getCombinedLinks() {
+            const combined = {};
+            
+            // Add current module's links
+            const current = moduleData[currentModule];
+            if (current && current.links) {
+                Object.assign(combined, current.links);
+            }
+            
+            // Add links from all expanded modules
+            for (const [nodeId, expansion] of expandedNodes.entries()) {
+                const expandedMod = moduleData[expansion.targetModuleId];
+                if (expandedMod && expandedMod.links) {
+                    // Prefix the links to match the prefixed node IDs in the subgraph
+                    const prefix = `${nodeId}_`;
+                    for (const [label, targetId] of Object.entries(expandedMod.links)) {
+                        combined[label] = targetId;
+                    }
+                }
+            }
+            
+            return combined;
+        }
+
+        function selectNode(nodeId, moduleId) {
+            
+            selectedNodeId = nodeId;
+            selectedModuleId = moduleId;
+            
+            // Load selected module's documentation
+            if (moduleData && moduleData[moduleId]) {
+                const module = moduleData[moduleId];
+                renderDocumentation(module.documentation || 'No documentation available.');
+                document.getElementById('moduleTitle').textContent = module.name || moduleId;
+            }
+            
+            // Re-render diagram to apply selected styling - use combined links for expanded nodes
+            renderDiagram(currentDiagramCode || baseDiagramCode, getCombinedLinks(), currentModule);
+        }
+
+        function renderDocumentation(markdown) {
+            // Remove mermaid blocks from display
+            const cleanMarkdown = markdown.replace(/```mermaid\n[\s\S]*?```/g, '');
+            const html = marked.parse(cleanMarkdown);
+            document.getElementById('docContent').innerHTML = html;
+
+            // Make .md links clickable
+            document.querySelectorAll('#docContent a[href$=".md"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                const href = link.getAttribute('href');
+                    const moduleId = href.replace('.md', '');
+                    navigateToModule(moduleId);
+                });
+            });
+            
+            // Also handle anchor links that reference module documentation
+            // LLM-generated docs often use anchors like #file-management-tools-module-documentation
+            document.querySelectorAll('#docContent a[href^="#"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    // Convert anchor to potential module ID
+                    // E.g., #file-management-tools-module-documentation -> file_management_tools
+                    const anchor = href.substring(1); // Remove #
+                    const potentialModuleId = anchor
+                        .replace(/-module-documentation$/, '')
+                        .replace(/-module$/, '')
+                        .replace(/-/g, '_');
+                    
+                    // Check if this maps to an existing module
+                    if (moduleData[potentialModuleId]) {
+                    e.preventDefault();
+                        navigateToModule(potentialModuleId);
+                    }
+                    // Otherwise let the normal anchor behavior proceed
+                });
+            });
+        }
+
+        function expandNodeInline(nodeId, targetModuleId) {
+            if (!nodeId || !targetModuleId || !moduleData[targetModuleId]) {
+                console.error(`Cannot expand: nodeId=${nodeId}, module=${targetModuleId}`);
+                return;
+            }
+            
+            if (expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is already expanded`);
+                return;
+            }
+            
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule.diagram) {
+                console.log(`Module ${targetModuleId} has no diagram - just selecting`);
+                selectNode(nodeId, targetModuleId);
+                return;
+            }
+            
+            
+            // Find node's original label in base diagram
+            let workingDiagram = baseDiagramCode;
+            const nodeDefPattern = new RegExp(`\\b${nodeId}\\s*\\["?([^"\\]]+)"?\\]`);
+            const baseNodeMatch = workingDiagram.match(nodeDefPattern);
+            
+            if (!baseNodeMatch) {
+                // Try current diagram
+                const currentNodeMatch = currentDiagramCode.match(nodeDefPattern);
+                if (!currentNodeMatch) {
+                    console.error(`Could not find node ${nodeId}`);
+                    return;
+                }
+            }
+            
+            const originalLabel = baseNodeMatch ? baseNodeMatch[1].trim() : formatModuleName(targetModuleId);
+            const subgraphId = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            expandedNodes.set(nodeId, {
+                originalLabel: originalLabel,
+                targetModuleId: targetModuleId,
+                subgraphId: subgraphId,
+                collapseNodeId: collapseNodeId
+            });
+            
+            // Rebuild diagram with all expansions
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                workingDiagram = applyExpansionToDiagram(workingDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = workingDiagram;
+            selectNode(subgraphId, targetModuleId);
+        }
+
+        function collapseNode(nodeId) {
+            if (!expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is not expanded`);
+                return;
+            }
+            
+            console.log(`[COLLAPSE] Collapsing node ${nodeId}`);
+            
+            // Also collapse child expansions
+            const nodesToCollapse = [nodeId];
+            for (const [expNodeId] of expandedNodes.entries()) {
+                if (expNodeId.startsWith(nodeId + '_') && !expNodeId.endsWith('_collapse')) {
+                    nodesToCollapse.push(expNodeId);
+                }
+            }
+            
+            for (const nodeToRemove of nodesToCollapse) {
+                expandedNodes.delete(nodeToRemove);
+            }
+            
+            // Rebuild from base
+            let rebuiltDiagram = baseDiagramCode;
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                rebuiltDiagram = applyExpansionToDiagram(rebuiltDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = rebuiltDiagram;
+            selectedNodeId = null;
+            selectedModuleId = null;
+            
+            // Use combined links for remaining expanded nodes
+            renderDiagram(rebuiltDiagram, getCombinedLinks(), currentModule);
+        }
+
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                return diagram;
+            }
+            
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            // Get target module's diagram content
+            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            
+            // Prefix all node IDs to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z]+\d*)\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Replace node definition with subgraph
+            const nodePattern = new RegExp(`(\\s*)${nodeId}\\["?[^"\\]]*"?\\]`, 'g');
+            const hasNodeDef = nodePattern.test(diagram);
+            
+            if (!hasNodeDef) {
+                console.log(`Node ${nodeId} definition not found`);
+                return diagram;
+            }
+            
+            // Build subgraph
+            const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+            const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+            const subgraphDef = `\n    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end\n`;
+            
+            // Replace node with subgraph - ensure newlines around the subgraph
+            let newDiagram = diagram.replace(
+                new RegExp(`\\s*${nodeId}\\["?[^"\\]]*"?\\]\\s*`),
+                subgraphDef
+            );
+            
+            // Update edges to point to subgraph
+            newDiagram = newDiagram.replace(
+                new RegExp(`(-->\\s*)${nodeId}(?!_)`, 'g'),
+                `$1${subgraphName}`
+            );
+            newDiagram = newDiagram.replace(
+                new RegExp(`${nodeId}(?!_)(\\s*-->)`, 'g'),
+                `${subgraphName}$1`
+            );
+            
+            // Ensure graph declaration
+            if (!newDiagram.trim().startsWith('graph')) {
+                newDiagram = 'graph TD\n' + newDiagram;
+            }
+            
+            return newDiagram;
+        }
+
+        function renderDiagram(diagramCode, links, currentModuleId) {
+            if (!diagramCode) {
+                document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available.</p>';
+                return;
+            }
+            
+            currentDiagramCode = diagramCode;
+            
+            // Build node mappings
+            const localNodeIdToModule = {};
+            const labelToNodeId = {};
+            
+            const nodePattern = /(\w+)\["?([^"\]]+)"?\]/g;
+            let match;
+            while ((match = nodePattern.exec(diagramCode)) !== null) {
+                const nodeId = match[1];
+                const label = match[2].trim();
+                labelToNodeId[label] = nodeId;
+                
+                // Match label to links
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    if (label.toLowerCase() === linkText.toLowerCase() ||
+                        label.toLowerCase().includes(linkText.toLowerCase()) ||
+                        linkText.toLowerCase().includes(label.toLowerCase())) {
+                        localNodeIdToModule[nodeId] = moduleId;
+                        break;
+                    }
+                }
+            }
+            
+            // Ensure graph declaration
+            let finalDiagramCode = diagramCode.trim();
+            if (!finalDiagramCode.startsWith('graph ')) {
+                finalDiagramCode = 'graph TD\n' + finalDiagramCode;
+            }
+            
+            const diagramDiv = document.getElementById('mermaid-diagram');
+            diagramDiv.innerHTML = '<div class="loading">Rendering diagram...</div>';
+            const diagramId = 'diagram-' + Date.now();
+
+            (async () => {
+                try {
+                    const { svg } = await mermaid.render(diagramId, finalDiagramCode);
+                    diagramDiv.innerHTML = svg;
+                    
+                    const processedNodes = new WeakSet();
+                    
+                    const processNodes = () => {
+                        const svgEl = diagramDiv.querySelector('svg');
+                        if (!svgEl) return;
+                        
+                        const nodeGroups = svgEl.querySelectorAll('g.node');
+                        
+                        nodeGroups.forEach((nodeGroup, idx) => {
+                            if (processedNodes.has(nodeGroup)) return;
+                            
+                            // Extract node ID from SVG element
+                            let svgNodeId = null;
+                            const groupId = nodeGroup.id || '';
+                            const idMatch = groupId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (idMatch) {
+                                svgNodeId = idMatch[1];
+                            }
+                            
+                            // Get text content - Mermaid 11.x may use different structures
+                            let fullText = '';
+                            
+                            // Method 1: Direct text/tspan elements
+                            const textElements = nodeGroup.querySelectorAll('text, tspan');
+                            textElements.forEach(el => {
+                                const text = el.textContent.trim();
+                                if (text && !fullText.includes(text)) {
+                                    fullText += (fullText ? ' ' : '') + text;
+                                }
+                            });
+                            
+                            // Method 2: foreignObject elements (Mermaid 11.x uses these)
+                            if (!fullText) {
+                                const foreignObjects = nodeGroup.querySelectorAll('foreignObject');
+                                foreignObjects.forEach(fo => {
+                                    const text = fo.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 3: span/div inside foreignObject
+                            if (!fullText) {
+                                const spans = nodeGroup.querySelectorAll('foreignObject span, foreignObject div, foreignObject p');
+                                spans.forEach(el => {
+                                    const text = el.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 4: Any text content in the node
+                            if (!fullText) {
+                                fullText = nodeGroup.textContent.trim();
+                            }
+                            
+                            fullText = fullText.trim();
+                            
+                            if (!fullText) return;
+                            
+                            // Check for collapse button
+                            if (fullText.includes('Collapse') || fullText === '[-] Collapse') {
+                                processedNodes.add(nodeGroup);
+                                
+                                let collapseNodeId = null;
+                                if (svgNodeId && svgNodeId.endsWith('_collapse')) {
+                                    collapseNodeId = svgNodeId.replace(/_collapse$/, '');
+                                }
+                                
+                                if (collapseNodeId && expandedNodes.has(collapseNodeId)) {
+                                    const capturedNodeId = collapseNodeId;
+                                    
+                                    nodeGroup.style.cursor = 'pointer';
+                                    nodeGroup.classList.add('collapse-button');
+                                    
+                                    const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                                    shapes.forEach(shape => {
+                                        shape.setAttribute('stroke', '#dc2626');
+                                        shape.setAttribute('stroke-width', '2');
+                                    });
+                                    
+                                    const collapseHandler = (e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        collapseNode(capturedNodeId);
+                                    };
+                                    
+                                    nodeGroup.addEventListener('click', collapseHandler, true);
+                                    nodeGroup.querySelectorAll('*').forEach(child => {
+                                        child.style.cursor = 'pointer';
+                                        child.addEventListener('click', collapseHandler, true);
+                                    });
+                                }
+                                return;
+                            }
+                            
+                            // Find target module
+                            let targetModule = null;
+                            let nodeId = svgNodeId;
+                            
+                            // Try to match by node ID
+                            if (svgNodeId && localNodeIdToModule[svgNodeId]) {
+                                targetModule = localNodeIdToModule[svgNodeId];
+                            }
+                            
+                            // Try to match by text
+                            if (!targetModule) {
+                                for (const [linkText, moduleId] of Object.entries(links)) {
+                                    if (fullText.toLowerCase() === linkText.toLowerCase() ||
+                                        fullText.toLowerCase().includes(linkText.toLowerCase())) {
+                                        targetModule = moduleId;
+                                        if (!nodeId) {
+                                            nodeId = labelToNodeId[fullText] || linkText.replace(/\s+/g, '_');
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (targetModule && moduleData[targetModule]) {
+                                processedNodes.add(nodeGroup);
+                                makeNodeBlueAndClickable(nodeGroup, targetModule, fullText, nodeId);
+                            }
+                        });
+                        
+                        // Apply selected styling to subgraphs
+                        if (selectedNodeId && selectedNodeId.endsWith('_sub')) {
+                            const subgraphs = svgEl.querySelectorAll('g.cluster');
+                            subgraphs.forEach(sg => {
+                                const sgId = sg.id || '';
+                                if (sgId.includes(selectedNodeId) || sgId.includes(selectedNodeId.replace('_sub', ''))) {
+                                    sg.classList.add('selected-subgraph');
+                                    const rects = sg.querySelectorAll('rect');
+                                    rects.forEach(rect => {
+                                        rect.setAttribute('stroke', '#10b981');
+                                        rect.setAttribute('stroke-width', '3');
+                                    });
+                                }
+                            });
+                        }
+                    };
+                    
+                    processNodes();
+                    setTimeout(processNodes, 100);
+                    setTimeout(processNodes, 500);
+                    
+                } catch (error) {
+                    console.error('Error rendering diagram:', error);
+                    diagramDiv.innerHTML = '<p style="color: #dc2626;">Error rendering diagram.</p>';
+                }
+            })();
+        }
+
+        function makeNodeBlueAndClickable(nodeGroup, targetModule, displayText, nodeId) {
+            // Make shapes blue
+            const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+            shapes.forEach(shape => {
+                shape.setAttribute('stroke', '#2563eb');
+                shape.setAttribute('stroke-width', '3');
+                shape.style.setProperty('stroke', '#2563eb', 'important');
+                shape.style.setProperty('stroke-width', '3px', 'important');
+            });
+            
+            // Bold text
+            const texts = nodeGroup.querySelectorAll('text, tspan');
+            texts.forEach(txt => {
+                txt.style.fontWeight = '600';
+            });
+            
+            // Make clickable
+            nodeGroup.style.cursor = 'pointer';
+            nodeGroup.classList.add('clickable-node');
+            nodeGroup.setAttribute('title', `Click to expand: ${displayText}`);
+            nodeGroup.setAttribute('data-node-id', nodeId);
+            
+            const capturedTargetModule = targetModule;
+            const capturedNodeId = nodeId;
+            
+            const clickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                    const targetModuleData = moduleData[capturedTargetModule];
+                    if (targetModuleData.diagram && targetModuleData.diagram.trim()) {
+                        if (!expandedNodes.has(capturedNodeId)) {
+                            expandNodeInline(capturedNodeId, capturedTargetModule);
+                        } else {
+                            selectNode(`${capturedNodeId}_sub`, capturedTargetModule);
+                        }
+                    } else {
+                        selectNode(capturedNodeId, capturedTargetModule);
+                    }
+                }
+            };
+            
+            nodeGroup.addEventListener('click', clickHandler, true);
+            nodeGroup.querySelectorAll('*').forEach(child => {
+                child.style.cursor = 'pointer';
+                child.addEventListener('click', clickHandler, true);
+            });
+            
+            // Hover effects
+            nodeGroup.addEventListener('mouseenter', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '4px';
+                    }
+                });
+            });
+            nodeGroup.addEventListener('mouseleave', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '3px';
+                    }
+                });
+            });
+            
+            // Apply selected styling if this node is selected
+            if (selectedNodeId === nodeId && selectedModuleId === targetModule) {
+                nodeGroup.classList.add('selected-node');
+                shapes.forEach(shape => {
+                    shape.setAttribute('stroke', '#10b981');
+                    shape.setAttribute('stroke-width', '4');
+                    shape.style.setProperty('stroke', '#10b981', 'important');
+                    shape.style.setProperty('stroke-width', '4px', 'important');
+                });
+            }
+        }
+
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) {
+                console.error(`Module not found: ${moduleId}`);
+                return;
+            }
+            
+            if (currentModule !== moduleId) {
+                navigationHistory.push(currentModule);
+                loadModule(moduleId);
+            }
+        }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const previousModule = navigationHistory.pop();
+                if (previousModule && moduleData[previousModule]) {
+                    loadModule(previousModule, true);
+                } else {
+                    navigationHistory = [];
+                    loadModule('overview', true);
+                }
+            } else if (currentModule !== 'overview') {
+                loadModule('overview', true);
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            goBack();
+        });
+
+        // Helper - click node by label (for testing)
+        window.clickNode = function(label) {
+            const nodes = document.querySelectorAll('.clickable-node');
+            for (const node of nodes) {
+                const title = node.getAttribute('title') || '';
+                if (title.toLowerCase().includes(label.toLowerCase())) {
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Keyboard shortcuts - press 1-9 to click on Nth clickable node in diagram
+        // Prioritizes child nodes in expanded subgraphs over their expanded parents
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const keyNum = parseInt(e.key);
+            if (keyNum >= 1 && keyNum <= 9) {
+                // Find all clickable nodes in the current diagram
+                const svg = document.querySelector('#mermaid-diagram svg');
+                if (!svg) return;
+                
+                const allClickableNodes = Array.from(svg.querySelectorAll('.clickable-node'));
+                
+                // Separate nodes: those inside subgraphs (children) vs those outside (parents)
+                const childNodes = [];
+                const parentNodes = [];
+                
+                allClickableNodes.forEach(node => {
+                    // Check if this node is inside a subgraph (cluster)
+                    const isInSubgraph = node.closest('g.cluster') !== null;
+                    if (isInSubgraph) {
+                        childNodes.push(node);
+                    } else {
+                        parentNodes.push(node);
+                    }
+                });
+                
+                // Prioritize child nodes first, then parent nodes
+                const prioritizedNodes = [...childNodes, ...parentNodes];
+                const index = keyNum - 1;
+                
+                if (index < prioritizedNodes.length) {
+                    const node = prioritizedNodes[index];
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

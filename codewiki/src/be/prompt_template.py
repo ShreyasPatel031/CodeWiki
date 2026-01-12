@@ -24,9 +24,11 @@ Generate documentation following this structure:
    - Core components and their responsibilities
 
 3. **Visual Documentation**:
-   - Mermaid diagrams for architecture, dependencies, and data flow
-   - Component interaction diagrams
-   - Process flow diagrams where relevant
+   - Mermaid architecture diagrams showing module relationships and dependencies
+   - IMPORTANT: Use ONLY "graph TD" or "flowchart TD" syntax for diagrams
+   - DO NOT use "sequenceDiagram", "classDiagram", or other diagram types
+   - Each diagram node should represent a sub-module or component that can be clicked to navigate
+   - Include edges showing relationships between components
 </DOCUMENTATION_STRUCTURE>
 
 <WORKFLOW>
@@ -93,7 +95,8 @@ You are an AI documentation assistant. Your task is to generate a brief overview
 
 The overview should be a brief documentation of the repository, including:
 - The purpose of the repository
-- The end-to-end architecture of the repository visualized by mermaid diagrams
+- A mermaid architecture diagram showing the main modules and their relationships (use ONLY "graph TD" or "flowchart TD" syntax, NO sequence/class diagrams)
+- Each node in the diagram should represent a module that links to its documentation
 - The references to the core modules documentation
 
 IMPORTANT: When creating links to module documentation, use the module's markdown file name format: [Module Name](module_name.md). 
@@ -116,7 +119,7 @@ You are an AI documentation assistant. Your task is to generate a brief overview
 
 The overview should be a brief documentation of the module, including:
 - The purpose of the module
-- The architecture of the module visualized by mermaid diagrams
+- The architecture of the module visualized by mermaid diagrams (use "graph TD" or "flowchart TD" syntax, NOT "classDiagram")
 - The references to the core components documentation
 
 Provide repo structure and core components documentation of the `{module_name}` module:
@@ -136,29 +139,29 @@ Here is list of all potential core components of the repository (It's normal tha
 {potential_core_components}
 </POTENTIAL_CORE_COMPONENTS>
 
-Please group the components into groups such that each group is a set of components that are closely related to each other and together they form a module. DO NOT include components that are not essential to the repository.
-Firstly reason about the components and then group them and return the result in the following format:
+IMPORTANT: You MUST output the <GROUPED_COMPONENTS> tag FIRST, BEFORE any reasoning or explanation.
+Group components by their file paths and logical relationships. Create modules based on directory structure and naming patterns.
+
+Your response MUST start immediately with:
 <GROUPED_COMPONENTS>
 {{
     "module_name_1": {{
-        "path": <path_to_the_module_1>, # the path to the module can be file or directory
-        "components": [
-            <component_name_1>,
-            <component_name_2>,
-            ...
-        ]
+        "path": "path/to/module",
+        "components": ["component_1", "component_2"]
     }},
     "module_name_2": {{
-        "path": <path_to_the_module_2>,
-        "components": [
-            <component_name_1>,
-            <component_name_2>,
-            ...
-        ]
-    }},
-    ...
+        "path": "path/to/other/module", 
+        "components": ["component_3", "component_4"]
+    }}
 }}
 </GROUPED_COMPONENTS>
+
+Rules:
+- Group by top-level directories (e.g., all components in "torch/nn/" -> "neural_network_module")
+- Keep groups manageable (5-50 components each when possible)
+- Use snake_case for module names
+- Only include essential components, skip test/example files
+- DO NOT include any reasoning, explanation, or text before the <GROUPED_COMPONENTS> tag
 """.strip()
 
 CLUSTER_MODULE_PROMPT = """
@@ -173,30 +176,29 @@ Here is list of all potential core components of the module {module_name} (It's 
 {potential_core_components}
 </POTENTIAL_CORE_COMPONENTS>
 
-Please group the components into groups such that each group is a set of components that are closely related to each other and together they form a smaller module. DO NOT include components that are not essential to the module.
+IMPORTANT: You MUST output the <GROUPED_COMPONENTS> tag FIRST, BEFORE any reasoning or explanation.
+Group these components into smaller sub-modules based on file paths and logical relationships.
 
-Firstly reason based on given context and then group them and return the result in the following format:
+Your response MUST start immediately with:
 <GROUPED_COMPONENTS>
 {{
-    "module_name_1": {{
-        "path": <path_to_the_module_1>, # the path to the module can be file or directory
-        "components": [
-            <component_name_1>,
-            <component_name_2>,
-            ...
-        ]
+    "submodule_name_1": {{
+        "path": "path/to/submodule",
+        "components": ["component_1", "component_2"]
     }},
-    "module_name_2": {{
-        "path": <path_to_the_module_2>,
-        "components": [
-            <component_name_1>,
-            <component_name_2>,
-            ...
-        ]
-    }},
-    ...
+    "submodule_name_2": {{
+        "path": "path/to/other/submodule",
+        "components": ["component_3", "component_4"]
+    }}
 }}
 </GROUPED_COMPONENTS>
+
+Rules:
+- Group by subdirectories and logical relationships
+- Keep groups manageable (5-50 components each when possible)
+- Use snake_case for submodule names
+- Only include essential components
+- DO NOT include any reasoning, explanation, or text before the <GROUPED_COMPONENTS> tag
 """.strip()
 
 FILTER_FOLDERS_PROMPT = """
@@ -240,9 +242,80 @@ EXTENSION_TO_LANGUAGE = {
 }
 
 
+def _count_total_components(module_tree: dict[str, any]) -> int:
+    """Count total number of components across entire module tree."""
+    total = 0
+    for value in module_tree.values():
+        total += len(value.get('components', []))
+        if isinstance(value.get("children"), dict):
+            total += _count_total_components(value["children"])
+    return total
+
+
+def _format_module_tree_full(module_tree: dict[str, any], current_module_name: str) -> str:
+    """Format module tree with full component lists (for small repos)."""
+    lines = []
+    
+    def _recurse(tree: dict[str, any], indent: int = 0):
+        for key, value in tree.items():
+            if key == current_module_name:
+                lines.append(f"{'  ' * indent}{key} (current module)")
+            else:
+                lines.append(f"{'  ' * indent}{key}")
+            
+            lines.append(f"{'  ' * (indent + 1)} Core components: {', '.join(value['components'])}")
+            if isinstance(value.get("children"), dict) and len(value["children"]) > 0:
+                lines.append(f"{'  ' * (indent + 1)} Children:")
+                _recurse(value["children"], indent + 2)
+    
+    _recurse(module_tree)
+    return "\n".join(lines)
+
+
+def _format_module_tree_tiered(module_tree: dict[str, any], current_module_name: str) -> str:
+    """
+    Format module tree with summaries for large repos.
+    Shows structure + component counts, with full details only for current module and siblings.
+    """
+    lines = []
+    lines.append("# Repository Module Structure")
+    lines.append("# Note: For large repos, only current module shows full component list.")
+    lines.append("# Use list_module_components(module_name) tool to get details for other modules.")
+    lines.append("")
+    
+    def _recurse(tree: dict[str, any], indent: int = 0, parent_is_current: bool = False):
+        for key, value in tree.items():
+            comp_count = len(value.get('components', []))
+            is_current = (key == current_module_name)
+            
+            # Module name
+            if is_current:
+                lines.append(f"{'  ' * indent}{key} (current module)")
+            else:
+                lines.append(f"{'  ' * indent}{key}")
+            
+            # Show full component list for current module and its siblings
+            # For other modules, just show count
+            if is_current or parent_is_current:
+                lines.append(f"{'  ' * (indent + 1)} Core components: {', '.join(value['components'])}")
+            else:
+                lines.append(f"{'  ' * (indent + 1)} Components: {comp_count} items (use list_module_components to view)")
+            
+            # Recurse into children
+            if isinstance(value.get("children"), dict) and len(value["children"]) > 0:
+                lines.append(f"{'  ' * (indent + 1)} Children:")
+                _recurse(value["children"], indent + 2, parent_is_current=is_current)
+    
+    _recurse(module_tree)
+    return "\n".join(lines)
+
+
 def format_user_prompt(module_name: str, core_component_ids: list[str], components: Dict[str, Any], module_tree: dict[str, any]) -> str:
     """
     Format the user prompt with module name and organized core component codes.
+    
+    For large repos (500+ components), uses tiered module tree format with summaries.
+    For small repos, uses full component list format.
     
     Args:
         module_name: Name of the module to document
@@ -252,24 +325,20 @@ def format_user_prompt(module_name: str, core_component_ids: list[str], componen
     Returns:
         Formatted user prompt string
     """
+    from codewiki.src.config import LARGE_REPO_COMPONENT_THRESHOLD
+    import logging
+    logger = logging.getLogger(__name__)
 
-    # format module tree
-    lines = []
+    # Count total components to decide formatting approach
+    total_components = _count_total_components(module_tree)
     
-    def _format_module_tree(module_tree: dict[str, any], indent: int = 0):
-        for key, value in module_tree.items():
-            if key == module_name:
-                lines.append(f"{'  ' * indent}{key} (current module)")
-            else:
-                lines.append(f"{'  ' * indent}{key}")
-            
-            lines.append(f"{'  ' * (indent + 1)} Core components: {', '.join(value['components'])}")
-            if isinstance(value["children"], dict) and len(value["children"]) > 0:
-                lines.append(f"{'  ' * (indent + 1)} Children:")
-                _format_module_tree(value["children"], indent + 2)
-    
-    _format_module_tree(module_tree, 0)
-    formatted_module_tree = "\n".join(lines)
+    # Choose module tree format based on repo size
+    if total_components > LARGE_REPO_COMPONENT_THRESHOLD:
+        logger.info(f"[PROMPT] Large repo detected ({total_components} components > {LARGE_REPO_COMPONENT_THRESHOLD})")
+        logger.info(f"[PROMPT] Using tiered module tree format with summaries")
+        formatted_module_tree = _format_module_tree_tiered(module_tree, module_name)
+    else:
+        formatted_module_tree = _format_module_tree_full(module_tree, module_name)
 
     # print(f"Formatted module tree:\n{formatted_module_tree}")
 
@@ -287,20 +356,26 @@ def format_user_prompt(module_name: str, core_component_ids: list[str], componen
     core_component_codes = ""
     for path, component_ids_in_file in grouped_components.items():
         core_component_codes += f"# File: {path}\n\n"
-        core_component_codes += f"## Core Components in this file:\n"
         
+        # Get file extension for syntax highlighting
+        ext = '.' + path.split('.')[-1] if '.' in path else '.txt'
+        lang = EXTENSION_TO_LANGUAGE.get(ext, 'text')
+        
+        # Include each component's source code (NOT the entire file)
         for component_id in component_ids_in_file:
-            core_component_codes += f"- {component_id}\n"
-        
-        core_component_codes += f"\n## File Content:\n```{EXTENSION_TO_LANGUAGE['.'+path.split('.')[-1]]}\n"
-        
-        # Read content of the file using the first component's file path
-        try:
-            core_component_codes += file_manager.load_text(components[component_ids_in_file[0]].file_path)
-        except (FileNotFoundError, IOError) as e:
-            core_component_codes += f"# Error reading file: {e}\n"
-        
-        core_component_codes += "```\n\n"
+            component = components[component_id]
+            core_component_codes += f"## Component: {component_id}\n"
+            if hasattr(component, 'start_line') and hasattr(component, 'end_line'):
+                core_component_codes += f"Lines {component.start_line}-{component.end_line}\n"
+            core_component_codes += f"```{lang}\n"
+            
+            # Use component.source_code instead of reading entire file
+            if hasattr(component, 'source_code') and component.source_code:
+                core_component_codes += component.source_code
+            else:
+                core_component_codes += f"# Source code not available for {component_id}\n"
+            
+            core_component_codes += "\n```\n\n"
         
     return USER_PROMPT.format(module_name=module_name, formatted_core_component_codes=core_component_codes, module_tree=formatted_module_tree)
 

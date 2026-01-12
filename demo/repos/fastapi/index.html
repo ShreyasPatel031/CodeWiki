@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fastapi</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+        
+        .repo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: white;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .repo-link:hover {
+            background: #f8fafc;
+            border-color: #2563eb;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        #mermaid-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .doc-content {
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .doc-content h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .doc-content p {
+            margin-bottom: 1rem;
+            color: #475569;
+        }
+        
+        .doc-content ul, .doc-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .doc-content li {
+            margin: 8px 0;
+        }
+
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            color: #e11d48;
+        }
+        
+        .doc-content pre {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .doc-content pre code {
+            background: transparent;
+            padding: 0;
+            color: #334155;
+        }
+
+        .doc-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 16px 16px 16px 24px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .doc-content th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        /* Make clickable nodes have blue border only - don't change fill or edges */
+        /* High specificity selectors to override Mermaid's inline styles */
+        svg g.node.clickable-node rect,
+        svg g.node.clickable-node circle,
+        svg g.node.clickable-node polygon,
+        svg g.node.clickable-node ellipse,
+        .mermaid g.node.clickable-node rect,
+        .mermaid g.node.clickable-node circle,
+        .mermaid g.node.clickable-node polygon,
+        .mermaid g.node.clickable-node ellipse,
+        #mermaid-diagram g.node.clickable-node rect,
+        #mermaid-diagram g.node.clickable-node circle,
+        #mermaid-diagram g.node.clickable-node polygon,
+        #mermaid-diagram g.node.clickable-node ellipse,
+        g.clickable-node rect,
+        g.clickable-node circle,
+        g.clickable-node polygon,
+        g.clickable-node ellipse,
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path:not(.edgePath *),
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            font-weight: 600 !important;
+        }
+
+        .clickable-node,
+        g.node.clickable-node {
+            cursor: pointer !important;
+        }
+        
+        /* Ensure pointer events work */
+        .clickable-node *,
+        g.node.clickable-node * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        /* Don't change edge colors */
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
+        }
+        
+        /* Selected node/subgraph styling - green border for selected */
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+
+        /* Collapse button styling */
+        .collapse-button rect,
+        .collapse-button circle,
+        .collapse-button polygon {
+            stroke: #dc2626 !important;
+            stroke-width: 2px !important;
+        }
+
+        .collapse-button {
+            cursor: pointer !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .diagram-pane, .doc-pane {
+                width: 100%;
+                height: 50%;
+            }
+            .diagram-pane {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <div class="title" id="moduleTitle">📚 fastapi</div>
+            <a href="https://github.com/tiangolo/fastapi" class="repo-link" target="_blank">🔗 View Repository</a>
+            </div>
+            
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
+                </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
+            </div>
+    </div>
+    
+    <script>
+        // Embedded configuration
+        const CONFIG = {};
+        const MODULE_TREE = {
+  "docs_src": {
+    "path": "docs_src",
+    "components": [
+      "docs_src.generate_clients.tutorial003_py39.User",
+      "docs_src.dependencies.tutorial003_py310.CommonQueryParams",
+      "docs_src.response_model.tutorial004_py310.Item",
+      "docs_src.header_param_models.tutorial002_py310.CommonHeaders",
+      "docs_src.pydantic_v1_in_v2.tutorial004_an_py310.Item",
+      "docs_src.body_nested_models.tutorial004_py39.Item",
+      "docs_src.response_model.tutorial005_py310.Item",
+      "docs_src.body_multiple_params.tutorial003_py310.Item",
+      "docs_src.response_model.tutorial003_py39.UserOut",
+      "docs_src.extra_models.tutorial003_py39.CarItem",
+      "docs_src.header_param_models.tutorial002_py39.CommonHeaders",
+      "docs_src.conditional_openapi.tutorial001_py39.Settings",
+      "docs_src.schema_extra_example.tutorial003_py310.Item",
+      "docs_src.cookie_param_models.tutorial001_py310.Cookies",
+      "docs_src.query_param_models.tutorial002_an_py39.FilterParams",
+      "docs_src.path_params.tutorial005_py39.ModelName",
+      "docs_src.body_nested_models.tutorial006_py310.Image",
+      "docs_src.schema_extra_example.tutorial003_py39.Item",
+      "docs_src.pydantic_v1_in_v2.tutorial001_an_py39.Item",
+      "docs_src.encoder.tutorial001_py310.Item",
+      "docs_src.settings.app03_py39.config.Settings",
+      "docs_src.sql_databases.tutorial002_an_py39.HeroUpdate",
+      "docs_src.dataclasses_.tutorial002_py310.Item",
+      "docs_src.openapi_callbacks.tutorial001_py39.Invoice",
+      "docs_src.body.tutorial003_py39.Item",
+      "docs_src.dependencies.tutorial003_an_py39.CommonQueryParams",
+      "docs_src.extra_models.tutorial004_py39.Item",
+      "docs_src.additional_responses.tutorial002_py310.Item",
+      "docs_src.dependencies.tutorial014_an_py310.User",
+      "docs_src.extra_models.tutorial002_py310.UserIn",
+      "docs_src.schema_extra_example.tutorial004_an_py310.Item",
+      "docs_src.extra_models.tutorial002_py39.UserOut",
+      "docs_src.generate_clients.tutorial003_py39.Item",
+      "docs_src.request_form_models.tutorial002_py39.FormData",
+      "docs_src.schema_extra_example.tutorial002_py39.Item",
+      "docs_src.extra_models.tutorial001_py310.UserIn",
+      "docs_src.dataclasses_.tutorial003_py39.Item",
+      "docs_src.request_form_models.tutorial001_an_py39.FormData",
+      "docs_src.body_nested_models.tutorial002_py39.Item",
+      "docs_src.settings.app03_py39.config_pv1.Config",
+      "docs_src.openapi_webhooks.tutorial001_py39.Subscription",
+      "docs_src.body_nested_models.tutorial002_py310.Item",
+      "docs_src.body_multiple_params.tutorial002_py310.User",
+      "docs_src.additional_responses.tutorial001_py39.Message",
+      "docs_src.body.tutorial002_py39.Item",
+      "docs_src.response_model.tutorial006_py39.Item",
+      "docs_src.dependencies.tutorial003_an_py310.CommonQueryParams",
+      "docs_src.sql_databases.tutorial001_an_py310.Hero",
+      "docs_src.body_nested_models.tutorial007_py39.Offer",
+      "docs_src.dependencies.tutorial002_py310.CommonQueryParams",
+      "docs_src.schema_extra_example.tutorial005_py39.Item",
+      "docs_src.dependencies.tutorial004_py310.CommonQueryParams",
+      "docs_src.body_nested_models.tutorial004_py310.Item",
+      "docs_src.body_nested_models.tutorial004_py310.Image",
+      "docs_src.header_param_models.tutorial003_py310.CommonHeaders",
+      "docs_src.extra_models.tutorial001_py39.UserOut",
+      "docs_src.dataclasses_.tutorial001_py310.Item",
+      "docs_src.openapi_callbacks.tutorial001_py39.InvoiceEvent",
+      "docs_src.settings.tutorial001_pv1_py39.Settings",
+      "docs_src.body_multiple_params.tutorial004_py39.User",
+      "docs_src.body_nested_models.tutorial006_py39.Item",
+      "docs_src.body_multiple_params.tutorial001_an_py39.Item",
+      "docs_src.schema_extra_example.tutorial001_pv1_py310.Config",
+      "docs_src.additional_responses.tutorial002_py39.Item",
+      "docs_src.body_multiple_params.tutorial002_py39.Item",
+      "docs_src.body.tutorial003_py310.Item",
+      "docs_src.query_param_models.tutorial001_py310.FilterParams",
+      "docs_src.cookie_param_models.tutorial002_py310.Cookies",
+      "docs_src.path_operation_configuration.tutorial002b_py39.Tags",
+      "docs_src.custom_response.tutorial009c_py39.CustomORJSONResponse",
+      "docs_src.body_multiple_params.tutorial004_py39.Item",
+      "docs_src.sql_databases.tutorial002_py39.HeroPublic",
+      "docs_src.header_param_models.tutorial003_an_py39.CommonHeaders",
+      "docs_src.body_multiple_params.tutorial004_py310.Item",
+      "docs_src.body_multiple_params.tutorial004_an_py310.User",
+      "docs_src.app_testing.app_b_py310.main.Item",
+      "docs_src.cookie_param_models.tutorial001_an_py310.Cookies",
+      "docs_src.additional_responses.tutorial004_py310.Item",
+      "docs_src.cookie_param_models.tutorial002_py39.Cookies",
+      "docs_src.body_nested_models.tutorial003_py39.Item",
+      "docs_src.body.tutorial004_py310.Item",
+      "docs_src.body_nested_models.tutorial006_py39.Image",
+      "docs_src.sql_databases.tutorial002_an_py310.HeroCreate",
+      "docs_src.schema_extra_example.tutorial003_an_py39.Item",
+      "docs_src.schema_extra_example.tutorial001_py39.Item",
+      "docs_src.app_testing.app_b_an_py39.main.Item",
+      "docs_src.schema_extra_example.tutorial001_pv1_py39.Config",
+      "docs_src.body_multiple_params.tutorial001_an_py310.Item",
+      "docs_src.query_param_models.tutorial001_py39.FilterParams",
+      "docs_src.custom_request_and_route.tutorial001_py39.GzipRoute",
+      "docs_src.sql_databases.tutorial002_an_py39.HeroCreate",
+      "docs_src.extra_models.tutorial003_py310.PlaneItem",
+      "docs_src.response_model.tutorial004_py39.Item",
+      "docs_src.body_nested_models.tutorial007_py310.Offer",
+      "docs_src.extra_models.tutorial003_py39.PlaneItem",
+      "docs_src.path_operation_configuration.tutorial002_py39.Item",
+      "docs_src.openapi_callbacks.tutorial001_py310.Invoice",
+      "docs_src.settings.app03_an_py39.config_pv1.Settings",
+      "docs_src.path_operation_configuration.tutorial001_py310.Item",
+      "docs_src.schema_extra_example.tutorial003_an_py310.Item",
+      "docs_src.body_fields.tutorial001_an_py310.Item",
+      "docs_src.generate_clients.tutorial002_py39.User",
+      "docs_src.body_multiple_params.tutorial003_an_py39.Item",
+      "docs_src.websockets.tutorial003_py39.ConnectionManager",
+      "docs_src.custom_request_and_route.tutorial001_an_py39.GzipRoute",
+      "docs_src.settings.app02_py39.config.Settings",
+      "docs_src.extra_models.tutorial002_py39.UserIn",
+      "docs_src.body_multiple_params.tutorial003_py39.Item",
+      "docs_src.request_form_models.tutorial001_py39.FormData",
+      "docs_src.body_multiple_params.tutorial001_py310.Item",
+      "docs_src.pydantic_v1_in_v2.tutorial004_an_py39.Item",
+      "docs_src.cookie_param_models.tutorial001_an_py39.Cookies",
+      "docs_src.dependencies.tutorial002_an_py310.CommonQueryParams",
+      "docs_src.extra_models.tutorial002_py310.UserOut",
+      "docs_src.schema_extra_example.tutorial001_pv1_py310.Item",
+      "docs_src.python_types.tutorial010_py39.Person",
+      "docs_src.response_model.tutorial003_01_py39.UserIn",
+      "docs_src.body_nested_models.tutorial005_py39.Image",
+      "docs_src.header_param_models.tutorial001_py39.CommonHeaders",
+      "docs_src.response_model.tutorial003_py310.UserOut",
+      "docs_src.settings.app03_an_py39.config.Settings",
+      "docs_src.extra_models.tutorial003_py310.CarItem",
+      "docs_src.path_operation_configuration.tutorial004_py310.Item",
+      "docs_src.dependencies.tutorial004_an_py310.CommonQueryParams",
+      "docs_src.body_nested_models.tutorial001_py310.Item",
+      "docs_src.body_multiple_params.tutorial003_py310.User",
+      "docs_src.path_operation_configuration.tutorial001_py39.Item",
+      "docs_src.additional_responses.tutorial004_py39.Item",
+      "docs_src.dependencies.tutorial004_py39.CommonQueryParams",
+      "docs_src.generate_clients.tutorial001_py39.Item",
+      "docs_src.body.tutorial004_py39.Item",
+      "docs_src.response_directly.tutorial001_py310.Item",
+      "docs_src.path_operation_advanced_configuration.tutorial004_py310.Item",
+      "docs_src.header_param_models.tutorial003_an_py310.CommonHeaders",
+      "docs_src.custom_request_and_route.tutorial001_py310.GzipRoute",
+      "docs_src.extra_models.tutorial001_py39.UserIn",
+      "docs_src.response_model.tutorial003_py310.UserIn",
+      "docs_src.generate_clients.tutorial002_py39.Item",
+      "docs_src.body.tutorial001_py310.Item",
+      "docs_src.body_multiple_params.tutorial001_py39.Item",
+      "docs_src.sql_databases.tutorial001_py310.Hero",
+      "docs_src.settings.app03_py39.config_pv1.Settings",
+      "docs_src.path_operation_advanced_configuration.tutorial007_py39.Item",
+      "docs_src.generate_clients.tutorial002_py39.ResponseMessage",
+      "docs_src.sql_databases.tutorial002_an_py39.Hero",
+      "docs_src.response_model.tutorial006_py310.Item",
+      "docs_src.dependencies.tutorial004_an_py39.CommonQueryParams",
+      "docs_src.pydantic_v1_in_v2.tutorial003_an_py310.ItemV2",
+      "docs_src.additional_responses.tutorial003_py39.Item",
+      "docs_src.python_types.tutorial011_py310.User",
+      "docs_src.pydantic_v1_in_v2.tutorial003_an_py39.Item",
+      "docs_src.cookie_param_models.tutorial002_an_py310.Cookies",
+      "docs_src.header_param_models.tutorial002_an_py39.CommonHeaders",
+      "docs_src.graphql_.tutorial001_py39.Query",
+      "docs_src.query_param_models.tutorial002_an_py310.FilterParams",
+      "docs_src.response_directly.tutorial001_py39.Item",
+      "docs_src.body_multiple_params.tutorial003_an_py310.User",
+      "docs_src.response_model.tutorial005_py39.Item",
+      "docs_src.body_multiple_params.tutorial003_py39.User",
+      "docs_src.dependencies.tutorial011_an_py39.FixedContentQueryChecker",
+      "docs_src.settings.app03_an_py39.config_pv1.Config",
+      "docs_src.body_nested_models.tutorial004_py39.Image",
+      "docs_src.path_operation_configuration.tutorial003_py39.Item",
+      "docs_src.header_param_models.tutorial003_py39.CommonHeaders",
+      "docs_src.python_types.tutorial011_py39.User",
+      "docs_src.sql_databases.tutorial002_py39.Hero",
+      "docs_src.settings.tutorial001_py39.Settings",
+      "docs_src.body_fields.tutorial001_py310.Item",
+      "docs_src.response_model.tutorial003_py39.UserIn",
+      "docs_src.dependencies.tutorial002_an_py39.CommonQueryParams",
+      "docs_src.dependencies.tutorial013_an_py310.User",
+      "docs_src.schema_extra_example.tutorial002_py310.Item",
+      "docs_src.path_operation_configuration.tutorial005_py310.Item",
+      "docs_src.body_updates.tutorial001_py39.Item",
+      "docs_src.dataclasses_.tutorial003_py310.Item",
+      "docs_src.path_operation_configuration.tutorial003_py310.Item",
+      "docs_src.app_testing.app_b_py39.main.Item",
+      "docs_src.pydantic_v1_in_v2.tutorial003_an_py310.Item",
+      "docs_src.response_model.tutorial002_py310.UserIn",
+      "docs_src.body_multiple_params.tutorial005_py310.Item",
+      "docs_src.body_nested_models.tutorial005_py310.Item",
+      "docs_src.path_operation_configuration.tutorial002_py310.Item",
+      "docs_src.dependencies.tutorial003_py39.CommonQueryParams",
+      "docs_src.response_model.tutorial001_py310.Item",
+      "docs_src.body_nested_models.tutorial007_py39.Image",
+      "docs_src.header_param_models.tutorial002_an_py310.CommonHeaders",
+      "docs_src.path_operation_advanced_configuration.tutorial004_py39.Item",
+      "docs_src.sql_databases.tutorial002_an_py310.Hero",
+      "docs_src.sql_databases.tutorial002_an_py310.HeroUpdate",
+      "docs_src.body_multiple_params.tutorial005_an_py310.Item",
+      "docs_src.openapi_callbacks.tutorial001_py39.InvoiceEventReceived",
+      "docs_src.cookie_param_models.tutorial001_py39.Cookies",
+      "docs_src.body_multiple_params.tutorial003_an_py310.Item",
+      "docs_src.sql_databases.tutorial001_py39.Hero",
+      "docs_src.body_multiple_params.tutorial004_an_py39.User",
+      "docs_src.dependencies.tutorial002_py39.CommonQueryParams",
+      "docs_src.body_fields.tutorial001_py39.Item",
+      "docs_src.settings.app02_an_py39.config.Settings",
+      "docs_src.encoder.tutorial001_py39.Item",
+      "docs_src.query_param_models.tutorial002_py310.FilterParams",
+      "docs_src.schema_extra_example.tutorial004_py39.Item",
+      "docs_src.sql_databases.tutorial002_py310.HeroCreate",
+      "docs_src.header_param_models.tutorial001_an_py310.CommonHeaders",
+      "docs_src.openapi_callbacks.tutorial001_py310.InvoiceEventReceived",
+      "docs_src.header_param_models.tutorial001_py310.CommonHeaders",
+      "docs_src.sql_databases.tutorial001_an_py39.Hero",
+      "docs_src.openapi_callbacks.tutorial001_py310.InvoiceEvent",
+      "docs_src.response_model.tutorial002_py39.UserIn",
+      "docs_src.body_nested_models.tutorial007_py310.Item",
+      "docs_src.schema_extra_example.tutorial004_py310.Item",
+      "docs_src.body_fields.tutorial001_an_py39.Item",
+      "docs_src.query_param_models.tutorial001_an_py310.FilterParams",
+      "docs_src.app_testing.app_b_an_py310.main.Item",
+      "docs_src.custom_request_and_route.tutorial001_an_py310.GzipRoute",
+      "docs_src.dataclasses_.tutorial003_py310.Author",
+      "docs_src.sql_databases.tutorial002_an_py39.HeroPublic",
+      "docs_src.query_param_models.tutorial001_an_py39.FilterParams",
+      "docs_src.body_nested_models.tutorial008_py39.Image",
+      "docs_src.sql_databases.tutorial002_py310.Hero",
+      "docs_src.dataclasses_.tutorial003_py39.Author",
+      "docs_src.body_multiple_params.tutorial004_an_py39.Item",
+      "docs_src.body_nested_models.tutorial007_py310.Image",
+      "docs_src.body.tutorial001_py39.Item",
+      "docs_src.extra_models.tutorial001_py310.UserOut",
+      "docs_src.path_operation_configuration.tutorial005_py39.Item",
+      "docs_src.pydantic_v1_in_v2.tutorial002_an_py39.Item",
+      "docs_src.body_multiple_params.tutorial003_an_py39.User",
+      "docs_src.generate_clients.tutorial003_py39.ResponseMessage",
+      "docs_src.dataclasses_.tutorial002_py39.Item",
+      "docs_src.generate_clients.tutorial001_py39.ResponseMessage",
+      "docs_src.body_nested_models.tutorial003_py310.Item",
+      "docs_src.query_param_models.tutorial002_py39.FilterParams",
+      "docs_src.body_updates.tutorial001_py310.Item",
+      "docs_src.body_nested_models.tutorial005_py39.Item",
+      "docs_src.sql_databases.tutorial002_py310.HeroUpdate",
+      "docs_src.sql_databases.tutorial002_py39.HeroCreate",
+      "docs_src.response_model.tutorial003_01_py310.UserIn",
+      "docs_src.schema_extra_example.tutorial004_an_py39.Item",
+      "docs_src.pydantic_v1_in_v2.tutorial002_an_py310.Item",
+      "docs_src.response_model.tutorial001_py39.Item",
+      "docs_src.body_multiple_params.tutorial002_py39.User",
+      "docs_src.schema_extra_example.tutorial001_py310.Item",
+      "docs_src.settings.app01_py39.config.Settings",
+      "docs_src.schema_extra_example.tutorial005_py310.Item",
+      "docs_src.dependencies.tutorial011_py39.FixedContentQueryChecker",
+      "docs_src.python_types.tutorial012_py39.User",
+      "docs_src.body_multiple_params.tutorial005_py39.Item",
+      "docs_src.sql_databases.tutorial002_py310.HeroPublic",
+      "docs_src.body_nested_models.tutorial006_py310.Item",
+      "docs_src.body_nested_models.tutorial005_py310.Image",
+      "docs_src.sql_databases.tutorial002_py39.HeroUpdate",
+      "docs_src.body_nested_models.tutorial001_py39.Item",
+      "docs_src.schema_extra_example.tutorial005_an_py39.Item",
+      "docs_src.sql_databases.tutorial002_an_py310.HeroPublic",
+      "docs_src.body_multiple_params.tutorial004_an_py310.Item",
+      "docs_src.custom_request_and_route.tutorial003_py310.TimedRoute",
+      "docs_src.path_operation_configuration.tutorial004_py39.Item",
+      "docs_src.schema_extra_example.tutorial001_pv1_py39.Item",
+      "docs_src.request_form_models.tutorial002_an_py39.FormData",
+      "docs_src.header_param_models.tutorial001_an_py39.CommonHeaders",
+      "docs_src.cookie_param_models.tutorial002_an_py39.Cookies",
+      "docs_src.body.tutorial002_py310.Item",
+      "docs_src.body_multiple_params.tutorial002_py310.Item",
+      "docs_src.dataclasses_.tutorial001_py39.Item",
+      "docs_src.custom_request_and_route.tutorial003_py39.TimedRoute",
+      "docs_src.body_multiple_params.tutorial004_py310.User",
+      "docs_src.pydantic_v1_in_v2.tutorial003_an_py39.ItemV2",
+      "docs_src.pydantic_v1_in_v2.tutorial001_an_py310.Item",
+      "docs_src.body_multiple_params.tutorial005_an_py39.Item",
+      "docs_src.additional_responses.tutorial001_py39.Item",
+      "docs_src.path_operation_advanced_configuration.tutorial007_pv1_py39.Item",
+      "docs_src.body_nested_models.tutorial007_py39.Item",
+      "docs_src.schema_extra_example.tutorial005_an_py310.Item"
+    ],
+    "children": {}
+  },
+  "scripts": {
+    "path": "scripts",
+    "components": [
+      "scripts.people.DiscussionsResponse",
+      "scripts.people.DiscussionsRepository",
+      "scripts.people.DiscussionsCommentsNode",
+      "scripts.notify_translations.AllDiscussionsData",
+      "scripts.contributors.LabelNode",
+      "scripts.notify_translations.Comments",
+      "scripts.sponsors.SponsorEntity",
+      "scripts.sponsors.SponsorshipAsMaintainer",
+      "scripts.sponsors.SponsorsUser",
+      "scripts.notify_translations.AddCommentData",
+      "scripts.contributors.Author",
+      "scripts.people.Replies",
+      "scripts.notify_translations.AddCommentResponse",
+      "scripts.notify_translations.AllDiscussionsLabelsEdge",
+      "scripts.people.DiscussionsNode",
+      "scripts.notify_translations.Comment",
+      "scripts.notify_translations.AllDiscussionsDiscussionNode",
+      "scripts.label_approved.LabelSettings",
+      "scripts.notify_translations.CommentsEdge",
+      "scripts.notify_translations.UpdateCommentResponse",
+      "scripts.notify_translations.AllDiscussionsDiscussions",
+      "scripts.notify_translations.UpdateCommentData",
+      "scripts.contributors.PRsResponse",
+      "scripts.people.Author",
+      "scripts.notify_translations.CommentsRepository",
+      "scripts.people.Discussions",
+      "scripts.notify_translations.CommentsDiscussion",
+      "scripts.notify_translations.PartialGitHubEvent",
+      "scripts.contributors.PullRequestEdge",
+      "scripts.label_approved.Settings",
+      "scripts.sponsors.SponsorsResponseData",
+      "scripts.sponsors.SponsorshipAsMaintainerEdge",
+      "scripts.notify_translations.AllDiscussionsDiscussionLabels",
+      "scripts.people.DiscussionsEdge",
+      "scripts.sponsors.Tier",
+      "scripts.people.DiscussionsResponseData",
+      "scripts.notify_translations.CommentsResponse",
+      "scripts.contributors.PRsRepository",
+      "scripts.notify_translations.CommentsData",
+      "scripts.notify_translations.AddDiscussionComment",
+      "scripts.notify_translations.PartialGitHubEventIssue",
+      "scripts.contributors.Reviews",
+      "scripts.notify_translations.UpdateDiscussionComment",
+      "scripts.contributors.PullRequestNode",
+      "scripts.notify_translations.AllDiscussionsLabelNode",
+      "scripts.notify_translations.AllDiscussionsResponse",
+      "scripts.contributors.PullRequests",
+      "scripts.sponsors.SponsorsResponse",
+      "scripts.contributors.ReviewNode",
+      "scripts.contributors.PRsResponseData",
+      "scripts.people.DiscussionsComments",
+      "scripts.notify_translations.AllDiscussionsRepository",
+      "scripts.contributors.Labels",
+      "scripts.sponsors.SponsorshipAsMaintainerNode"
+    ],
+    "children": {}
+  },
+  "fastapi": {
+    "path": "fastapi",
+    "components": [
+      "fastapi.openapi.models.Link",
+      "fastapi.openapi.models.OAuthFlowImplicit",
+      "fastapi.openapi.models.ExternalDocumentation",
+      "fastapi.openapi.models.Schema",
+      "fastapi.openapi.models.OAuthFlows",
+      "fastapi.openapi.models.OAuthFlowClientCredentials",
+      "fastapi.openapi.models.Server",
+      "fastapi.openapi.models.Discriminator",
+      "fastapi.openapi.models.RequestBody",
+      "fastapi.openapi.models.ParameterInType",
+      "fastapi.security.oauth2.OAuth2PasswordRequestFormStrict",
+      "fastapi.params.ParamTypes",
+      "fastapi.openapi.models.Operation",
+      "fastapi.openapi.models.SecuritySchemeType",
+      "fastapi.security.oauth2.OAuth2PasswordBearer",
+      "fastapi.openapi.models.Reference",
+      "fastapi.openapi.models.Example",
+      "fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware",
+      "fastapi.security.api_key.APIKeyQuery",
+      "fastapi.openapi.models.EmailStr",
+      "fastapi.openapi.models.Contact",
+      "fastapi.openapi.models.Info",
+      "fastapi._compat.v2.BaseConfig",
+      "fastapi.openapi.models.Tag",
+      "fastapi.openapi.models.HTTPBearer",
+      "fastapi.openapi.models.Encoding",
+      "fastapi.openapi.models.MediaType",
+      "fastapi.openapi.models.OpenIdConnect",
+      "fastapi.openapi.models.Components",
+      "fastapi.security.base.SecurityBase",
+      "fastapi.responses.UJSONResponse",
+      "fastapi.openapi.models.PathItem",
+      "fastapi.security.http.HTTPBasic",
+      "fastapi.openapi.models.APIKeyIn",
+      "fastapi.openapi.models.ServerVariable",
+      "fastapi.openapi.models.OAuthFlowPassword",
+      "fastapi.routing.APIRoute",
+      "fastapi.openapi.models.XML",
+      "fastapi.security.http.HTTPBearer",
+      "fastapi.datastructures.UploadFile",
+      "fastapi.security.open_id_connect_url.OpenIdConnect",
+      "fastapi.openapi.models.OAuth2",
+      "fastapi.security.oauth2.OAuth2AuthorizationCodeBearer",
+      "fastapi.security.http.HTTPDigest",
+      "fastapi.openapi.models.Header",
+      "fastapi.security.api_key.APIKeyHeader",
+      "fastapi.openapi.models.License",
+      "fastapi.openapi.models.OAuthFlowAuthorizationCode",
+      "fastapi.applications.FastAPI",
+      "fastapi.security.api_key.APIKeyCookie"
+    ],
+    "children": {}
+  }
+};
+        const METADATA = {
+  "generation_info": {
+    "timestamp": "2026-01-12T09:26:01.906645",
+    "main_model": "gemini-2.0-flash",
+    "generator_version": "1.0.0",
+    "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/fastapi",
+    "commit_id": null
+  },
+  "statistics": {
+    "total_components": 1641,
+    "leaf_nodes": 377,
+    "max_depth": 10
+  },
+  "files_generated": [
+    "overview.md",
+    "module_tree.json",
+    "first_module_tree.json",
+    "scripts.md",
+    "label_approved.md",
+    "docs_src.md"
+  ]
+};
+        const DOCS_BASE_PATH = '';
+        const DOCS_CONTENT = {
+  "overview.md": "# FastAPI Repository Overview\n\n## Purpose\n\nThe FastAPI repository provides a modern, high-performance, web framework for building APIs with Python 3.8+ based on standard Python type hints. It aims to provide a simple and intuitive way to create robust and scalable web APIs with automatic data validation, serialization, and API documentation.\n\n## Architecture\n\nFastAPI is built on top of Starlette for the web parts and Pydantic for data validation and settings management. It leverages Python type hints to define API request and response structures, enabling automatic data validation and serialization. The framework also provides automatic generation of OpenAPI and JSON Schema documentation.\n\n```mermaid\ngraph LR\n    subgraph FastAPI\n        FastAPIApp((FastAPI Application))\n        APIRoute[API Routes]\n        Dependencies[Dependencies]\n        Request[Request]\n        Response[Response]\n        Pydantic[Pydantic Models]\n        OpenAPI[OpenAPI Documentation]\n        Security[Security Schemes]\n    end\n\n    FastAPIApp --> APIRoute\n    APIRoute --> Dependencies\n    APIRoute --> Request\n    APIRoute --> Response\n    Request --> Pydantic\n    Response --> Pydantic\n    FastAPIApp --> OpenAPI\n    FastAPIApp --> Security\n    Security --> Dependencies\n\n    style FastAPI fill:#f9f,stroke:#333,stroke-width:2px\n    style FastAPIApp fill:#ccf,stroke:#333,stroke-width:2px\n    style APIRoute fill:#eee,stroke:#333,stroke-width:2px\n    style Dependencies fill:#eee,stroke:#333,stroke-width:2px\n    style Request fill:#eee,stroke:#333,stroke-width:2px\n    style Response fill:#eee,stroke:#333,stroke-width:2px\n    style Pydantic fill:#eee,stroke:#333,stroke-width:2px\n    style OpenAPI fill:#eee,stroke:#333,stroke-width:2px\n    style Security fill:#eee,stroke:#333,stroke-width:2px\n```\n\n## Core Modules Documentation\n\n- **[Applications](applications.md)**: This module contains the `FastAPI` class, which is the core of the framework. It handles the creation of the API application, routing, middleware, and exception handling.\n- **[Routing](routing.md)**: This module defines the `APIRoute` class, which is used to define API endpoints. It handles the association of paths, HTTP methods, dependencies, and request/response models.\n- **[Dependencies](dependencies.md)**: This module provides tools for dependency injection, allowing you to define reusable dependencies that can be injected into your API endpoints.\n- **[Security](security.md)**: This module provides classes and utilities for implementing various security schemes, such as OAuth2, API Key, and HTTP Basic authentication.\n- **[OpenAPI](openapi.md)**: This module handles the automatic generation of OpenAPI and JSON Schema documentation for your API. It uses the defined request and response models to create a comprehensive API specification.\n- **[Responses](responses.md)**: This module defines the response types available in FastAPI, including JSON responses, HTML responses, and more. It also allows you to create custom response types.\n- **[Params](params.md)**: This module defines the `ParamTypes` enum, which is used to specify the type of parameter (query, path, header, cookie, body, form).\n- **[Datastructures](datastructures.md)**: This module defines data structures used in FastAPI, such as `UploadFile` for handling file uploads.\n- **[Middleware](middleware.md)**: This module defines the `AsyncExitStackMiddleware` class, which is used to manage the application's middleware stack.\n\n## Additional Information\n\nThe repository also includes:\n\n-   `docs_src`: Contains documentation source files and examples. See [Docs_src](docs_src.md) for more details.\n-   `scripts`: Contains scripts for automating tasks related to repository management. See [Scripts](scripts.md) for more details.",
+  "scripts.md": "# Scripts Module Documentation\n\n## Introduction\n\nThis module contains scripts for automating various tasks related to repository management, such as notifying translators about discussions, managing sponsors, and analyzing contributor activity. It interacts with the GitHub API to retrieve and process data.\n\n## Architecture Overview\n\nThe module is structured into several sub-modules, each responsible for a specific set of tasks:\n\n-   **Sponsors**: Handles data related to repository sponsors.\n-   **Notify Translations**: Manages notifications to translators regarding discussions.\n-   **Contributors**: Analyzes and retrieves data about repository contributors.\n-   **People**: Fetches data of people involved in discussions.\n-   **Label Approved**: Contains settings related to label approval workflows.\n\n```mermaid\ngraph LR\n    scripts --> sponsors\n    scripts --> notify_translations\n    scripts --> contributors\n    scripts --> people\n    scripts --> label_approved\n\n    subgraph scripts\n        sponsors([sponsors.py])\n        notify_translations([notify_translations.py])\n        contributors([contributors.py])\n        people([people.py])\n        label_approved([label_approved.py])\n    end\n\n    style scripts fill:#f9f,stroke:#333,stroke-width:2px\n```\n\n## Sub-modules Functionality\n\n### Sponsors ([sponsors.md])\n\nThis sub-module defines data models for handling sponsor-related information. It includes models for sponsors, tiers, and sponsorship details. See [sponsors.md] for more details.\n\n### Notify Translations ([notify_translations.md])\n\nThis sub-module focuses on managing notifications to translators. It defines data structures for discussions, comments, and associated events. See [notify_translations.md] for details.\n\n### Contributors ([contributors.md])\n\nThis sub-module provides data models for analyzing repository contributors, including pull requests, reviews, and labels. See [contributors.md] for more information.\n\n### People ([people.md])\n\nThis sub-module defines data models for people involved in discussions including authors, comments, and replies. See [people.md] for more details.\n\n### Label Approved ([label_approved.md])\n\nThis sub-module contains settings for label approval workflows, including the await label and issue number. It is used to manage the automatic labeling of issues. The core components are `Settings` and `LabelSettings`.\n",
+  "label_approved.md": "# Label Approved Sub-module Documentation\n\n## Introduction\n\nThis sub-module contains settings for label approval workflows, including the await label and issue number. It is used to manage the automatic labeling of issues.\n\n## Core Components\n\n### `LabelSettings`\n\n```python\nclass LabelSettings(BaseModel):\n    await_label: str | None = None\n    number: int\n```\n\nThis component defines the settings for a specific label. It includes:\n\n-   `await_label`: The label to wait for before approving. If not provided, any label will be accepted.\n-   `number`: The issue or pull request number to apply the label to.\n\n### `Settings`\n\n```python\nclass Settings(BaseSettings):\n    github_repository: str\n    token: SecretStr\n    debug: bool | None = False\n    config: dict[str, LabelSettings] | Literal[\"\"] = default_config\n```\n\nThis component defines the overall settings for the label approval process. It includes:\n\n-   `github_repository`: The GitHub repository to operate on.\n-   `token`: A GitHub API token for authentication.\n-   `debug`: A boolean flag to enable debug mode.\n-   `config`: A dictionary mapping label names to `LabelSettings`.\n\n## Workflow\n\nThe `Settings` class is initialized with configuration parameters, including a dictionary of `LabelSettings`. The `LabelSettings` specify the conditions under which a label should be automatically applied to an issue or pull request.\n\n## Component Relationships\n\nThe `Settings` class contains a dictionary of `LabelSettings`. Each `LabelSettings` instance defines the specific conditions for a particular label.\n\n```mermaid\nclassDiagram\n    Settings *-- LabelSettings : contains\n        github_repository: str\n        token: SecretStr\n        debug: bool\n        config: dict[str, LabelSettings]\n        await_label: str\n        number: int\n```",
+  "docs_src.md": "# Documentation for the `docs_src` Module\n\n## Introduction\n\nThe `docs_src` module contains a wide variety of examples and tutorials for FastAPI, showcasing different features and functionalities. It includes examples for request body handling, dependencies, response models, header parameters, and much more. This documentation provides an overview of the module's structure and the different concepts covered in each sub-module.\n\n## Architecture\n\nThe `docs_src` module is structured as a collection of individual examples, each focusing on a specific aspect of FastAPI. There isn't a single overarching architecture, but rather a set of independent demonstrations.\n\n```mermaid\ngraph LR\n    subgraph docs_src\n        A[body] --> Item\n        B[dependencies] --> CommonQueryParams\n        C[response_model] --> Item & UserOut & UserIn\n        D[header_param_models] --> CommonHeaders\n        E[pydantic_v1_in_v2] --> Item\n        F[body_nested_models] --> Item & Image & Offer\n        G[body_multiple_params] --> Item & User\n        H[extra_models] --> Item & UserIn & UserOut & CarItem & PlaneItem\n        I[conditional_openapi] --> Settings\n        J[schema_extra_example] --> Item & Config\n        K[cookie_param_models] --> Cookies\n        L[query_param_models] --> FilterParams\n        M[path_params] --> ModelName\n        N[encoder] --> Item\n        O[settings] --> Settings & Config\n        P[sql_databases] --> Hero & HeroCreate & HeroUpdate & HeroPublic\n        Q[dataclasses_] --> Item & Author\n        R[openapi_callbacks] --> Invoice & InvoiceEvent & InvoiceEventReceived\n        S[additional_responses] --> Item & Message\n        T[request_form_models] --> FormData\n        U[openapi_webhooks] --> Subscription\n        V[path_operation_configuration] --> Item & Tags\n        W[custom_response] --> CustomORJSONResponse\n        X[generate_clients] --> Item & User & ResponseMessage\n        Y[app_testing] --> Item\n        Z[custom_request_and_route] --> GzipRoute & TimedRoute\n        AA[websockets] --> ConnectionManager\n        BB[python_types] --> User & Person\n        CC[body_updates] --> Item\n        DD[graphql_] --> Query\n        subgraph tutorial examples\n        Item((Item))\n        User((User))\n        UserIn((UserIn))\n        UserOut((UserOut))\n        CommonQueryParams((CommonQueryParams))\n        CommonHeaders((CommonHeaders))\n        Image((Image))\n        Offer((Offer))\n        Settings((Settings))\n        Config((Config))\n        Cookies((Cookies))\n        FilterParams((FilterParams))\n        ModelName((ModelName))\n        ResponseMessage((ResponseMessage))\n        Hero((Hero))\n        HeroCreate((HeroCreate))\n        HeroUpdate((HeroUpdate))\n        HeroPublic((HeroPublic))\n        Author((Author))\n        Invoice((Invoice))\n        InvoiceEvent((InvoiceEvent))\n        InvoiceEventReceived((InvoiceEventReceived))\n        Message((Message))\n        FormData((FormData))\n        Subscription((Subscription))\n        Tags((Tags))\n        CustomORJSONResponse((CustomORJSONResponse))\n        GzipRoute((GzipRoute))\n        TimedRoute((TimedRoute))\n        ConnectionManager((ConnectionManager))\n        Person((Person))\n        Query((Query))\n        CarItem((CarItem))\n        PlaneItem((PlaneItem))\n        end\n    end\n\nstyle Item fill:#f9f,stroke:#333,stroke-width:2px\nstyle User fill:#f9f,stroke:#333,stroke-width:2px\nstyle UserIn fill:#f9f,stroke:#333,stroke-width:2px\nstyle UserOut fill:#f9f,stroke:#333,stroke-width:2px\nstyle CommonQueryParams fill:#f9f,stroke:#333,stroke-width:2px\nstyle CommonHeaders fill:#f9f,stroke:#333,stroke-width:2px\nstyle Image fill:#f9f,stroke:#333,stroke-width:2px\nstyle Offer fill:#f9f,stroke:#333,stroke-width:2px\nstyle Settings fill:#f9f,stroke:#333,stroke-width:2px\nstyle Config fill:#f9f,stroke:#333,stroke-width:2px\nstyle Cookies fill:#f9f,stroke:#333,stroke-width:2px\nstyle FilterParams fill:#f9f,stroke:#333,stroke-width:2px\nstyle ModelName fill:#f9f,stroke:#333,stroke-width:2px\nstyle ResponseMessage fill:#f9f,stroke:#333,stroke-width:2px\nstyle Hero fill:#f9f,stroke:#333,stroke-width:2px\nstyle HeroCreate fill:#f9f,stroke:#333,stroke-width:2px\nstyle HeroUpdate fill:#f9f,stroke:#333,stroke-width:2px\nstyle HeroPublic fill:#f9f,stroke:#333,stroke-width:2px\nstyle Author fill:#f9f,stroke:#333,stroke-width:2px\nstyle Invoice fill:#f9f,stroke:#333,stroke-width:2px\nstyle InvoiceEvent fill:#f9f,stroke:#333,stroke-width:2px\nstyle InvoiceEventReceived fill:#f9f,stroke:#333,stroke-width:2px\nstyle Message fill:#f9f,stroke:#333,stroke-width:2px\nstyle FormData fill:#f9f,stroke:#333,stroke-width:2px\nstyle Subscription fill:#f9f,stroke:#333,stroke-width:2px\nstyle Tags fill:#f9f,stroke:#333,stroke-width:2px\nstyle CustomORJSONResponse fill:#f9f,stroke:#333,stroke-width:2px\nstyle GzipRoute fill:#f9f,stroke:#333,stroke-width:2px\nstyle TimedRoute fill:#f9f,stroke:#333,stroke-width:2px\nstyle ConnectionManager fill:#f9f,stroke:#333,stroke-width:2px\nstyle Person fill:#f9f,stroke:#333,stroke-width:2px\nstyle Query fill:#f9f,stroke:#333,stroke-width:2px\nstyle CarItem fill:#f9f,stroke:#333,stroke-width:2px\nstyle PlaneItem fill:#f9f,stroke:#333,stroke-width:2px\n\n\n```\n\n## Sub-modules and Functionality\n\n- **`sql_databases`**: Demonstrates how to integrate FastAPI with SQL databases using SQLAlchemy or similar libraries. Includes examples like `sql_databases.tutorial002_an_py39.HeroUpdate`, `sql_databases.tutorial002_an_py39.HeroCreate`, `sql_databases.tutorial002_an_py39.Hero` and `sql_databases.tutorial002_an_py39.HeroPublic`. More details can be found [here](sql_databases.md).\n\n- **`body`**: Demonstrates how to define request bodies using Pydantic models. Includes examples with different data types and handling optional fields. See `body.tutorial003_py39.Item` and `body.tutorial003_py310.Item`.\n\n- **`dependencies`**: Covers various dependency injection techniques in FastAPI. Shows how to use dependencies to share logic, perform authentication, and more. Includes components like `dependencies.tutorial003_py310.CommonQueryParams` and `dependencies.tutorial003_an_py39.CommonQueryParams`.\n\n- **`response_model`**: Illustrates how to define response models to structure and validate the data returned by your API endpoints. Includes examples like `response_model.tutorial004_py310.Item` and `response_model.tutorial003_py39.UserOut`.\n\n- **`header_param_models`**: Shows how to define and use header parameters in your API endpoints, using Pydantic models for validation and documentation. Includes `header_param_models.tutorial002_py310.CommonHeaders`.\n\n- **`pydantic_v1_in_v2`**: Demonstrates the interoperability between Pydantic v1 and v2. Includes examples like `pydantic_v1_in_v2.tutorial004_an_py310.Item`.\n\n- **`body_nested_models`**: Demonstrates how to define request bodies with nested Pydantic models, allowing for complex data structures. See `body_nested_models.tutorial004_py39.Item` and `body_nested_models.tutorial004_py39.Image`.\n\n- **`body_multiple_params`**: Covers how to receive multiple body parameters in a single API endpoint. Includes examples like `body_multiple_params.tutorial003_py310.Item` and `body_multiple_params.tutorial003_py310.User`.\n\n- **`extra_models`**: Shows how to use extra models and functionalities with Pydantic. Includes examples like `extra_models.tutorial003_py39.CarItem` and `extra_models.tutorial003_py39.PlaneItem`.\n\n- **`conditional_openapi`**: Demonstrates how to conditionally include or exclude parts of the OpenAPI schema based on certain conditions. Includes `conditional_openapi.tutorial001_py39.Settings`.\n\n- **`schema_extra_example`**: Provides examples of how to add extra information to the OpenAPI schema using the `schema_extra` configuration option. Includes `schema_extra_example.tutorial003_py310.Item`.\n\n- **`cookie_param_models`**: Shows how to define and use cookie parameters in your API endpoints. Includes `cookie_param_models.tutorial001_py310.Cookies`.\n\n- **`query_param_models`**: Covers how to define and use query parameters in your API endpoints, using Pydantic models for validation. Includes `query_param_models.tutorial002_an_py39.FilterParams`.\n\n- **`path_params`**: Demonstrates how to define and use path parameters in your API endpoints. Includes `path_params.tutorial005_py39.ModelName`.\n\n- **`encoder`**: Provides examples of how to use custom encoders for Pydantic models. Includes `encoder.tutorial001_py310.Item`.\n\n- **`settings`**: Shows how to manage application settings using Pydantic's `BaseSettings` class. Includes `settings.app03_py39.config.Settings`.\n\n- **`dataclasses_`**: Shows how to use Python dataclasses with FastAPI. Includes `dataclasses_.tutorial002_py310.Item`.\n\n- **`openapi_callbacks`**: Demonstrates how to define and use OpenAPI callbacks in your API. Includes `openapi_callbacks.tutorial001_py39.Invoice`, `openapi_callbacks.tutorial001_py39.InvoiceEvent`, and `openapi_callbacks.tutorial001_py39.InvoiceEventReceived`.\n\n- **`additional_responses`**: Covers how to define additional responses in your API endpoints beyond the default success response. Includes examples like `additional_responses.tutorial002_py310.Item` and `additional_responses.tutorial001_py39.Message`.\n\n- **`request_form_models`**: Shows how to handle form data in your API endpoints using Pydantic models. Includes `request_form_models.tutorial002_py39.FormData`.\n\n- **`openapi_webhooks`**: Demonstrates how to define and use OpenAPI webhooks in your API. Includes `openapi_webhooks.tutorial001_py39.Subscription`.\n\n- **`path_operation_configuration`**: Covers different ways to configure path operations in FastAPI. Includes `path_operation_configuration.tutorial002b_py39.Tags` and `path_operation_configuration.tutorial002_py39.Item`.\n\n- **`custom_response`**: Shows how to create custom response classes in FastAPI. Includes `custom_response.tutorial009c_py39.CustomORJSONResponse`.\n\n- **`generate_clients`**: Provides examples of how to automatically generate API clients from your FastAPI application. Includes `generate_clients.tutorial003_py39.User`, `generate_clients.tutorial003_py39.Item`, and `generate_clients.tutorial003_py39.ResponseMessage`.\n\n- **`app_testing`**: Illustrates different techniques for testing FastAPI applications. Includes `app_testing.app_b_py310.main.Item`.\n\n- **`custom_request_and_route`**: Shows how to create custom request and route classes in FastAPI. Includes `custom_request_and_route.tutorial001_py39.GzipRoute`.\n\n- **`websockets`**: Demonstrates how to use WebSockets with FastAPI. Includes `websockets.tutorial003_py39.ConnectionManager`.\n\n- **`python_types`**: Examples of using python types in FastAPI. Includes `python_types.tutorial010_py39.Person`.\n\n- **`body_updates`**: Examples of how to perform partial updates to request bodies. Includes `body_updates.tutorial001_py39.Item`.\n\n- **`graphql_`**: Shows how to integrate FastAPI with GraphQL. Includes `graphql_.tutorial001_py39.Query`.\n\n\n- **`body`**: Demonstrates how to define request bodies using Pydantic models. Includes examples with different data types and handling optional fields. See `body.tutorial003_py39.Item` and `body.tutorial003_py310.Item`.\n\n- **`dependencies`**: Covers various dependency injection techniques in FastAPI. Shows how to use dependencies to share logic, perform authentication, and more. Includes components like `dependencies.tutorial003_py310.CommonQueryParams` and `dependencies.tutorial003_an_py39.CommonQueryParams`.\n\n- **`response_model`**: Illustrates how to define response models to structure and validate the data returned by your API endpoints. Includes examples like `response_model.tutorial004_py310.Item` and `response_model.tutorial003_py39.UserOut`.\n\n- **`header_param_models`**: Shows how to define and use header parameters in your API endpoints, using Pydantic models for validation and documentation. Includes `header_param_models.tutorial002_py310.CommonHeaders`.\n\n- **`pydantic_v1_in_v2`**: Demonstrates the interoperability between Pydantic v1 and v2. Includes examples like `pydantic_v1_in_v2.tutorial004_an_py310.Item`.\n\n- **`body_nested_models`**: Demonstrates how to define request bodies with nested Pydantic models, allowing for complex data structures. See `body_nested_models.tutorial004_py39.Item` and `body_nested_models.tutorial004_py39.Image`.\n\n- **`body_multiple_params`**: Covers how to receive multiple body parameters in a single API endpoint. Includes examples like `body_multiple_params.tutorial003_py310.Item` and `body_multiple_params.tutorial003_py310.User`.\n\n- **`extra_models`**: Shows how to use extra models and functionalities with Pydantic. Includes examples like `extra_models.tutorial003_py39.CarItem` and `extra_models.tutorial003_py39.PlaneItem`.\n\n- **`conditional_openapi`**: Demonstrates how to conditionally include or exclude parts of the OpenAPI schema based on certain conditions. Includes `conditional_openapi.tutorial001_py39.Settings`.\n\n- **`schema_extra_example`**: Provides examples of how to add extra information to the OpenAPI schema using the `schema_extra` configuration option. Includes `schema_extra_example.tutorial003_py310.Item`.\n\n- **`cookie_param_models`**: Shows how to define and use cookie parameters in your API endpoints. Includes `cookie_param_models.tutorial001_py310.Cookies`.\n\n- **`query_param_models`**: Covers how to define and use query parameters in your API endpoints, using Pydantic models for validation. Includes `query_param_models.tutorial002_an_py39.FilterParams`.\n\n- **`path_params`**: Demonstrates how to define and use path parameters in your API endpoints. Includes `path_params.tutorial005_py39.ModelName`.\n\n- **`encoder`**: Provides examples of how to use custom encoders for Pydantic models. Includes `encoder.tutorial001_py310.Item`.\n\n- **`settings`**: Shows how to manage application settings using Pydantic's `BaseSettings` class. Includes `settings.app03_py39.config.Settings`.\n\n- **`sql_databases`**: Demonstrates how to integrate FastAPI with SQL databases using SQLAlchemy or similar libraries. Includes examples like `sql_databases.tutorial002_an_py39.HeroUpdate`, `sql_databases.tutorial002_an_py39.HeroCreate`, `sql_databases.tutorial002_an_py39.Hero` and `sql_databases.tutorial002_an_py39.HeroPublic`.\n\n- **`dataclasses_`**: Shows how to use Python dataclasses with FastAPI. Includes `dataclasses_.tutorial002_py310.Item`.\n\n- **`openapi_callbacks`**: Demonstrates how to define and use OpenAPI callbacks in your API. Includes `openapi_callbacks.tutorial001_py39.Invoice`, `openapi_callbacks.tutorial001_py39.InvoiceEvent`, and `openapi_callbacks.tutorial001_py39.InvoiceEventReceived`.\n\n- **`additional_responses`**: Covers how to define additional responses in your API endpoints beyond the default success response. Includes examples like `additional_responses.tutorial002_py310.Item` and `additional_responses.tutorial001_py39.Message`.\n\n- **`request_form_models`**: Shows how to handle form data in your API endpoints using Pydantic models. Includes `request_form_models.tutorial002_py39.FormData`.\n\n- **`openapi_webhooks`**: Demonstrates how to define and use OpenAPI webhooks in your API. Includes `openapi_webhooks.tutorial001_py39.Subscription`.\n\n- **`path_operation_configuration`**: Covers different ways to configure path operations in FastAPI. Includes `path_operation_configuration.tutorial002b_py39.Tags` and `path_operation_configuration.tutorial002_py39.Item`.\n\n- **`custom_response`**: Shows how to create custom response classes in FastAPI. Includes `custom_response.tutorial009c_py39.CustomORJSONResponse`.\n\n- **`generate_clients`**: Provides examples of how to automatically generate API clients from your FastAPI application. Includes `generate_clients.tutorial003_py39.User`, `generate_clients.tutorial003_py39.Item`, and `generate_clients.tutorial003_py39.ResponseMessage`.\n\n- **`app_testing`**: Illustrates different techniques for testing FastAPI applications. Includes `app_testing.app_b_py310.main.Item`.\n\n- **`custom_request_and_route`**: Shows how to create custom request and route classes in FastAPI. Includes `custom_request_and_route.tutorial001_py39.GzipRoute`.\n\n- **`websockets`**: Demonstrates how to use WebSockets with FastAPI. Includes `websockets.tutorial003_py39.ConnectionManager`.\n\n- **`python_types`**: Examples of using python types in FastAPI. Includes `python_types.tutorial010_py39.Person`.\n\n- **`body_updates`**: Examples of how to perform partial updates to request bodies. Includes `body_updates.tutorial001_py39.Item`.\n\n- **`graphql_`**: Shows how to integrate FastAPI with GraphQL. Includes `graphql_.tutorial001_py39.Query`.\n\nThis module serves as a valuable resource for learning and exploring the various features of FastAPI through practical examples.\n"
+};
+        const REPO_TITLE = 'fastapi';
+
+        // State management
+        let currentModule = 'overview';
+        let navigationHistory = [];
+        let expandedNodes = new Map(); // Track expanded nodes: nodeId -> {originalLabel, targetModuleId, subgraphId}
+        let currentDiagramCode = '';
+        let baseDiagramCode = '';
+        let selectedNodeId = null;
+        let selectedModuleId = null;
+        
+        // Module data structure (built from MODULE_TREE)
+        let moduleData = {};
+        let nodeIdToModule = {}; // Maps node IDs to module keys
+        let moduleLinkMap = {}; // Maps module names to their links
+
+        // Initialize marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+        
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Build module data from MODULE_TREE
+        function buildModuleData() {
+            // Create overview module - prefer extracted diagram from overview.md
+            const fallbackDiagram = generateOverviewDiagram();
+            const overviewMd = DOCS_CONTENT['overview.md'] || '';
+            const extractedDiagram = extractMermaidFromMarkdown(overviewMd);
+            const overviewDiagram = extractedDiagram || fallbackDiagram;
+            
+            const overviewLinks = {};
+            
+            // Build links for overview - each top-level module is a link
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const formattedName = formatModuleName(key);
+                overviewLinks[formattedName] = key;
+            }
+            
+            // If using extracted diagram, also build links from diagram node labels
+            if (extractedDiagram) {
+                // Parse all node definitions: A[text], A(text), A{text}, A((text))
+                const nodePattern = /([A-Za-z_][A-Za-z0-9_]*)\s*(?:\["?([^"\]]+)"?\]|\("?([^"\)]+)"?\)|\{"?([^"\}]+)"?\}|\(\("?([^"\)]+)"?\)\))/g;
+                let match;
+                while ((match = nodePattern.exec(extractedDiagram)) !== null) {
+                    const label = (match[2] || match[3] || match[4] || match[5] || '').trim();
+                    if (!label) continue;
+                    
+                    // Try to match label to a module in MODULE_TREE
+                    const labelLower = label.toLowerCase();
+                    // Convert "torch.nn" to "torch_nn" for matching
+                    const labelNormalized = labelLower.replace(/[^a-z0-9]/g, '_');
+                    
+                    // Direct match with module keys (including children recursively)
+                    function findModuleRecursive(tree) {
+                        for (const [modKey, modData] of Object.entries(tree)) {
+                            const modKeyLower = modKey.toLowerCase();
+                            // Match by key or formatted name
+                            if (modKeyLower === labelNormalized || 
+                                modKeyLower === labelLower ||
+                                formatModuleName(modKey).toLowerCase() === labelLower) {
+                                return modKey;
+                            }
+                            // Also match dotted notation: "torch.nn" matches "torch_nn"
+                            const dottedLabel = labelLower.replace(/\./g, '_');
+                            if (modKeyLower === dottedLabel) {
+                                return modKey;
+                            }
+                            // Search children
+                            if (modData.children) {
+                                const found = findModuleRecursive(modData.children);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    const foundModule = findModuleRecursive(MODULE_TREE);
+                    if (foundModule) {
+                        overviewLinks[label] = foundModule;
+                        console.log('[LINK] Mapped diagram label "' + label + '" to module "' + foundModule + '"');
+                    }
+                }
+            }
+            
+            moduleData['overview'] = {
+                name: REPO_TITLE + ' Overview',
+                diagram: overviewDiagram,
+                documentation: DOCS_CONTENT['overview.md'] || '# Overview\n\nNo overview available.',
+                links: overviewLinks
+            };
+            
+            // Build modules from tree
+            buildModulesFromTree(MODULE_TREE, '');
+        }
+
+        function buildModulesFromTree(tree, parentPath) {
+            for (const [key, data] of Object.entries(tree)) {
+                const moduleId = parentPath ? `${parentPath}/${key}` : key;
+                const formattedName = formatModuleName(key);
+                
+                // Generate diagram for this module showing its children
+                const diagram = generateModuleDiagram(key, data);
+                
+                // Build links for children
+                const links = {};
+                if (data.children) {
+                    for (const [childKey, childData] of Object.entries(data.children)) {
+                        const childFormattedName = formatModuleName(childKey);
+                        links[childFormattedName] = childKey;
+                    }
+                }
+                
+                // Try to find documentation file
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                moduleData[key] = {
+                    name: formattedName,
+                    diagram: diagram,
+                    documentation: documentation,
+                    links: links,
+                    children: data.children || {}
+                };
+                
+                // Recursively build child modules
+                if (data.children) {
+                    buildModulesFromTree(data.children, moduleId);
+                }
+            }
+        }
+
+        function generateOverviewDiagram() {
+            let diagram = 'graph TD\n';
+            const repoNodeId = 'REPO';
+            const repoLabel = escapeLabel(REPO_TITLE);
+            diagram += `    ${repoNodeId}["${repoLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const nodeId = `M${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(key));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${repoNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = key;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+
+        function generateModuleDiagram(moduleKey, moduleData) {
+            if (!moduleData.children || Object.keys(moduleData.children).length === 0) {
+                // Leaf module - no sub-diagram
+                return '';
+            }
+            
+            let diagram = 'graph TD\n';
+            const parentNodeId = 'PARENT';
+            const parentLabel = escapeLabel(formatModuleName(moduleKey));
+            diagram += `    ${parentNodeId}["${parentLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [childKey, childData] of Object.entries(moduleData.children)) {
+                const nodeId = `C${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(childKey));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${parentNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = childKey;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+
+        function formatModuleName(key) {
+            return key
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            buildModuleData();
+            loadModule('overview');
+        });
+
+        function loadModule(moduleId, skipHistoryUpdate = false) {
+            if (!moduleData || !moduleData[moduleId]) {
+                console.error('Module not found:', moduleId);
+                return;
+            }
+
+            const module = moduleData[moduleId];
+            currentModule = moduleId;
+            
+            // Reset expansion state when loading new module
+            expandedNodes.clear();
+            selectedNodeId = null;
+            selectedModuleId = null;
+            baseDiagramCode = module.diagram || '';
+            currentDiagramCode = module.diagram || '';
+
+            // Update title
+            document.getElementById('moduleTitle').textContent = module.name;
+
+            // Update back button
+            const backButton = document.getElementById('backButton');
+            if (navigationHistory.length > 0) {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = false;
+            } else if (moduleId === 'overview') {
+                backButton.style.display = 'none';
+            } else {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = true;
+            }
+
+            // Render documentation
+            renderDocumentation(module.documentation);
+
+            // Render diagram
+            if (module.diagram && module.diagram.trim()) {
+                renderDiagram(module.diagram, module.links || {}, moduleId);
+            } else {
+                // No diagram - try to extract from markdown
+                const extracted = extractMermaidFromMarkdown(module.documentation);
+                if (extracted) {
+                    renderDiagram(extracted, module.links || {}, moduleId);
+                } else {
+                    document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available for this module.</p>';
+                }
+            }
+        }
+
+        function extractMermaidFromMarkdown(markdown) {
+            const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+            const match = mermaidRegex.exec(markdown);
+            return match ? match[1].trim() : null;
+        }
+
+        // Combine links from current module + all expanded modules
+        // This ensures that expanded subgraph children are clickable
+        function getCombinedLinks() {
+            const combined = {};
+            
+            // Add current module's links
+            const current = moduleData[currentModule];
+            if (current && current.links) {
+                Object.assign(combined, current.links);
+            }
+            
+            // Add links from all expanded modules
+            for (const [nodeId, expansion] of expandedNodes.entries()) {
+                const expandedMod = moduleData[expansion.targetModuleId];
+                if (expandedMod && expandedMod.links) {
+                    // Prefix the links to match the prefixed node IDs in the subgraph
+                    const prefix = `${nodeId}_`;
+                    for (const [label, targetId] of Object.entries(expandedMod.links)) {
+                        combined[label] = targetId;
+                    }
+                }
+            }
+            
+            return combined;
+        }
+
+        function selectNode(nodeId, moduleId) {
+            
+            selectedNodeId = nodeId;
+            selectedModuleId = moduleId;
+            
+            // Load selected module's documentation
+            if (moduleData && moduleData[moduleId]) {
+                const module = moduleData[moduleId];
+                renderDocumentation(module.documentation || 'No documentation available.');
+                document.getElementById('moduleTitle').textContent = module.name || moduleId;
+            }
+            
+            // Re-render diagram to apply selected styling - use combined links for expanded nodes
+            renderDiagram(currentDiagramCode || baseDiagramCode, getCombinedLinks(), currentModule);
+        }
+
+        function renderDocumentation(markdown) {
+            // Remove mermaid blocks from display
+            const cleanMarkdown = markdown.replace(/```mermaid\n[\s\S]*?```/g, '');
+            const html = marked.parse(cleanMarkdown);
+            document.getElementById('docContent').innerHTML = html;
+
+            // Make .md links clickable
+            document.querySelectorAll('#docContent a[href$=".md"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                const href = link.getAttribute('href');
+                    const moduleId = href.replace('.md', '');
+                    navigateToModule(moduleId);
+                });
+            });
+            
+            // Also handle anchor links that reference module documentation
+            // LLM-generated docs often use anchors like #file-management-tools-module-documentation
+            document.querySelectorAll('#docContent a[href^="#"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    // Convert anchor to potential module ID
+                    // E.g., #file-management-tools-module-documentation -> file_management_tools
+                    const anchor = href.substring(1); // Remove #
+                    const potentialModuleId = anchor
+                        .replace(/-module-documentation$/, '')
+                        .replace(/-module$/, '')
+                        .replace(/-/g, '_');
+                    
+                    // Check if this maps to an existing module
+                    if (moduleData[potentialModuleId]) {
+                    e.preventDefault();
+                        navigateToModule(potentialModuleId);
+                    }
+                    // Otherwise let the normal anchor behavior proceed
+                });
+            });
+        }
+
+        function expandNodeInline(nodeId, targetModuleId) {
+            if (!nodeId || !targetModuleId || !moduleData[targetModuleId]) {
+                console.error(`Cannot expand: nodeId=${nodeId}, module=${targetModuleId}`);
+                return;
+            }
+            
+            if (expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is already expanded`);
+                return;
+            }
+            
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule.diagram) {
+                console.log(`Module ${targetModuleId} has no diagram - just selecting`);
+                selectNode(nodeId, targetModuleId);
+                return;
+            }
+            
+            
+            // Find node's original label in base diagram
+            let workingDiagram = baseDiagramCode;
+            const nodeDefPattern = new RegExp(`\\b${nodeId}\\s*\\["?([^"\\]]+)"?\\]`);
+            const baseNodeMatch = workingDiagram.match(nodeDefPattern);
+            
+            if (!baseNodeMatch) {
+                // Try current diagram
+                const currentNodeMatch = currentDiagramCode.match(nodeDefPattern);
+                if (!currentNodeMatch) {
+                    console.error(`Could not find node ${nodeId}`);
+                    return;
+                }
+            }
+            
+            const originalLabel = baseNodeMatch ? baseNodeMatch[1].trim() : formatModuleName(targetModuleId);
+            const subgraphId = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            expandedNodes.set(nodeId, {
+                originalLabel: originalLabel,
+                targetModuleId: targetModuleId,
+                subgraphId: subgraphId,
+                collapseNodeId: collapseNodeId
+            });
+            
+            // Rebuild diagram with all expansions
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                workingDiagram = applyExpansionToDiagram(workingDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = workingDiagram;
+            selectNode(subgraphId, targetModuleId);
+        }
+
+        function collapseNode(nodeId) {
+            if (!expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is not expanded`);
+                return;
+            }
+            
+            console.log(`[COLLAPSE] Collapsing node ${nodeId}`);
+            
+            // Also collapse child expansions
+            const nodesToCollapse = [nodeId];
+            for (const [expNodeId] of expandedNodes.entries()) {
+                if (expNodeId.startsWith(nodeId + '_') && !expNodeId.endsWith('_collapse')) {
+                    nodesToCollapse.push(expNodeId);
+                }
+            }
+            
+            for (const nodeToRemove of nodesToCollapse) {
+                expandedNodes.delete(nodeToRemove);
+            }
+            
+            // Rebuild from base
+            let rebuiltDiagram = baseDiagramCode;
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                rebuiltDiagram = applyExpansionToDiagram(rebuiltDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = rebuiltDiagram;
+            selectedNodeId = null;
+            selectedModuleId = null;
+            
+            // Use combined links for remaining expanded nodes
+            renderDiagram(rebuiltDiagram, getCombinedLinks(), currentModule);
+        }
+
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                return diagram;
+            }
+            
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            // Get target module's diagram content
+            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            
+            // Prefix all node IDs to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z]+\d*)\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Replace node definition with subgraph
+            const nodePattern = new RegExp(`(\\s*)${nodeId}\\["?[^"\\]]*"?\\]`, 'g');
+            const hasNodeDef = nodePattern.test(diagram);
+            
+            if (!hasNodeDef) {
+                console.log(`Node ${nodeId} definition not found`);
+                return diagram;
+            }
+            
+            // Build subgraph
+            const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+            const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+            const subgraphDef = `\n    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end\n`;
+            
+            // Replace node with subgraph - ensure newlines around the subgraph
+            let newDiagram = diagram.replace(
+                new RegExp(`\\s*${nodeId}\\["?[^"\\]]*"?\\]\\s*`),
+                subgraphDef
+            );
+            
+            // Update edges to point to subgraph
+            newDiagram = newDiagram.replace(
+                new RegExp(`(-->\\s*)${nodeId}(?!_)`, 'g'),
+                `$1${subgraphName}`
+            );
+            newDiagram = newDiagram.replace(
+                new RegExp(`${nodeId}(?!_)(\\s*-->)`, 'g'),
+                `${subgraphName}$1`
+            );
+            
+            // Ensure graph declaration
+            if (!newDiagram.trim().startsWith('graph')) {
+                newDiagram = 'graph TD\n' + newDiagram;
+            }
+            
+            return newDiagram;
+        }
+
+        function renderDiagram(diagramCode, links, currentModuleId) {
+            if (!diagramCode) {
+                document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available.</p>';
+                return;
+            }
+            
+            currentDiagramCode = diagramCode;
+            
+            // Build node mappings
+            const localNodeIdToModule = {};
+            const labelToNodeId = {};
+            
+            const nodePattern = /(\w+)\["?([^"\]]+)"?\]/g;
+            let match;
+            while ((match = nodePattern.exec(diagramCode)) !== null) {
+                const nodeId = match[1];
+                const label = match[2].trim();
+                labelToNodeId[label] = nodeId;
+                
+                // Match label to links
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    if (label.toLowerCase() === linkText.toLowerCase() ||
+                        label.toLowerCase().includes(linkText.toLowerCase()) ||
+                        linkText.toLowerCase().includes(label.toLowerCase())) {
+                        localNodeIdToModule[nodeId] = moduleId;
+                        break;
+                    }
+                }
+            }
+            
+            // Ensure graph declaration
+            let finalDiagramCode = diagramCode.trim();
+            if (!finalDiagramCode.startsWith('graph ')) {
+                finalDiagramCode = 'graph TD\n' + finalDiagramCode;
+            }
+            
+            const diagramDiv = document.getElementById('mermaid-diagram');
+            diagramDiv.innerHTML = '<div class="loading">Rendering diagram...</div>';
+            const diagramId = 'diagram-' + Date.now();
+
+            (async () => {
+                try {
+                    const { svg } = await mermaid.render(diagramId, finalDiagramCode);
+                    diagramDiv.innerHTML = svg;
+                    
+                    const processedNodes = new WeakSet();
+                    
+                    const processNodes = () => {
+                        const svgEl = diagramDiv.querySelector('svg');
+                        if (!svgEl) return;
+                        
+                        const nodeGroups = svgEl.querySelectorAll('g.node');
+                        
+                        nodeGroups.forEach((nodeGroup, idx) => {
+                            if (processedNodes.has(nodeGroup)) return;
+                            
+                            // Extract node ID from SVG element
+                            let svgNodeId = null;
+                            const groupId = nodeGroup.id || '';
+                            const idMatch = groupId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (idMatch) {
+                                svgNodeId = idMatch[1];
+                            }
+                            
+                            // Get text content - Mermaid 11.x may use different structures
+                            let fullText = '';
+                            
+                            // Method 1: Direct text/tspan elements
+                            const textElements = nodeGroup.querySelectorAll('text, tspan');
+                            textElements.forEach(el => {
+                                const text = el.textContent.trim();
+                                if (text && !fullText.includes(text)) {
+                                    fullText += (fullText ? ' ' : '') + text;
+                                }
+                            });
+                            
+                            // Method 2: foreignObject elements (Mermaid 11.x uses these)
+                            if (!fullText) {
+                                const foreignObjects = nodeGroup.querySelectorAll('foreignObject');
+                                foreignObjects.forEach(fo => {
+                                    const text = fo.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 3: span/div inside foreignObject
+                            if (!fullText) {
+                                const spans = nodeGroup.querySelectorAll('foreignObject span, foreignObject div, foreignObject p');
+                                spans.forEach(el => {
+                                    const text = el.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 4: Any text content in the node
+                            if (!fullText) {
+                                fullText = nodeGroup.textContent.trim();
+                            }
+                            
+                            fullText = fullText.trim();
+                            
+                            if (!fullText) return;
+                            
+                            // Check for collapse button
+                            if (fullText.includes('Collapse') || fullText === '[-] Collapse') {
+                                processedNodes.add(nodeGroup);
+                                
+                                let collapseNodeId = null;
+                                if (svgNodeId && svgNodeId.endsWith('_collapse')) {
+                                    collapseNodeId = svgNodeId.replace(/_collapse$/, '');
+                                }
+                                
+                                if (collapseNodeId && expandedNodes.has(collapseNodeId)) {
+                                    const capturedNodeId = collapseNodeId;
+                                    
+                                    nodeGroup.style.cursor = 'pointer';
+                                    nodeGroup.classList.add('collapse-button');
+                                    
+                                    const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                                    shapes.forEach(shape => {
+                                        shape.setAttribute('stroke', '#dc2626');
+                                        shape.setAttribute('stroke-width', '2');
+                                    });
+                                    
+                                    const collapseHandler = (e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        collapseNode(capturedNodeId);
+                                    };
+                                    
+                                    nodeGroup.addEventListener('click', collapseHandler, true);
+                                    nodeGroup.querySelectorAll('*').forEach(child => {
+                                        child.style.cursor = 'pointer';
+                                        child.addEventListener('click', collapseHandler, true);
+                                    });
+                                }
+                                return;
+                            }
+                            
+                            // Find target module
+                            let targetModule = null;
+                            let nodeId = svgNodeId;
+                            
+                            // Try to match by node ID
+                            if (svgNodeId && localNodeIdToModule[svgNodeId]) {
+                                targetModule = localNodeIdToModule[svgNodeId];
+                            }
+                            
+                            // Try to match by text
+                            if (!targetModule) {
+                                for (const [linkText, moduleId] of Object.entries(links)) {
+                                    if (fullText.toLowerCase() === linkText.toLowerCase() ||
+                                        fullText.toLowerCase().includes(linkText.toLowerCase())) {
+                                        targetModule = moduleId;
+                                        if (!nodeId) {
+                                            nodeId = labelToNodeId[fullText] || linkText.replace(/\s+/g, '_');
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (targetModule && moduleData[targetModule]) {
+                                processedNodes.add(nodeGroup);
+                                makeNodeBlueAndClickable(nodeGroup, targetModule, fullText, nodeId);
+                            }
+                        });
+                        
+                        // Apply selected styling to subgraphs
+                        if (selectedNodeId && selectedNodeId.endsWith('_sub')) {
+                            const subgraphs = svgEl.querySelectorAll('g.cluster');
+                            subgraphs.forEach(sg => {
+                                const sgId = sg.id || '';
+                                if (sgId.includes(selectedNodeId) || sgId.includes(selectedNodeId.replace('_sub', ''))) {
+                                    sg.classList.add('selected-subgraph');
+                                    const rects = sg.querySelectorAll('rect');
+                                    rects.forEach(rect => {
+                                        rect.setAttribute('stroke', '#10b981');
+                                        rect.setAttribute('stroke-width', '3');
+                                    });
+                                }
+                            });
+                        }
+                    };
+                    
+                    processNodes();
+                    setTimeout(processNodes, 100);
+                    setTimeout(processNodes, 500);
+                    
+                } catch (error) {
+                    console.error('Error rendering diagram:', error);
+                    diagramDiv.innerHTML = '<p style="color: #dc2626;">Error rendering diagram.</p>';
+                }
+            })();
+        }
+
+        function makeNodeBlueAndClickable(nodeGroup, targetModule, displayText, nodeId) {
+            // Make shapes blue
+            const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+            shapes.forEach(shape => {
+                shape.setAttribute('stroke', '#2563eb');
+                shape.setAttribute('stroke-width', '3');
+                shape.style.setProperty('stroke', '#2563eb', 'important');
+                shape.style.setProperty('stroke-width', '3px', 'important');
+            });
+            
+            // Bold text
+            const texts = nodeGroup.querySelectorAll('text, tspan');
+            texts.forEach(txt => {
+                txt.style.fontWeight = '600';
+            });
+            
+            // Make clickable
+            nodeGroup.style.cursor = 'pointer';
+            nodeGroup.classList.add('clickable-node');
+            nodeGroup.setAttribute('title', `Click to expand: ${displayText}`);
+            nodeGroup.setAttribute('data-node-id', nodeId);
+            
+            const capturedTargetModule = targetModule;
+            const capturedNodeId = nodeId;
+            
+            const clickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                    const targetModuleData = moduleData[capturedTargetModule];
+                    if (targetModuleData.diagram && targetModuleData.diagram.trim()) {
+                        if (!expandedNodes.has(capturedNodeId)) {
+                            expandNodeInline(capturedNodeId, capturedTargetModule);
+                        } else {
+                            selectNode(`${capturedNodeId}_sub`, capturedTargetModule);
+                        }
+                    } else {
+                        selectNode(capturedNodeId, capturedTargetModule);
+                    }
+                }
+            };
+            
+            nodeGroup.addEventListener('click', clickHandler, true);
+            nodeGroup.querySelectorAll('*').forEach(child => {
+                child.style.cursor = 'pointer';
+                child.addEventListener('click', clickHandler, true);
+            });
+            
+            // Hover effects
+            nodeGroup.addEventListener('mouseenter', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '4px';
+                    }
+                });
+            });
+            nodeGroup.addEventListener('mouseleave', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '3px';
+                    }
+                });
+            });
+            
+            // Apply selected styling if this node is selected
+            if (selectedNodeId === nodeId && selectedModuleId === targetModule) {
+                nodeGroup.classList.add('selected-node');
+                shapes.forEach(shape => {
+                    shape.setAttribute('stroke', '#10b981');
+                    shape.setAttribute('stroke-width', '4');
+                    shape.style.setProperty('stroke', '#10b981', 'important');
+                    shape.style.setProperty('stroke-width', '4px', 'important');
+                });
+            }
+        }
+
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) {
+                console.error(`Module not found: ${moduleId}`);
+                return;
+            }
+            
+            if (currentModule !== moduleId) {
+                navigationHistory.push(currentModule);
+                loadModule(moduleId);
+            }
+        }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const previousModule = navigationHistory.pop();
+                if (previousModule && moduleData[previousModule]) {
+                    loadModule(previousModule, true);
+                } else {
+                    navigationHistory = [];
+                    loadModule('overview', true);
+                }
+            } else if (currentModule !== 'overview') {
+                loadModule('overview', true);
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            goBack();
+        });
+
+        // Helper - click node by label (for testing)
+        window.clickNode = function(label) {
+            const nodes = document.querySelectorAll('.clickable-node');
+            for (const node of nodes) {
+                const title = node.getAttribute('title') || '';
+                if (title.toLowerCase().includes(label.toLowerCase())) {
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Keyboard shortcuts - press 1-9 to click on Nth clickable node in diagram
+        // Prioritizes child nodes in expanded subgraphs over their expanded parents
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const keyNum = parseInt(e.key);
+            if (keyNum >= 1 && keyNum <= 9) {
+                // Find all clickable nodes in the current diagram
+                const svg = document.querySelector('#mermaid-diagram svg');
+                if (!svg) return;
+                
+                const allClickableNodes = Array.from(svg.querySelectorAll('.clickable-node'));
+                
+                // Separate nodes: those inside subgraphs (children) vs those outside (parents)
+                const childNodes = [];
+                const parentNodes = [];
+                
+                allClickableNodes.forEach(node => {
+                    // Check if this node is inside a subgraph (cluster)
+                    const isInSubgraph = node.closest('g.cluster') !== null;
+                    if (isInSubgraph) {
+                        childNodes.push(node);
+                    } else {
+                        parentNodes.push(node);
+                    }
+                });
+                
+                // Prioritize child nodes first, then parent nodes
+                const prioritizedNodes = [...childNodes, ...parentNodes];
+                const index = keyNum - 1;
+                
+                if (index < prioritizedNodes.length) {
+                    const node = prioritizedNodes[index];
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

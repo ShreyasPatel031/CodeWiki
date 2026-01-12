@@ -1,0 +1,46 @@
+{
+  "repo_name": "nextjs",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/nextjs",
+  "repo_size_mb": 430582.421875,
+  "total_files": 0,
+  "total_code_files": 13764,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 154.13377404212952,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 30.167479038238525,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 233.60462522506714,
+      "tokens_used": 0,
+      "files_created": 8,
+      "files_created_list": [
+        "overview.md",
+        "turbopack.md",
+        "part_1.md",
+        "scripts.md",
+        "rspack.md",
+        "part_2.md",
+        "browser_runtime.md",
+        "apps.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 420.4923360347748,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/nextjs/docs/overview.md",
+  "total_duration": 420.4924077987671,
+  "total_tokens": 0,
+  "total_files_created": 8,
+  "start_time": 1768190850.253242,
+  "end_time": 1768191270.7456498
+}

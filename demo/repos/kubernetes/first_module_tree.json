@@ -1,0 +1,11 @@
+{
+    "main": {
+        "path": "",
+        "components": [
+            "hack.boilerplate.boilerplate_test.Args",
+            "staging.src.k8s.io.kubectl.pkg.util.i18n.translations.extract.MatchHandler",
+            "hack.boilerplate.boilerplate_test.TestBoilerplate"
+        ],
+        "children": {}
+    }
+}

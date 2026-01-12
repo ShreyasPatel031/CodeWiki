@@ -1,0 +1,51 @@
+{
+  "repo_name": "pytorch",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/pytorch",
+  "repo_size_mb": 433090.93359375,
+  "total_files": 0,
+  "total_code_files": 8684,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 31.199885845184326,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 30.041550159454346,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 774.7711248397827,
+      "tokens_used": 0,
+      "files_created": 13,
+      "files_created_list": [
+        "torchgen_dest.md",
+        "overview.md",
+        "operators_layout.md",
+        "third_party.md",
+        "android.md",
+        "third_party_miniz_3_0_2.md",
+        "part_1.md",
+        "scripts.md",
+        "_ci.md",
+        "benchmarks_instruction_counts.md",
+        "torch__functorch.md",
+        "c10_core.md",
+        "tools_experimental.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 836.3858828544617,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/pytorch/docs/overview.md",
+  "total_duration": 836.3859877586365,
+  "total_tokens": 0,
+  "total_files_created": 13,
+  "start_time": 1768193836.751692,
+  "end_time": 1768194673.1376798
+}

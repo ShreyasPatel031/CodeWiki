@@ -377,14 +377,64 @@
 
         // Build module data from MODULE_TREE
         function buildModuleData() {
-            // Create overview module
-            const overviewDiagram = generateOverviewDiagram();
+            // Create overview module - prefer extracted diagram from overview.md
+            const fallbackDiagram = generateOverviewDiagram();
+            const overviewMd = DOCS_CONTENT['overview.md'] || '';
+            const extractedDiagram = extractMermaidFromMarkdown(overviewMd);
+            const overviewDiagram = extractedDiagram || fallbackDiagram;
+            
             const overviewLinks = {};
             
             // Build links for overview - each top-level module is a link
             for (const [key, data] of Object.entries(MODULE_TREE)) {
                 const formattedName = formatModuleName(key);
                 overviewLinks[formattedName] = key;
+            }
+            
+            // If using extracted diagram, also build links from diagram node labels
+            if (extractedDiagram) {
+                // Parse all node definitions: A[text], A(text), A{text}, A((text))
+                const nodePattern = /([A-Za-z_][A-Za-z0-9_]*)\s*(?:\["?([^"\]]+)"?\]|\("?([^"\)]+)"?\)|\{"?([^"\}]+)"?\}|\(\("?([^"\)]+)"?\)\))/g;
+                let match;
+                while ((match = nodePattern.exec(extractedDiagram)) !== null) {
+                    const label = (match[2] || match[3] || match[4] || match[5] || '').trim();
+                    if (!label) continue;
+                    
+                    // Try to match label to a module in MODULE_TREE
+                    const labelLower = label.toLowerCase();
+                    // Convert "torch.nn" to "torch_nn" for matching
+                    const labelNormalized = labelLower.replace(/[^a-z0-9]/g, '_');
+                    
+                    // Direct match with module keys (including children recursively)
+                    function findModuleRecursive(tree) {
+                        for (const [modKey, modData] of Object.entries(tree)) {
+                            const modKeyLower = modKey.toLowerCase();
+                            // Match by key or formatted name
+                            if (modKeyLower === labelNormalized || 
+                                modKeyLower === labelLower ||
+                                formatModuleName(modKey).toLowerCase() === labelLower) {
+                                return modKey;
+                            }
+                            // Also match dotted notation: "torch.nn" matches "torch_nn"
+                            const dottedLabel = labelLower.replace(/\./g, '_');
+                            if (modKeyLower === dottedLabel) {
+                                return modKey;
+                            }
+                            // Search children
+                            if (modData.children) {
+                                const found = findModuleRecursive(modData.children);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    const foundModule = findModuleRecursive(MODULE_TREE);
+                    if (foundModule) {
+                        overviewLinks[label] = foundModule;
+                        console.log('[LINK] Mapped diagram label "' + label + '" to module "' + foundModule + '"');
+                    }
+                }
             }
             
             moduleData['overview'] = {

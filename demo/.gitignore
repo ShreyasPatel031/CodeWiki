@@ -1,0 +1,9 @@
+# Vercel
+.vercel
+
+# Node
+node_modules/
+
+# Note: repos/ contains pre-generated documentation for demo
+# Include in git for Vercel deployment
+

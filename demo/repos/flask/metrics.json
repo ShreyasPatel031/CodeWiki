@@ -1,0 +1,50 @@
+{
+  "repo_name": "flask",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/flask",
+  "repo_size_mb": 437457.6796875,
+  "total_files": 0,
+  "total_code_files": 82,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 0.10222101211547852,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 30.161903858184814,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 478.3895900249481,
+      "tokens_used": 0,
+      "files_created": 12,
+      "files_created_list": [
+        "scaffold.md",
+        "app.md",
+        "src.md",
+        "overview.md",
+        "views.md",
+        "ctx.md",
+        "templating.md",
+        "core_app_logic.md",
+        "sessions.md",
+        "blueprints.md",
+        "flask_wsgi.md",
+        "sansio_app.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 508.6644332408905,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/flask/docs/overview.md",
+  "total_duration": 508.6645429134369,
+  "total_tokens": 0,
+  "total_files_created": 12,
+  "start_time": 1768223054.489863,
+  "end_time": 1768223563.1544058
+}

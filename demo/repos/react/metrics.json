@@ -1,0 +1,44 @@
+{
+  "repo_name": "react",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/react",
+  "repo_size_mb": 440091.77734375,
+  "total_files": 0,
+  "total_code_files": 4271,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 12.793254852294922,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 24.91071605682373,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 151.66287112236023,
+      "tokens_used": 0,
+      "files_created": 6,
+      "files_created_list": [
+        "overview.md",
+        "part_1.md",
+        "scripts.md",
+        "compiler.md",
+        "part_2.md",
+        "jest.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 189.53473114967346,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/react/docs/overview.md",
+  "total_duration": 189.53480410575867,
+  "total_tokens": 0,
+  "total_files_created": 6,
+  "start_time": 1768191277.142818,
+  "end_time": 1768191466.677622
+}

@@ -1,0 +1,10 @@
+{
+  "name": "codewiki-demo",
+  "version": "1.0.0",
+  "description": "CodeWiki Repository Documentation Viewer Demo",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Static site - no build required'"
+  }
+}
+

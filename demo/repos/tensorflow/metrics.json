@@ -1,0 +1,44 @@
+{
+  "repo_name": "tensorflow",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/tensorflow",
+  "repo_size_mb": 433092.36328125,
+  "total_files": 0,
+  "total_code_files": 9521,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 32.152398109436035,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 30.223241329193115,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 82.99293208122253,
+      "tokens_used": 0,
+      "files_created": 6,
+      "files_created_list": [
+        "overview.md",
+        "tensorflow_python_framework_extension_type_test.md",
+        "part_1.md",
+        "tensorflow_python_framework_ops_test.md",
+        "part_2.md",
+        "tensorflow_python_framework_function_def_to_graph_test.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 146.022723197937,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/tensorflow/docs/overview.md",
+  "total_duration": 146.02279496192932,
+  "total_tokens": 0,
+  "total_files_created": 6,
+  "start_time": 1768193685.039927,
+  "end_time": 1768193831.062722
+}

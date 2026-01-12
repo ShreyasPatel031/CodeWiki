@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>flask</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+        
+        .repo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: white;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .repo-link:hover {
+            background: #f8fafc;
+            border-color: #2563eb;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        #mermaid-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .doc-content {
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .doc-content h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .doc-content p {
+            margin-bottom: 1rem;
+            color: #475569;
+        }
+        
+        .doc-content ul, .doc-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .doc-content li {
+            margin: 8px 0;
+        }
+
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            color: #e11d48;
+        }
+        
+        .doc-content pre {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .doc-content pre code {
+            background: transparent;
+            padding: 0;
+            color: #334155;
+        }
+
+        .doc-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 16px 16px 16px 24px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .doc-content th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        /* Make clickable nodes have blue border only - don't change fill or edges */
+        /* High specificity selectors to override Mermaid's inline styles */
+        svg g.node.clickable-node rect,
+        svg g.node.clickable-node circle,
+        svg g.node.clickable-node polygon,
+        svg g.node.clickable-node ellipse,
+        .mermaid g.node.clickable-node rect,
+        .mermaid g.node.clickable-node circle,
+        .mermaid g.node.clickable-node polygon,
+        .mermaid g.node.clickable-node ellipse,
+        #mermaid-diagram g.node.clickable-node rect,
+        #mermaid-diagram g.node.clickable-node circle,
+        #mermaid-diagram g.node.clickable-node polygon,
+        #mermaid-diagram g.node.clickable-node ellipse,
+        g.clickable-node rect,
+        g.clickable-node circle,
+        g.clickable-node polygon,
+        g.clickable-node ellipse,
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path:not(.edgePath *),
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            font-weight: 600 !important;
+        }
+
+        .clickable-node,
+        g.node.clickable-node {
+            cursor: pointer !important;
+        }
+        
+        /* Ensure pointer events work */
+        .clickable-node *,
+        g.node.clickable-node * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        /* Don't change edge colors */
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
+        }
+        
+        /* Selected node/subgraph styling - green border for selected */
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+
+        /* Collapse button styling */
+        .collapse-button rect,
+        .collapse-button circle,
+        .collapse-button polygon {
+            stroke: #dc2626 !important;
+            stroke-width: 2px !important;
+        }
+
+        .collapse-button {
+            cursor: pointer !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .diagram-pane, .doc-pane {
+                width: 100%;
+                height: 50%;
+            }
+            .diagram-pane {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <div class="title" id="moduleTitle">📚 flask</div>
+            <a href="https://github.com/pallets/flask" class="repo-link" target="_blank">🔗 View Repository</a>
+            </div>
+            
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
+                </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
+            </div>
+    </div>
+    
+    <script>
+        // Embedded configuration
+        const CONFIG = {};
+        const MODULE_TREE = {
+  "src": {
+    "path": "src",
+    "components": [
+      "src.flask.sansio.blueprints.BlueprintSetupState",
+      "src.flask.wrappers.Response",
+      "src.flask.templating.Environment",
+      "src.flask.globals.SessionMixinProxy",
+      "src.flask.cli.AppGroup",
+      "src.flask.config.ConfigAttribute",
+      "src.flask.sansio.blueprints.Blueprint",
+      "src.flask.json.tag.TagDict",
+      "src.flask.app.Flask",
+      "src.flask.ctx._AppCtxGlobals",
+      "src.flask.globals.RequestProxy",
+      "src.flask.sessions.SessionMixin",
+      "src.flask.blueprints.Blueprint",
+      "src.flask.templating.DispatchingJinjaLoader",
+      "src.flask.testing.FlaskCliRunner",
+      "src.flask.views.MethodView",
+      "src.flask.globals._AppCtxGlobalsProxy",
+      "src.flask.json.provider.DefaultJSONProvider",
+      "src.flask.json.tag.TagDateTime",
+      "src.flask.wrappers.Request",
+      "src.flask.json.tag.JSONTag",
+      "src.flask.globals.AppContextProxy",
+      "src.flask.json.tag.TaggedJSONSerializer",
+      "src.flask.json.tag.TagBytes",
+      "src.flask.testing.FlaskClient",
+      "src.flask.cli.ScriptInfo",
+      "src.flask.sansio.scaffold.Scaffold",
+      "src.flask.cli.CertParamType",
+      "src.flask.testing.EnvironBuilder",
+      "src.flask.json.tag.TagUUID",
+      "src.flask.json.provider.JSONProvider",
+      "src.flask.sessions.SecureCookieSessionInterface",
+      "src.flask.json.tag.PassDict",
+      "src.flask.debughelpers.newcls",
+      "src.flask.sessions.NullSession",
+      "src.flask.globals.FlaskProxy",
+      "src.flask.json.tag.PassList",
+      "src.flask.sessions.SecureCookieSession",
+      "src.flask.config.Config",
+      "src.flask.json.tag.TagMarkup",
+      "src.flask.ctx.AppContext",
+      "src.flask.cli.SeparatedPathType",
+      "src.flask.views.View",
+      "src.flask.sansio.app.App",
+      "src.flask.debughelpers.FormDataRoutingRedirect",
+      "src.flask.globals.ProxyMixin",
+      "src.flask.cli.FlaskGroup",
+      "src.flask.sessions.SessionInterface",
+      "src.flask.json.tag.TagTuple"
+    ],
+    "children": {
+      "scaffold": {
+        "components": [],
+        "children": {}
+      },
+      "app": {
+        "components": [],
+        "children": {}
+      },
+      "views": {
+        "components": [],
+        "children": {}
+      },
+      "ctx": {
+        "components": [],
+        "children": {}
+      },
+      "templating": {
+        "components": [],
+        "children": {}
+      },
+      "core_app_logic": {
+        "components": [],
+        "children": {}
+      },
+      "sessions": {
+        "components": [],
+        "children": {}
+      },
+      "blueprints": {
+        "components": [],
+        "children": {}
+      },
+      "flask_wsgi": {
+        "components": [],
+        "children": {}
+      },
+      "sansio_app": {
+        "components": [],
+        "children": {}
+      }
+    }
+  }
+};
+        const METADATA = {
+  "generation_info": {
+    "timestamp": "2026-01-12T18:42:43.153465",
+    "main_model": "gemini-3-flash-preview",
+    "generator_version": "1.0.0",
+    "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/flask",
+    "commit_id": null
+  },
+  "statistics": {
+    "total_components": 128,
+    "leaf_nodes": 49,
+    "max_depth": 10
+  },
+  "files_generated": [
+    "overview.md",
+    "module_tree.json",
+    "first_module_tree.json",
+    "scaffold.md",
+    "app.md",
+    "src.md",
+    "views.md",
+    "ctx.md",
+    "templating.md",
+    "core_app_logic.md",
+    "sessions.md",
+    "blueprints.md",
+    "flask_wsgi.md",
+    "sansio_app.md"
+  ]
+};
+        const DOCS_BASE_PATH = '';
+        const DOCS_CONTENT = {
+  "scaffold.md": "# Scaffold Module\n\nThe `scaffold` module provides the foundational `Scaffold` class, which serves as a common base for both the [Flask application](app.md) and [Blueprints](blueprints.md). It encapsulates shared logic for resource management, routing registration, error handling, and request lifecycle hooks.\n\n## Overview\n\nIn Flask, both the main application object (`Flask`) and modular components (`Blueprint`) share many behaviors. They both allow registering routes, defining error handlers, and hooking into the request/response cycle. The `Scaffold` class implements these commonalities in a \"Sans-IO\" manner, meaning it focuses on the data structures and registration logic rather than the specific details of request handling or WSGI.\n\n### Key Responsibilities\n- **Resource Management**: Determining the root path and managing static and template folders.\n- **Routing Registration**: Providing decorators like `@route`, `@get`, `@post`, etc., to register view functions.\n- **Request Hooks**: Managing functions that run before, after, or during the teardown of a request.\n- **Error Handling**: Maintaining a registry of exception handlers and status code handlers.\n- **Context Management**: Handling template context processors and URL value preprocessors.\n\n## Architecture and Relationships\n\nThe `Scaffold` class is the parent of the two most important components in a Flask application structure.\n\n```mermaid\nclassDiagram\n    class Scaffold {\n        <<Abstract>>\n        +import_name: str\n        +root_path: str\n        +static_folder: str\n        +template_folder: str\n        +view_functions: dict\n        +route(rule, options)\n        +before_request(f)\n        +after_request(f)\n        +errorhandler(code)\n    }\n    class App {\n        +run()\n        +wsgi_app()\n    }\n    class Flask {\n    }\n    class Blueprint {\n        +register(app, options)\n    }\n\n    Scaffold <|-- App\n    App <|-- Flask\n    Scaffold <|-- Blueprint\n```\n\n## Core Components\n\n### Scaffold\n`src.flask.sansio.scaffold.Scaffold`\n\nThe `Scaffold` class is initialized with an `import_name`, which it uses to discover its `root_path`. This path is then used to resolve relative paths for static files and templates.\n\n#### Resource Management\n- **`root_path`**: The absolute path to the package/module.\n- **`static_folder`**: Path to the folder containing static assets (CSS, JS, images).\n- **`template_folder`**: Path to the folder containing Jinja2 templates.\n- **`jinja_loader`**: A [Jinja loader](templating.md) (typically `FileSystemLoader`) created based on the `template_folder`.\n\n#### Routing\n`Scaffold` provides several decorators for registering routes. These decorators internally call `add_url_rule`, which is implemented by subclasses (like `Flask` or `Blueprint`) to handle the specifics of how routes are added to the routing system.\n\n| Method | Description |\n| --- | --- |\n| `route(rule, **options)` | General purpose route decorator. |\n| `get(rule, **options)` | Shortcut for `GET` requests. |\n| `post(rule, **options)` | Shortcut for `POST` requests. |\n| `put(rule, **options)` | Shortcut for `PUT` requests. |\n| `delete(rule, **options)` | Shortcut for `DELETE` requests. |\n| `patch(rule, **options)` | Shortcut for `PATCH` requests. |\n| `endpoint(name)` | Registers a view function for a previously defined endpoint. |\n\n#### Request Lifecycle Hooks\n`Scaffold` maintains registries for functions that should be called at various stages of a request's life.\n\n```mermaid\nflowchart LR\n    subgraph RequestLifecycle [Request Lifecycle Hooks]\n        direction TB\n        B[before_request] --> V[View Function]\n        V --> A[after_request]\n        A --> T[teardown_request]\n    end\n    \n    subgraph DataStructures [Storage]\n        B1[(before_request_funcs)]\n        A1[(after_request_funcs)]\n        T1[(teardown_request_funcs)]\n    end\n\n    B -.-> B1\n    A -.-> A1\n    T -.-> T1\n```\n\n- **`before_request`**: Functions called before the view function. If a function returns a value, request handling stops and that value is treated as the response.\n- **`after_request`**: Functions called after the view function returns a response. These can modify or replace the response object.\n- **`teardown_request`**: Functions called at the end of the request, even if an exception was raised. They are typically used for resource cleanup (e.g., closing database connections).\n\n#### Error Handling\nThe `errorhandler` decorator and `register_error_handler` method allow registering functions to handle specific HTTP status codes or Python exception classes. These are stored in `error_handler_spec`.\n\n#### Context and URL Processing\n- **`context_processor`**: Registers functions that return a dictionary of variables to be injected into the template rendering context.\n- **`url_value_preprocessor`**: Functions that can modify URL values before they are passed to the view function.\n- **`url_defaults`**: Functions that provide default values for URL generation.\n\n## Data Flow: Registration\n\nWhen a developer uses a decorator provided by `Scaffold`, the following flow occurs:\n\n```mermaid\nsequenceDiagram\n    participant Dev as Developer Code\n    participant S as Scaffold Instance\n    participant DS as Internal Registry\n\n    Dev->>S: @app.route(\"/path\")\n    S->>S: add_url_rule(\"/path\", ...)\n    Note right of S: Abstract in Scaffold,<br/>implemented in Flask/Blueprint\n    \n    Dev->>S: @app.before_request\n    S->>DS: append to before_request_funcs[None]\n    \n    Dev->>S: @app.errorhandler(404)\n    S->>S: _get_exc_class_and_code(404)\n    S->>DS: update error_handler_spec[None][404]\n```\n\n## Related Modules\n- [**App**](app.md): Implements the concrete `Flask` application which inherits from `Scaffold`.\n- [**Blueprints**](blueprints.md): Implements modular components that inherit from `Scaffold`.\n- [**Templating**](templating.md): Uses the `jinja_loader` provided by `Scaffold`.\n- [**CLI**](cli.md): `Scaffold` integrates with the click-based CLI system via the `cli` attribute.\n",
+  "app.md": "# App Module\n\nThe `app` module is the core of the Flask framework. It provides the central application object that coordinates routing, request handling, configuration, and extension management.\n\n## Purpose\n\nThe main purpose of this module is to implement the `Flask` application class, which acts as the central registry for view functions, URL rules, template configuration, and more. It follows a layered architecture to separate common registration logic from core application logic and the final WSGI implementation.\n\n## Architecture\n\nThe `app` module is built on a hierarchical structure of three primary classes:\n\n1.  **`Scaffold`**: A base class that provides common registration methods (like `@route`, `@before_request`, `@errorhandler`) shared between the `Flask` application and `Blueprint` objects.\n2.  **`App`**: A \"Sans-IO\" application class that extends `Scaffold` with application-specific logic like configuration management, Jinja environment setup, and blueprint registration, without being tied to a specific IO implementation (like WSGI).\n3.  **`Flask`**: The final WSGI-compliant application class that implements the request lifecycle, dispatching, and integration with the Werkzeug WSGI server.\n\n```mermaid\nclassDiagram\n    class Scaffold {\n        +import_name: str\n        +root_path: str\n        +view_functions: dict\n        +route(rule, options)\n        +before_request(f)\n        +errorhandler(code_or_exception)\n    }\n    class App {\n        +config: Config\n        +jinja_env: Environment\n        +blueprints: dict\n        +register_blueprint(blueprint)\n    }\n    class Flask {\n        +wsgi_app(environ, start_response)\n        +full_dispatch_request(ctx)\n        +handle_exception(ctx, e)\n    }\n    Scaffold <|-- App\n    App <|-- Flask\n```\n\n## Sub-modules\n\nThe `app` module's functionality is divided into the following components:\n\n| Component | Description |\n| --- | --- |\n| [Scaffold](scaffold.md) | Shared registration logic for Apps and Blueprints. |\n| [Sans-IO App](sansio_app.md) | Core application logic and configuration management. |\n| [Flask (WSGI)](flask_wsgi.md) | WSGI implementation and request lifecycle management. |\n\n## Core Functionality\n\n### Request Lifecycle\n\nThe `Flask` class manages the full lifecycle of an HTTP request:\n\n1.  **WSGI Call**: The server calls the `Flask` object.\n2.  **Context Creation**: A request context is created and pushed.\n3.  **Preprocessing**: `before_request` functions are executed.\n4.  **Dispatching**: The request is matched against the URL map and the corresponding view function is called.\n5.  **Postprocessing**: `after_request` functions are executed.\n6.  **Response**: The result is converted into a `Response` object and returned to the server.\n7.  **Teardown**: `teardown_request` functions are executed as the context is popped.\n\n```mermaid\nsequenceDiagram\n    participant Server\n    participant Flask\n    participant AppContext\n    participant View\n    Server->>Flask: __call__(environ, start_response)\n    Flask->>AppContext: push()\n    Flask->>Flask: preprocess_request()\n    Flask->>View: dispatch_request()\n    View-->>Flask: return value\n    Flask->>Flask: finalize_request()\n    Flask->>Flask: process_response()\n    Flask->>Server: response(environ, start_response)\n    Flask->>AppContext: pop()\n```\n\n### Configuration and Extensions\n\nThe application maintains a `Config` object for storing settings. Extensions can register themselves with the application by storing state in the `extensions` dictionary.\n\n### Blueprints\n\nBlueprints allow for modular application design. They are registered on the `Flask` object, which then records their routes and handlers.\n\n## Related Modules\n\n- [Blueprints](blueprints.md): Modular application components.\n- [Context](ctx.md): Request and application context management.\n- [Config](config.md): Configuration handling.\n- [Wrappers](wrappers.md): Request and Response objects.\n- [CLI](cli.md): Command-line interface integration.\n",
+  "src.md": "# Flask Core Module (src)\n\n## Overview\n\nThe `src` module contains the core implementation of the Flask web framework. Flask is a lightweight WSGI web application framework designed to make getting started quick and easy, with the ability to scale up to complex applications.\n\nAt its heart, Flask manages the lifecycle of a web request, providing tools for routing, template rendering, configuration management, and session handling. It uses a \"context\" system to make application and request-specific data available globally within a thread or coroutine without passing objects explicitly.\n\n## Core Architecture\n\nFlask operates as a WSGI (Web Server Gateway Interface) application. The following diagram illustrates the high-level request-response lifecycle:\n\n```mermaid\nsequenceDiagram\n    participant Client\n    participant WSGIServer as WSGI Server\n    participant FlaskApp as Flask Application\n    participant Context as App/Request Context\n    participant Middleware as Pre/Post Processors\n    participant View as View Function\n\n    Client->>WSGIServer: HTTP Request\n    WSGIServer->>FlaskApp: __call__(environ, start_response)\n    FlaskApp->>Context: Push Context (App & Request)\n    FlaskApp->>Middleware: Run before_request functions\n    Middleware->>View: Dispatch to View\n    View->>Middleware: Return Value\n    Middleware->>FlaskApp: Run after_request functions\n    FlaskApp->>Context: Pop Context (Teardown)\n    FlaskApp->>WSGIServer: WSGI Response\n    WSGIServer->>Client: HTTP Response\n```\n\n## Sub-module Directory\n\nThe framework is divided into several specialized sub-modules:\n\n| Sub-module | Description |\n| --- | --- |\n| [app](app.md) | The central `Flask` application object and base `Scaffold` logic. |\n| [blueprints](blueprints.md) | Modular application structure and registration logic. |\n| [ctx](ctx.md) | Application and Request context management. |\n| [wrappers](wrappers.md) | Flask-specific extensions to Werkzeug's Request and Response objects. |\n| [config](config.md) | Configuration loading and management system. |\n| [sessions](sessions.md) | Server-side and client-side session persistence interfaces. |\n| [json](json.md) | Extensible JSON serialization and tagging system. |\n| [cli](cli.md) | Integration with Click for command-line management. |\n| [templating](templating.md) | Integration with the Jinja2 template engine. |\n| [testing](testing.md) | Utilities for unit testing Flask applications and CLI commands. |\n| [views](views.md) | Generic and method-based class views. |\n\n## Key Concepts\n\n### The Scaffold\nThe `Scaffold` class provides a common base for both the `Flask` application and `Blueprint` objects. It handles the registration of routes, error handlers, and lifecycle hooks (like `@before_request`).\n\n### Context Management\nFlask uses `AppContext` to manage state. A context is pushed when a request begins, making `current_app`, `request`, `g`, and `session` available via proxies.\n\n### Blueprints\nBlueprints allow for modular application development. They record operations to be performed when registered on an application, allowing for shared URL prefixes, subdomains, and template folders.\n",
+  "overview.md": "# Flask Repository Overview\n\n## Purpose\nFlask is a lightweight WSGI (Web Server Gateway Interface) web application framework for Python. It is designed to make getting started with web development quick and easy, while providing the flexibility to scale up to complex, high-performance applications. Flask provides the core essentials for web development\u2014including routing, request handling, template rendering, and session management\u2014without imposing a rigid project structure.\n\n## End-to-End Architecture\nFlask operates as a WSGI application that manages the lifecycle of an HTTP request. It uses a context-based system to ensure that application and request-specific data are accessible globally within a thread or coroutine.\n\nThe following diagram illustrates the end-to-end request-response lifecycle within the Flask framework:\n\n```mermaid\ngraph TD\n    src[Flask Core]\n    app[App Module]\n    blueprints[Blueprints]\n    ctx[Context]\n    sessions[Sessions]\n    templating[Templating]\n    views[Views]\n    scaffold[Scaffold]\n    \n    src --> app\n    src --> blueprints\n    src --> ctx\n    src --> sessions\n    src --> templating\n    src --> views\n    app --> scaffold\n    blueprints --> scaffold\n```\n\n## Core Modules Documentation\nThe framework is organized into specialized modules that handle different aspects of the web application lifecycle. For detailed information on specific components, refer to the following documentation:\n\n*   [App Module](app.md): The central `Flask` application object and base `Scaffold` logic.\n*   [Blueprints Module](blueprints.md): Modular application structure and registration logic.\n*   [Context Module](ctx.md): Application and Request context management.\n*   [Wrappers Module](wrappers.md): Flask-specific extensions to Werkzeug's Request and Response objects.\n*   [Config Module](config.md): Configuration loading and management system.\n*   [Sessions Module](sessions.md): Server-side and client-side session persistence interfaces.\n*   [JSON Module](json.md): Extensible JSON serialization and tagging system.\n*   [CLI Module](cli.md): Integration with Click for command-line management.\n*   [Templating Module](templating.md): Integration with the Jinja2 template engine.\n*   [Testing Module](testing.md): Utilities for unit testing Flask applications and CLI commands.\n*   [Views Module](views.md): Generic and method-based class views.",
+  "views.md": "# Views Module\n\nThe `views` module provides a set of class-based view utilities for Flask. Class-based views allow for better code reuse and organization compared to traditional function-based views, especially when dealing with complex logic or RESTful APIs.\n\n## Core Concepts\n\nThe module is built around two primary classes: `View` and `MethodView`. These classes allow you to define request handling logic as methods within a class, which can then be converted into a standard Flask view function.\n\n### Key Components\n\n#### [View](app.md#view)\nThe base class for all class-based views. It provides the infrastructure to convert a class into a callable view function that Flask's routing system can understand.\n\n- **`as_view(name, *class_args, **class_kwargs)`**: A class method that returns a view function. This function, when called, instantiates the class (if `init_every_request` is True) and calls `dispatch_request`.\n- **`dispatch_request()`**: The method that subclasses must override to implement the actual request handling logic.\n- **`decorators`**: A list of decorators to apply to the generated view function.\n- **`init_every_request`**: A boolean flag (default `True`) that determines if a new instance of the class should be created for every request.\n\n#### [MethodView](app.md#methodview)\nA specialized subclass of `View` that automatically dispatches requests to class methods based on the HTTP method used (e.g., `get()`, `post()`, etc.). This is particularly useful for building RESTful APIs.\n\n- **Automatic Method Discovery**: `MethodView` automatically populates the `methods` attribute based on the defined handler methods.\n- **HEAD Request Handling**: If a `GET` method is defined but `HEAD` is not, it automatically falls back to the `GET` handler for `HEAD` requests.\n\n## Architecture and Interaction\n\n### Class Hierarchy\n\n```mermaid\nclassDiagram\n    class View {\n        +methods: Collection[str]\n        +decorators: List[Callable]\n        +init_every_request: bool\n        +as_view(name)\n        +dispatch_request()*\n    }\n    class MethodView {\n        +dispatch_request()\n        +get()\n        +post()\n        +put()\n        +delete()\n    }\n    View <|-- MethodView\n```\n\n### Request Flow\n\nThe following diagram illustrates how a request is processed when using a class-based view.\n\n```mermaid\nsequenceDiagram\n    participant App as Flask App\n    participant Rule as URL Rule/Routing\n    participant VF as View Function (from as_view)\n    participant V as View Instance\n    \n    Note over App, Rule: Registration Phase\n    App->>Rule: add_url_rule(path, view_func=MyView.as_view('name'))\n    \n    Note over Rule, V: Request Phase\n    Rule->>VF: call view function\n    alt init_every_request is True\n        VF->>V: Instantiate MyView()\n    else init_every_request is False\n        Note over VF: Use singleton instance\n    end\n    VF->>V: dispatch_request(**kwargs)\n    \n    alt is MethodView\n        V->>V: getattr(self, request.method.lower())\n        V->>V: Execute method (get, post, etc.)\n    else is View\n        V->>V: Execute dispatch_request logic\n    end\n    \n    V-->>VF: Return response\n    VF-->>App: Return response\n```\n\n## Lifecycle and Configuration\n\n### Initialization Modes\n\nFlask provides two ways to handle view instantiation:\n\n1.  **Per-Request (Default)**: `init_every_request = True`. A fresh instance of the view class is created for every request. This is safer as it prevents state leakage between requests but has a slight performance overhead.\n2.  **Persistent**: `init_every_request = False`. A single instance is created when `as_view` is called and reused for all requests. This is more efficient but requires using `flask.g` for request-specific state instead of `self`.\n\n### Decorators\n\nDecorators applied directly to a class-based view class do not behave like decorators on functions. Instead, the `decorators` class attribute should be used. These decorators are applied to the view function generated by `as_view`.\n\n```python\nclass MyView(View):\n    decorators = [auth_required, cache.cached(timeout=60)]\n    \n    def dispatch_request(self):\n        return \"Protected content\"\n```\n\n## Integration with Other Modules\n\n- **[app.md](app.md)**: Class-based views are registered on the `Flask` application object using `add_url_rule`.\n- **[blueprints.md](blueprints.md)**: Views can also be registered on blueprints.\n- **[globals.md](globals.md)**: Views typically interact with `request` to inspect incoming data and `current_app` for application-level logic.\n- **[wrappers.md](wrappers.md)**: The return value of `dispatch_request` is usually a string, tuple, or `Response` object defined in the wrappers module.\n\n## Summary of Method Dispatching in MethodView\n\n| Request Method | MethodView Handler | Fallback |\n| :--- | :--- | :--- |\n| `GET` | `get()` | - |\n| `POST` | `post()` | - |\n| `PUT` | `put()` | - |\n| `DELETE` | `delete()` | - |\n| `PATCH` | `patch()` | - |\n| `HEAD` | `head()` | `get()` |\n| `OPTIONS` | `options()` | Automatic (if enabled) |\n",
+  "ctx.md": "# ctx Module\n\nThe `ctx` (Context) module is a core part of Flask that manages the lifecycle of application and request states. It provides the mechanism to track \"where\" the execution is and provides access to relevant objects like the current application instance, the active request, and session data.\n\nIn Flask 3.2+, the previously separate `AppContext` and `RequestContext` have been merged into a single `AppContext` class.\n\n## Overview\n\nFlask uses contexts to make certain objects globally accessible within a specific scope (like a request or a CLI command) without having to pass them around to every function. This is implemented using [Context Variables](https://docs.python.org/3/library/contextvars.html).\n\n### Key Responsibilities\n- **State Management**: Storing application and request-specific data.\n- **Lifecycle Control**: Handling the setup (`push`) and teardown (`pop`) of the execution environment.\n- **Resource Management**: Ensuring that teardown functions (e.g., closing database connections) are called when a context ends.\n- **URL Routing**: Matching the current request to a route.\n\n## Core Components\n\n### AppContext\nThe `AppContext` is the primary container for the execution state. It is pushed at the beginning of each request or CLI command and popped at the end.\n\n- **Storage**: Holds references to the [Flask](app.md) app, the [Request](wrappers.md) object, the [Session](sessions.md), and a namespace for global data (`g`).\n- **Nesting**: Supports nested pushes via a `_push_count` mechanism, ensuring teardown only happens when the outermost context is popped.\n- **Routing**: Triggers URL matching via `match_request` when a request context is pushed.\n\n### _AppCtxGlobals\nBacked by the `g` proxy, this class provides a simple namespace for storing temporary data during a context. It behaves like a plain object but includes dictionary-like methods (`get`, `pop`, `setdefault`).\n\n## Architecture and Data Flow\n\n### Context Relationship\nThe following diagram shows how `AppContext` ties together various Flask components.\n\n```mermaid\ngraph TD\n    App[Flask App] -- creates --> Ctx[AppContext]\n    Ctx --> Request[Request]\n    Ctx --> Session[Session]\n    Ctx --> G[_AppCtxGlobals]\n    Ctx --> URL[URL Adapter]\n    \n    subgraph \"Context Lifecycle\"\n        Push[Push Context] --> Match[Match Request]\n        Match --> Execute[Execute View/Command]\n        Execute --> Pop[Pop Context]\n        Pop --> Teardown[Teardown Functions]\n    end\n```\n\n### Request Context Flow\nWhen a request arrives at the Flask application, the following sequence occurs:\n\n1.  **Creation**: `app.app_context(request=request)` is called to create an `AppContext` instance.\n2.  **Pushing**: The context is \"pushed\", setting it as the active context in the current execution unit (thread or task).\n3.  **URL Matching**: If a request is present, the `url_adapter` matches the request to a rule.\n4.  **Processing**: The application handles the request (dispatching to views).\n5.  **Popping**: After the response is generated, the context is \"popped\".\n6.  **Cleanup**: `teardown_request` and `teardown_appcontext` functions are executed.\n\n```mermaid\nsequenceDiagram\n    participant App as Flask Application\n    participant Ctx as AppContext\n    participant CV as Context Variable (_cv_app)\n    \n    App->>Ctx: __init__(app, request)\n    App->>Ctx: push()\n    Ctx->>CV: set(self)\n    Ctx->>App: trigger appcontext_pushed signal\n    Ctx->>Ctx: match_request()\n    \n    Note over App, Ctx: Request Processing\n    \n    App->>Ctx: pop()\n    Ctx->>App: do_teardown_request()\n    Ctx->>App: do_teardown_appcontext()\n    Ctx->>CV: reset()\n    Ctx->>App: trigger appcontext_popped signal\n```\n\n## Integration with Other Modules\n\n- **[app.md](app.md)**: The `Flask` app creates and manages `AppContext` instances. It also defines the teardown functions that the context calls during `pop()`.\n- **[globals.md](globals.md)**: Provides the proxies (`current_app`, `request`, `session`, `g`) that point into the currently active `AppContext`.\n- **[wrappers.md](wrappers.md)**: Provides the `Request` and `Response` classes. `AppContext` stores the `Request` instance.\n- **[sessions.md](sessions.md)**: The `AppContext` lazily loads the session using the application's `session_interface`.\n- **[blueprints.md](blueprints.md)**: URL matching within the context populates the request with blueprint-specific information.\n\n## Usage Patterns\n\n### Manual Context Management\nWhile Flask handles contexts automatically during requests, developers might need to push them manually in scripts or tests:\n\n```python\nwith app.app_context():\n    # current_app and g are now available\n    do_something()\n```\n\n### Request Context for Testing\nTo simulate a request:\n\n```python\nwith app.test_request_context('/path'):\n    # request and session are now available\n    assert request.path == '/path'\n```\n",
+  "templating.md": "# Templating Module\n\nThe `templating` module integrates the Jinja2 templating engine into Flask. It provides a customized environment and a dispatching loader that allows Flask to resolve templates from both the application's main template directory and any registered blueprints.\n\n## Overview\n\nFlask's templating system is built on top of [Jinja2](https://jinja.palletsprojects.com/). The module extends Jinja2 to support Flask-specific features such as:\n- **Blueprint-aware template loading**: Templates can be stored within blueprint directories.\n- **Context injection**: Automatic availability of `request`, `session`, `g`, and `config` within templates.\n- **Streaming**: Support for rendering large templates as a stream of chunks.\n- **Signals**: Hooks for pre- and post-rendering events.\n\n## Architecture\n\nThe following diagram illustrates how the templating module interacts with the Flask application and Jinja2.\n\n```mermaid\ngraph TD\n    subgraph Jinja2\n        BaseEnv[jinja2.Environment]\n        BaseLoader[jinja2.BaseLoader]\n    end\n\n    subgraph Flask Templating\n        Env[Environment] -->|Inherits| BaseEnv\n        DispatchLoader[DispatchingJinjaLoader] -->|Inherits| BaseLoader\n        Env -->|Uses| DispatchLoader\n    end\n\n    subgraph Flask Core\n        App[Flask App] -->|Owns| Env\n        App -->|Registered| BP[Blueprints]\n        Scaffold[Scaffold] -->|Interface for| App\n        Scaffold -->|Interface for| BP\n    end\n\n    DispatchLoader -->|Iterates over| App\n    DispatchLoader -->|Iterates over| BP\n```\n\n## Core Components\n\n### Environment\nThe `Environment` class (subclass of `jinja2.Environment`) is the central configuration object for Jinja2 in a Flask application. It holds references to filters, tests, and the loader.\n\n- **Initialization**: When created, it defaults to using a loader provided by the application (usually `DispatchingJinjaLoader`).\n- **Blueprint Awareness**: It maintains a reference to the Flask application object, allowing it to integrate with Flask's blueprint system.\n\n### DispatchingJinjaLoader\nThe `DispatchingJinjaLoader` is responsible for finding templates. Unlike a standard file system loader, it searches multiple locations:\n\n1.  **Application Templates**: First, it checks the template folder of the [Flask application](app.md).\n2.  **Blueprint Templates**: If not found in the application, it iterates through all registered [blueprints](blueprints.md) and checks their respective template folders.\n\n#### Template Resolution Process\n\n```mermaid\nsequenceDiagram\n    participant App as Flask Application\n    participant Loader as DispatchingJinjaLoader\n    participant FS as File System\n\n    App->>Loader: get_source(\"layout.html\")\n    Loader->>FS: Check App template folder\n    alt Found\n        FS-->>Loader: Source code\n    else Not Found\n        loop Each Blueprint\n            Loader->>FS: Check Blueprint template folder\n        end\n        alt Found in Blueprint\n            FS-->>Loader: Source code\n        else Not Found anywhere\n            Loader-->>App: TemplateNotFound Error\n        end\n    end\n    Loader-->>App: Source, Filename, etc.\n```\n\nIf the configuration `EXPLAIN_TEMPLATE_LOADING` is enabled, the loader records every attempt to find a template, which is useful for debugging template overrides.\n\n## Template Rendering Flow\n\nWhen a developer calls `render_template`, the following sequence occurs:\n\n1.  **Context Setup**: The current [application context](ctx.md) is retrieved.\n2.  **Template Retrieval**: The `Environment` is asked for the template. It uses the `DispatchingJinjaLoader` to find the source.\n3.  **Context Enrichment**: Flask updates the template context with:\n    - Default variables: `g`, `request`, `session` (via `_default_template_ctx_processor`).\n    - Application-wide context (from `app.context_processor`).\n4.  **Signals**: The `before_render_template` signal is sent.\n5.  **Rendering**: Jinja2 renders the template with the enriched context.\n6.  **Signals**: The `template_rendered` signal is sent.\n7.  **Result**: The rendered string is returned.\n\n## Public API\n\nThe module provides several high-level functions for rendering templates:\n\n| Function | Description |\n| --- | --- |\n| `render_template(name, **context)` | Renders a template file by name. |\n| `render_template_string(source, **context)` | Renders a template from a string. |\n| `stream_template(name, **context)` | Renders a template file as a stream (iterator). |\n| `stream_template_string(source, **context)` | Renders a template string as a stream. |\n\n## Context Processing\nThe `_default_template_ctx_processor` ensures that common Flask objects are always available in templates if a request is active:\n\n- `g`: The [application globals](globals.md).\n- `request`: The current [Request](wrappers.md) object.\n- `session`: The current [Session](sessions.md) object.\n\n## See Also\n- [Application Object](app.md)\n- [Blueprints](blueprints.md)\n- [Context Management](ctx.md)\n- [Request/Response Wrappers](wrappers.md)\n",
+  "core_app_logic.md": "",
+  "sessions.md": "# Sessions Module\n\nThe sessions module provides a mechanism for storing user-specific information across multiple requests. It defines the interface for session management and provides a default implementation using signed cookies.\n\n## Architecture\n\nFlask's session system is built around a strategy pattern. The [Flask](app.md) application delegating session handling to a `SessionInterface`. This allows for various storage backends (cookies, server-side databases, etc.) to be used interchangeably.\n\n### Class Hierarchy\n\n```mermaid\nclassDiagram\n    class SessionMixin {\n        <<interface>>\n        +bool permanent\n        +bool new\n        +bool modified\n        +bool accessed\n    }\n    \n    class SessionInterface {\n        <<abstract>>\n        +open_session(app, request)\n        +save_session(app, session, response)\n        +make_null_session(app)\n        +is_null_session(obj)\n    }\n\n    class SecureCookieSession {\n        +bool modified\n        +bool accessed\n    }\n\n    class SecureCookieSessionInterface {\n        +str salt\n        +serializer session_json_serializer\n    }\n\n    class NullSession {\n        +_fail()\n    }\n\n    SessionInterface <|-- SecureCookieSessionInterface\n    SessionMixin <|-- SecureCookieSession\n    SecureCookieSession <|-- NullSession\n    SecureCookieSessionInterface ..> SecureCookieSession : creates\n```\n\n## Core Components\n\n### SessionInterface\n\nThe `SessionInterface` is the base class for all session implementations. It defines the contract that any session backend must fulfill.\n\n*   **`open_session(app, request)`**: Called at the beginning of a request. It should return an object that implements both a dictionary-like interface and `SessionMixin`.\n*   **`save_session(app, session, response)`**: Called at the end of a request. It handles persisting the session data (e.g., by setting a cookie on the response).\n*   **`make_null_session(app)`**: Creates a `NullSession` if session support is unavailable (e.g., missing secret key), providing helpful error messages when modification is attempted.\n\n### SessionMixin\n\n`SessionMixin` adds session-specific properties to a dictionary-like object:\n\n*   **`permanent`**: If True, the session will live for the duration defined by `PERMANENT_SESSION_LIFETIME`.\n*   **`modified`**: Tracks whether the session data has been changed during the request.\n*   **`accessed`**: Tracks whether the session data has been read or written. This is used to set the `Vary: Cookie` header.\n\n### SecureCookieSessionInterface\n\nThis is the default session interface used by Flask. It stores session data in a cryptographically signed cookie on the client side using the [itsdangerous](https://itsdangerous.palletsprojects.com/) library.\n\n*   **Security**: Uses the application's `SECRET_KEY` to sign the session cookie, preventing tampering.\n*   **Serialization**: Uses [TaggedJSONSerializer](json.md) to convert session data to a string format suitable for cookies.\n*   **Storage**: The entire session dictionary is serialized, compressed, and signed into the cookie.\n\n### SecureCookieSession\n\nThe session object used by `SecureCookieSessionInterface`. It inherits from `SessionMixin` and `werkzeug.datastructures.CallbackDict`, which allows it to automatically track its own `modified` state when keys are set or deleted.\n\n## Session Lifecycle\n\nThe following diagram illustrates how sessions are managed during the lifecycle of a request within the [Request Context](ctx.md).\n\n```mermaid\nsequenceDiagram\n    participant App as Flask Application\n    participant Ctx as Request Context\n    participant SI as SessionInterface\n    participant Req as Request\n    participant View as View Function\n    participant Res as Response\n\n    Note over App, Res: Request Start\n    App->>Ctx: Push Request Context\n    Ctx->>SI: open_session(app, request)\n    SI->>Req: Read session cookie\n    SI->>SI: Verify signature & deserialize\n    SI-->>Ctx: Return Session object\n    \n    Note over Ctx: session proxy points to this object\n\n    App->>View: Execute View Logic\n    View->>Ctx: Access/Modify session\n    Ctx-->>View: Session data\n\n    Note over App, Res: Request End\n    App->>Res: Generate Response\n    App->>SI: save_session(app, session, response)\n    \n    alt Session Modified or Permanent\n        SI->>SI: Serialize & Sign session data\n        SI->>Res: Set-Cookie header\n    else Session Empty & Modified\n        SI->>Res: Delete-Cookie header\n    end\n    \n    App->>Ctx: Pop Request Context\n```\n\n## Configuration\n\nThe session behavior is heavily influenced by the [Config](config.md) of the Flask application:\n\n| Configuration Key | Description |\n|---|---|\n| `SESSION_COOKIE_NAME` | The name of the cookie used for the session. Default: `'session'`. |\n| `SESSION_COOKIE_DOMAIN` | The domain for the session cookie. |\n| `SESSION_COOKIE_PATH` | The path for the session cookie. |\n| `SESSION_COOKIE_HTTPONLY` | Controls the `HttpOnly` flag on the cookie. |\n| `SESSION_COOKIE_SECURE` | Controls the `Secure` flag on the cookie. |\n| `SESSION_COOKIE_SAMESITE` | Controls the `SameSite` attribute of the cookie. |\n| `PERMANENT_SESSION_LIFETIME` | A `timedelta` object defining how long a permanent session lasts. |\n| `SESSION_REFRESH_EACH_REQUEST` | If True, the cookie is sent on every request even if not modified. |\n\n## Custom Session Interfaces\n\nTo implement a custom session backend (e.g., using Redis or a database), developers can subclass `SessionInterface` and override `open_session` and `save_session`.\n\n```python\nfrom flask.sessions import SessionInterface\n\nclass MySessionInterface(SessionInterface):\n    def open_session(self, app, request):\n        # Load session from backend\n        ...\n\n    def save_session(self, app, session, response):\n        # Save session to backend\n        ...\n\napp.session_interface = MySessionInterface()\n```\n\nFor more details on request handling, see the [Wrappers](wrappers.md) documentation.\n",
+  "blueprints.md": "# Blueprints Module\n\nThe `blueprints` module provides a way to organize a Flask application into smaller, reusable components. A blueprint defines a collection of routes, error handlers, template filters, and other application-related functions that can be registered on a real application later.\n\n## Overview\n\nBlueprints are \"half-finished\" applications. They allow developers to:\n1. **Organize Large Applications**: Split an application into distinct components (e.g., auth, admin, api).\n2. **Reuse Logic**: Define common functionality once and register it multiple times or in different applications.\n3. **Namespacing**: Automatically prefix URLs and endpoint names to avoid collisions.\n\n## Core Components\n\n### Blueprint\nThe [Blueprint](blueprints.md#blueprint) class is the primary interface. It inherits from `Scaffold` and provides decorators similar to the `Flask` application object. However, instead of immediately registering routes or handlers, it \"records\" these actions as deferred functions.\n\nThere are two versions of the Blueprint class:\n- `src.flask.sansio.blueprints.Blueprint`: The core logic, independent of I/O or CLI specifics.\n- `src.flask.blueprints.Blueprint`: The Flask-specific implementation that adds CLI support (`AppGroup`) and static file serving.\n\n### BlueprintSetupState\nThe [BlueprintSetupState](blueprints.md#blueprintsetupstate) is a temporary object created during the registration process. It carries the configuration options (like URL prefixes and subdomains) and provides helper methods to apply the recorded changes to the main application object.\n\n## Architecture and Registration Flow\n\nThe following diagram illustrates how functions are recorded on a blueprint and later applied to the application during registration.\n\n```mermaid\nsequenceDiagram\n    participant Dev as Developer\n    participant BP as Blueprint\n    participant App as Flask Application\n    participant State as BlueprintSetupState\n\n    Dev->>BP: @bp.route(\"/index\")\n    BP->>BP: record(lambda s: s.add_url_rule(\"/index\", ...))\n    \n    Note over Dev, App: Later, during app setup\n    \n    Dev->>App: register_blueprint(bp, url_prefix=\"/api\")\n    App->>BP: register(app, options)\n    BP->>State: make_setup_state(app, options)\n    BP->>BP: _merge_blueprint_funcs(app)\n    \n    loop For each deferred function\n        BP->>State: deferred(state)\n        State->>App: add_url_rule(\"/api/index\", endpoint=\"bp.index\", ...)\n    end\n```\n\n### Component Relationships\n\nBlueprints follow a hierarchical structure. They can be nested, allowing for complex application architectures.\n\n```mermaid\ngraph TD\n    Scaffold[Scaffold] --> SansioBP[Sansio Blueprint]\n    SansioBP --> FlaskBP[Flask Blueprint]\n    \n    FlaskBP -->|Can contain| FlaskBP\n    \n    App[Flask App] -->|Registers| FlaskBP\n    FlaskBP -->|Uses| State[BlueprintSetupState]\n    State -->|Modifies| App\n```\n\n## Functional Breakdown\n\n### Deferred Execution\nMost methods on a blueprint (like `route`, `errorhandler`, `before_request`) do not take immediate effect. Instead, they use:\n- `record(func)`: Adds a function to be called with the setup state.\n- `record_once(func)`: Ensures the function is only executed the first time the blueprint is registered, even if registered multiple times.\n\n### URL and Endpoint Namespacing\nWhen a blueprint is registered:\n1. **URL Prefixing**: Any `url_prefix` defined on the blueprint or passed during registration is prepended to all routes.\n2. **Subdomains**: Subdomains are combined if both the blueprint and the registration options specify them.\n3. **Endpoints**: All endpoints are prefixed with the blueprint's name (e.g., `index` becomes `my_blueprint.index`).\n\n### Nesting Blueprints\nBlueprints can be registered on other blueprints using `register_blueprint`. When the parent blueprint is registered on the application, it recursively registers all its children, correctly propagating URL prefixes and subdomains.\n\n### Global vs. Local Handlers\nBlueprints distinguish between local and global handlers:\n- **Local**: `before_request`, `after_request`, `errorhandler` only apply to requests handled by that blueprint.\n- **Global**: `before_app_request`, `after_app_request`, `app_errorhandler` apply to the entire application, regardless of which blueprint (or the app itself) handles the request.\n\n## Integration with Other Modules\n\n- **App**: Blueprints are registered on the [Flask](app.md) object.\n- **CLI**: The Flask implementation of `Blueprint` includes an `AppGroup` from the [cli](cli.md) module to allow blueprints to contribute commands to the `flask` command line.\n- **Templating**: Blueprints can have their own `template_folder`, which is integrated into the application's search path via `DispatchingJinjaLoader` in the [templating](templating.md) module.\n- **Wrappers**: Static file serving in blueprints uses `Response` objects from the [wrappers](wrappers.md) module.\n",
+  "flask_wsgi.md": "# Flask WSGI Module\n\n## Introduction\nThe `flask_wsgi` module, centered around the `Flask` class, provides the core WSGI implementation for the Flask framework. It acts as the central registry for the application, handling request dispatching, routing, template configuration, and session management. By implementing the WSGI interface, it allows Flask applications to be served by any standard WSGI web server.\n\n## Architecture and Components\n\n### Core Class: Flask\nThe `Flask` class inherits from `App` (see [sansio_app.md](sansio_app.md)) and adds the WSGI-specific layer. It is the heart of every Flask application.\n\n- **WSGI Entry Point**: Implements `__call__` and `wsgi_app` to handle incoming web requests. This allows the Flask object to be used directly by WSGI servers like Gunicorn or uWSGI.\n- **Context Management**: Orchestrates the creation and lifecycle of application and request contexts via `AppContext` (see [ctx.md](ctx.md)). It ensures that globals like `current_app`, `request`, and `g` are available during a request.\n- **Request/Response Handling**: Uses [wrappers.md](wrappers.md) (`Request` and `Response`) to encapsulate HTTP communication, providing a rich API for inspecting requests and building responses.\n- **Routing**: Integrates with Werkzeug's routing system to map URLs to view functions, supporting dynamic URL parts and various HTTP methods.\n- **Extension & Configuration**: Manages application configuration ([config.md](config.md)) and provides a unified interface for extensions to register themselves and interact with the application.\n- **CLI Support**: Integrates with [cli.md](cli.md) via `AppGroup` to provide command-line management commands specific to the application.\n\n### Dependencies and Sub-modules\n- **Wrappers**: Handles the abstraction of HTTP requests and responses. (See [wrappers.md](wrappers.md))\n- **Context**: Manages the thread-local (or context-local) storage for requests and application state. (See [ctx.md](ctx.md))\n- **Sessions**: Provides mechanisms for persistent user sessions. (See [sessions.md](sessions.md))\n- **JSON**: Provides JSON serialization and response support. (See [json.md](json.md))\n- **Templating**: Integrates with Jinja2 for HTML rendering. (See [templating.md](templating.md))\n\n## Request Lifecycle Flow\n\nThe following diagram illustrates how a WSGI request is processed by the `Flask` application from the moment it leaves the web server until the response is sent back.\n\n```mermaid\nsequenceDiagram\n    participant Server as WSGI Server\n    participant App as Flask Application\n    participant Ctx as AppContext (Request Context)\n    participant View as View Function\n\n    Server->>App: __call__(environ, start_response)\n    App->>App: wsgi_app(environ, start_response)\n    App->>Ctx: request_context(environ)\n    App->>Ctx: push()\n    Note over Ctx: Request & App globals available\n    \n    App->>App: full_dispatch_request(ctx)\n    activate App\n    App->>App: preprocess_request(ctx)\n    Note right of App: Calls before_request hooks\n    App->>App: dispatch_request(ctx)\n    App->>View: execute view_func(*args)\n    View-->>App: return value (string, dict, response, etc.)\n    App->>App: finalize_request(rv)\n    App->>App: process_response(response)\n    Note right of App: Calls after_request hooks\n    deactivate App\n    \n    App->>Server: response(environ, start_response)\n    \n    App->>Ctx: pop(error)\n    Note over Ctx: Teardown handlers executed\n```\n\n## Component Interaction\n\nThis diagram shows the relationship between the `Flask` app and its primary supporting components during its operation.\n\n```mermaid\ngraph TD\n    Flask -->|manages| Config\n    Flask -->|uses| Request\n    Flask -->|produces| Response\n    Flask -->|creates| AppContext\n    Flask -->|interacts with| SessionInterface\n    Flask -->|uses| JSONProvider\n    Flask -->|registers| Blueprints\n    \n    subgraph WSGI Layer\n        Flask_Call[\"__call__ / wsgi_app\"]\n    end\n    \n    subgraph Context Layer\n        AppContext\n        RequestProxy\n    end\n    \n    Flask_Call --> AppContext\n    AppContext -->|provides| RequestProxy\n```\n\n## Key Methods and Functionality\n\n### Request Dispatching\n- `full_dispatch_request(ctx)`: The high-level request handler. It orchestrates `preprocess_request`, the actual `dispatch_request`, and finally `finalize_request`.\n- `dispatch_request(ctx)`: Performs the URL matching. If a match is found, it calls the view function. It also handles automatic `OPTIONS` requests if configured.\n- `finalize_request(rv, from_error_handler=False)`: Converts the return value (which might be a string, dict, or tuple) into a real `Response` object and runs `process_response`.\n\n### Request Pre/Post Processing\n- `preprocess_request(ctx)`: Runs all functions decorated with `@before_request`. If any returns a value, it stops further processing and uses that value as the response.\n- `process_response(ctx, response)`: Runs all functions decorated with `@after_request`. It also triggers session saving via the `session_interface`.\n- `do_teardown_request(ctx, exc)`: Runs all `@teardown_request` handlers. This is guaranteed to run even if an exception occurred.\n\n### Context Management\n- `app_context()`: Creates an `AppContext`. This is useful for scripts or tests that need to access `current_app` or `g` without an active HTTP request.\n- `request_context(environ)`: Creates an `AppContext` populated with request information from a WSGI environment.\n- `test_request_context(*args, **kwargs)`: A convenience method for creating a request context for testing purposes without needing a full WSGI environment.\n\n### Error Handling\n- `handle_exception(ctx, e)`: The final safety net for unhandled exceptions. It logs the error and returns a 500 response.\n- `handle_user_exception(ctx, e)`: Handles exceptions during request processing. It checks for registered error handlers (for specific exception types or HTTP status codes).\n- `handle_http_exception(ctx, e)`: Specifically deals with `HTTPException` (like 404 or 403). It allows for custom error pages for these standard errors.\n\n## References\n- [sansio_app.md](sansio_app.md): Base application logic and shared \"Scaffold\" functionality.\n- [ctx.md](ctx.md): Deep dive into Application and Request contexts and their lifecycle.\n- [wrappers.md](wrappers.md): Detailed information on Request and Response objects.\n- [sessions.md](sessions.md): Configuration and implementation of session management.\n- [config.md](config.md): How application configuration is managed and accessed.\n- [blueprints.md](blueprints.md): Modular application design using Blueprints.\n- [json.md](json.md): Support for JSON encoding/decoding and JSON responses.\n- [cli.md](cli.md): Command-line interface integration and custom commands.\n",
+  "sansio_app.md": "# Sans-IO App Module\n\nThe `sansio_app` module centers around the `App` class, which serves as the fundamental foundation for a Flask application. It provides the core registry and management logic for routes, configuration, blueprints, templates, and error handling. Designed as a \"Sans-IO\" component, `App` focuses on application logic independent of the specific I/O layer (such as WSGI or ASGI).\n\n## Overview\n\nThe `App` class inherits from [Scaffold](scaffold.md) and acts as the central hub of a Flask application. It coordinates various subsystems to handle the lifecycle and configuration of the web application.\n\n### Key Responsibilities\n*   **Central Registry**: Tracks view functions, URL rules, blueprints, and extensions.\n*   **Configuration**: Manages application settings via the [Config](config.md) class.\n*   **Routing**: Interfaces with the Werkzeug routing system to map URLs to endpoints.\n*   **Templating**: Manages the Jinja2 [Environment](templating.md) and template loading.\n*   **JSON Handling**: Provides pluggable JSON serialization through [JSONProvider](json.md).\n*   **Error Management**: Dispatches exceptions to registered error handlers.\n\n## Architecture\n\nThe `App` class maintains relationships with several internal components and external subsystems:\n\n```mermaid\nclassDiagram\n    class App {\n        +Config config\n        +Map url_map\n        +JSONProvider json\n        +Environment jinja_env\n        +dict blueprints\n        +dict extensions\n        +register_blueprint()\n        +add_url_rule()\n        +handle_url_build_error()\n    }\n    Scaffold <|-- App\n    App *-- Config\n    App *-- JSONProvider\n    App *-- Environment\n    App o-- Blueprint\n```\n\n## Component Interaction\n\n### Blueprint Registration\n\nRegistration allows modular application development. When a [Blueprint](blueprints.md) is registered, its deferred operations are applied to the `App` instance.\n\n```mermaid\nsequenceDiagram\n    participant App\n    participant Blueprint\n    participant BlueprintSetupState\n    \n    App->>Blueprint: register(app, options)\n    Blueprint->>Blueprint: Create BlueprintSetupState\n    Blueprint->>Blueprint: Execute recorded callbacks\n    loop For each callback\n        Blueprint->>App: apply configuration (e.g., add_url_rule)\n    end\n    App->>App: Store blueprint in self.blueprints\n```\n\n### Routing and View Functions\n\nThe `add_url_rule` method populates the internal `url_map` and maps endpoints to view functions.\n\n```mermaid\ngraph TD\n    A[Call add_url_rule] --> B{View Func provided?}\n    B -- Yes --> C[Extract endpoint from name]\n    B -- No --> D[Use provided endpoint]\n    C --> E[Determine HTTP Methods]\n    D --> E\n    E --> F[Create Rule object]\n    F --> G[Add Rule to url_map]\n    G --> H{Update view_functions?}\n    H -- Yes --> I[Register view_func for endpoint]\n    H -- No --> J[Done]\n```\n\n## Data Flow\n\n### Error Handling Dispatch\n\nWhen an exception occurs, the `App` searches for the most specific handler available, prioritizing blueprint-level handlers over application-level ones.\n\n```mermaid\nflowchart TD\n    Start[Exception Caught] --> GetClass[Identify Exception Class and Code]\n    GetClass --> CheckBP[Check Blueprint-specific handler for Code]\n    CheckBP -- Found --> Return[Return Handler]\n    CheckBP -- Not Found --> CheckApp[Check App-specific handler for Code]\n    CheckApp -- Found --> Return\n    CheckApp -- Not Found --> CheckBPClass[Check Blueprint handler for Class MRO]\n    CheckBPClass -- Found --> Return\n    CheckBPClass -- Not Found --> CheckAppClass[Check App handler for Class MRO]\n    CheckAppClass -- Found --> Return\n    CheckAppClass -- Not Found --> Default[No Custom Handler]\n```\n\n## Configuration and Context\n\n*   **Config**: Initialized via `make_config`, it supports loading from various sources and handles the `DEBUG` flag. It is relative to either the application root or the `instance_path`.\n*   **App Context**: The `App` class manages teardown functions via `teardown_appcontext`, which are executed when the [AppContext](ctx.md) is destroyed.\n*   **Jinja Environment**: Created via `create_jinja_environment`, it uses a `DispatchingJinjaLoader` to aggregate templates from the app and all registered blueprints.\n\n## Lifecycle Constraints\n\nTo ensure consistency, `App` enforces that setup methods (like `register_blueprint` or `add_url_rule`) cannot be called after the application has started handling its first request. This is tracked via the `_got_first_request` flag and enforced by the `_check_setup_finished` helper.\n\n## Dependencies\n\n*   [Scaffold](scaffold.md): Provides basic resource loading and setup functionality.\n*   [Config](config.md): Handles application configuration.\n*   [JSONProvider](json.md): Manages JSON serialization/deserialization.\n*   [Blueprints](blueprints.md): Supports application modularity.\n*   [Templating](templating.md): Provides the Jinja2 integration.\n*   [AppContext](ctx.md): Manages the application context lifecycle.\n*   [Wrappers](wrappers.md): Provides `Response` and `Request` classes.\n"
+};
+        const REPO_TITLE = 'flask';
+
+        // State management
+        let currentModule = 'overview';
+        let navigationHistory = [];
+        let expandedNodes = new Map(); // Track expanded nodes: nodeId -> {originalLabel, targetModuleId, subgraphId}
+        let currentDiagramCode = '';
+        let baseDiagramCode = '';
+        let selectedNodeId = null;
+        let selectedModuleId = null;
+        
+        // Module data structure (built from MODULE_TREE)
+        let moduleData = {};
+        let nodeIdToModule = {}; // Maps node IDs to module keys
+        let moduleLinkMap = {}; // Maps module names to their links
+
+        // Initialize marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+        
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Build module data from MODULE_TREE
+        function buildModuleData() {
+            // Create overview module - prefer extracted diagram from overview.md
+            const fallbackDiagram = generateOverviewDiagram();
+            const overviewMd = DOCS_CONTENT['overview.md'] || '';
+            const extractedDiagram = extractMermaidFromMarkdown(overviewMd);
+            const overviewDiagram = extractedDiagram || fallbackDiagram;
+            
+            const overviewLinks = {};
+            
+            // Build links for overview - each top-level module is a link
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const formattedName = formatModuleName(key);
+                overviewLinks[formattedName] = key;
+            }
+            
+            // If using extracted diagram, also build links from diagram node labels
+            if (extractedDiagram) {
+                // Parse all node definitions: A[text], A(text), A{text}, A((text))
+                const nodePattern = /([A-Za-z_][A-Za-z0-9_]*)\s*(?:\["?([^"\]]+)"?\]|\("?([^"\)]+)"?\)|\{"?([^"\}]+)"?\}|\(\("?([^"\)]+)"?\)\))/g;
+                let match;
+                while ((match = nodePattern.exec(extractedDiagram)) !== null) {
+                    const label = (match[2] || match[3] || match[4] || match[5] || '').trim();
+                    if (!label) continue;
+                    
+                    // Try to match label to a module in MODULE_TREE
+                    const labelLower = label.toLowerCase();
+                    // Convert "torch.nn" to "torch_nn" for matching
+                    const labelNormalized = labelLower.replace(/[^a-z0-9]/g, '_');
+                    
+                    // Direct match with module keys (including children recursively)
+                    function findModuleRecursive(tree) {
+                        for (const [modKey, modData] of Object.entries(tree)) {
+                            const modKeyLower = modKey.toLowerCase();
+                            // Match by key or formatted name
+                            if (modKeyLower === labelNormalized || 
+                                modKeyLower === labelLower ||
+                                formatModuleName(modKey).toLowerCase() === labelLower) {
+                                return modKey;
+                            }
+                            // Also match dotted notation: "torch.nn" matches "torch_nn"
+                            const dottedLabel = labelLower.replace(/\./g, '_');
+                            if (modKeyLower === dottedLabel) {
+                                return modKey;
+                            }
+                            // Search children
+                            if (modData.children) {
+                                const found = findModuleRecursive(modData.children);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    const foundModule = findModuleRecursive(MODULE_TREE);
+                    if (foundModule) {
+                        overviewLinks[label] = foundModule;
+                        console.log('[LINK] Mapped diagram label "' + label + '" to module "' + foundModule + '"');
+                    }
+                }
+            }
+            
+            moduleData['overview'] = {
+                name: REPO_TITLE + ' Overview',
+                diagram: overviewDiagram,
+                documentation: DOCS_CONTENT['overview.md'] || '# Overview\n\nNo overview available.',
+                links: overviewLinks
+            };
+            
+            // Build modules from tree
+            buildModulesFromTree(MODULE_TREE, '');
+        }
+
+        function buildModulesFromTree(tree, parentPath) {
+            for (const [key, data] of Object.entries(tree)) {
+                const moduleId = parentPath ? `${parentPath}/${key}` : key;
+                const formattedName = formatModuleName(key);
+                
+                // Generate diagram for this module showing its children
+                const diagram = generateModuleDiagram(key, data);
+                
+                // Build links for children
+                const links = {};
+                if (data.children) {
+                    for (const [childKey, childData] of Object.entries(data.children)) {
+                        const childFormattedName = formatModuleName(childKey);
+                        links[childFormattedName] = childKey;
+                    }
+                }
+                
+                // Try to find documentation file
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                moduleData[key] = {
+                    name: formattedName,
+                    diagram: diagram,
+                    documentation: documentation,
+                    links: links,
+                    children: data.children || {}
+                };
+                
+                // Recursively build child modules
+                if (data.children) {
+                    buildModulesFromTree(data.children, moduleId);
+                }
+            }
+        }
+
+        function generateOverviewDiagram() {
+            let diagram = 'graph TD\n';
+            const repoNodeId = 'REPO';
+            const repoLabel = escapeLabel(REPO_TITLE);
+            diagram += `    ${repoNodeId}["${repoLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [key, data] of Object.entries(MODULE_TREE)) {
+                const nodeId = `M${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(key));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${repoNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = key;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+
+        function generateModuleDiagram(moduleKey, moduleData) {
+            if (!moduleData.children || Object.keys(moduleData.children).length === 0) {
+                // Leaf module - no sub-diagram
+                return '';
+            }
+            
+            let diagram = 'graph TD\n';
+            const parentNodeId = 'PARENT';
+            const parentLabel = escapeLabel(formatModuleName(moduleKey));
+            diagram += `    ${parentNodeId}["${parentLabel}"]\n`;
+            
+            let nodeIndex = 0;
+            for (const [childKey, childData] of Object.entries(moduleData.children)) {
+                const nodeId = `C${nodeIndex}`;
+                const label = escapeLabel(formatModuleName(childKey));
+                diagram += `    ${nodeId}["${label}"]\n`;
+                diagram += `    ${parentNodeId} --> ${nodeId}\n`;
+                nodeIdToModule[nodeId] = childKey;
+                nodeIndex++;
+            }
+            
+            return diagram;
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+
+        function formatModuleName(key) {
+            return key
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+        
+        function escapeLabel(label) {
+            // Escape special characters that cause mermaid syntax errors
+            return label
+                .replace(/"/g, "'")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&(?!lt;|gt;|amp;)/g, "&amp;");
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            buildModuleData();
+            loadModule('overview');
+        });
+
+        function loadModule(moduleId, skipHistoryUpdate = false) {
+            if (!moduleData || !moduleData[moduleId]) {
+                console.error('Module not found:', moduleId);
+                return;
+            }
+
+            const module = moduleData[moduleId];
+            currentModule = moduleId;
+            
+            // Reset expansion state when loading new module
+            expandedNodes.clear();
+            selectedNodeId = null;
+            selectedModuleId = null;
+            baseDiagramCode = module.diagram || '';
+            currentDiagramCode = module.diagram || '';
+
+            // Update title
+            document.getElementById('moduleTitle').textContent = module.name;
+
+            // Update back button
+            const backButton = document.getElementById('backButton');
+            if (navigationHistory.length > 0) {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = false;
+            } else if (moduleId === 'overview') {
+                backButton.style.display = 'none';
+            } else {
+                backButton.style.display = 'inline-block';
+                backButton.disabled = true;
+            }
+
+            // Render documentation
+            renderDocumentation(module.documentation);
+
+            // Render diagram
+            if (module.diagram && module.diagram.trim()) {
+                renderDiagram(module.diagram, module.links || {}, moduleId);
+            } else {
+                // No diagram - try to extract from markdown
+                const extracted = extractMermaidFromMarkdown(module.documentation);
+                if (extracted) {
+                    renderDiagram(extracted, module.links || {}, moduleId);
+                } else {
+                    document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available for this module.</p>';
+                }
+            }
+        }
+
+        function extractMermaidFromMarkdown(markdown) {
+            // Unescape the escaped newlines from JSON
+            const unescaped = markdown.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+            const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+            let match;
+            // Find the first graph/flowchart diagram (skip sequence/class diagrams)
+            while ((match = mermaidRegex.exec(unescaped)) !== null) {
+                const diagram = match[1].trim();
+                if (diagram.startsWith('graph ') || diagram.startsWith('flowchart ')) {
+                    return diagram;
+                }
+            }
+            // Fallback: return any diagram if no graph/flowchart found
+            mermaidRegex.lastIndex = 0;
+            match = mermaidRegex.exec(unescaped);
+            return match ? match[1].trim() : null;
+        }
+
+        // Combine links from current module + all expanded modules
+        // This ensures that expanded subgraph children are clickable
+        function getCombinedLinks() {
+            const combined = {};
+            
+            // Add current module's links
+            const current = moduleData[currentModule];
+            if (current && current.links) {
+                Object.assign(combined, current.links);
+            }
+            
+            // Add links from all expanded modules
+            for (const [nodeId, expansion] of expandedNodes.entries()) {
+                const expandedMod = moduleData[expansion.targetModuleId];
+                if (expandedMod && expandedMod.links) {
+                    // Prefix the links to match the prefixed node IDs in the subgraph
+                    const prefix = `${nodeId}_`;
+                    for (const [label, targetId] of Object.entries(expandedMod.links)) {
+                        combined[label] = targetId;
+                    }
+                }
+            }
+            
+            return combined;
+        }
+
+        function selectNode(nodeId, moduleId) {
+            
+            selectedNodeId = nodeId;
+            selectedModuleId = moduleId;
+            
+            // Load selected module's documentation
+            if (moduleData && moduleData[moduleId]) {
+                const module = moduleData[moduleId];
+                renderDocumentation(module.documentation || 'No documentation available.');
+                document.getElementById('moduleTitle').textContent = module.name || moduleId;
+            }
+            
+            // Re-render diagram to apply selected styling - use combined links for expanded nodes
+            renderDiagram(currentDiagramCode || baseDiagramCode, getCombinedLinks(), currentModule);
+        }
+
+        function renderDocumentation(markdown) {
+            // Remove mermaid blocks from display
+            const cleanMarkdown = markdown.replace(/```mermaid\n[\s\S]*?```/g, '');
+            const html = marked.parse(cleanMarkdown);
+            document.getElementById('docContent').innerHTML = html;
+
+            // Make .md links clickable
+            document.querySelectorAll('#docContent a[href$=".md"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                const href = link.getAttribute('href');
+                    const moduleId = href.replace('.md', '');
+                    navigateToModule(moduleId);
+                });
+            });
+            
+            // Also handle anchor links that reference module documentation
+            // LLM-generated docs often use anchors like #file-management-tools-module-documentation
+            document.querySelectorAll('#docContent a[href^="#"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    // Convert anchor to potential module ID
+                    // E.g., #file-management-tools-module-documentation -> file_management_tools
+                    const anchor = href.substring(1); // Remove #
+                    const potentialModuleId = anchor
+                        .replace(/-module-documentation$/, '')
+                        .replace(/-module$/, '')
+                        .replace(/-/g, '_');
+                    
+                    // Check if this maps to an existing module
+                    if (moduleData[potentialModuleId]) {
+                    e.preventDefault();
+                        navigateToModule(potentialModuleId);
+                    }
+                    // Otherwise let the normal anchor behavior proceed
+                });
+            });
+        }
+
+        function expandNodeInline(nodeId, targetModuleId) {
+            if (!nodeId || !targetModuleId || !moduleData[targetModuleId]) {
+                console.error(`Cannot expand: nodeId=${nodeId}, module=${targetModuleId}`);
+                return;
+            }
+            
+            if (expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is already expanded`);
+                return;
+            }
+            
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule.diagram) {
+                console.log(`Module ${targetModuleId} has no diagram - just selecting`);
+                selectNode(nodeId, targetModuleId);
+                return;
+            }
+            
+            
+            // Find node's original label in base diagram
+            let workingDiagram = baseDiagramCode;
+            const nodeDefPattern = new RegExp(`\\b${nodeId}\\s*\\["?([^"\\]]+)"?\\]`);
+            const baseNodeMatch = workingDiagram.match(nodeDefPattern);
+            
+            if (!baseNodeMatch) {
+                // Try current diagram
+                const currentNodeMatch = currentDiagramCode.match(nodeDefPattern);
+                if (!currentNodeMatch) {
+                    console.error(`Could not find node ${nodeId}`);
+                    return;
+                }
+            }
+            
+            const originalLabel = baseNodeMatch ? baseNodeMatch[1].trim() : formatModuleName(targetModuleId);
+            const subgraphId = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            expandedNodes.set(nodeId, {
+                originalLabel: originalLabel,
+                targetModuleId: targetModuleId,
+                subgraphId: subgraphId,
+                collapseNodeId: collapseNodeId
+            });
+            
+            // Rebuild diagram with all expansions
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                workingDiagram = applyExpansionToDiagram(workingDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = workingDiagram;
+            selectNode(subgraphId, targetModuleId);
+        }
+
+        function collapseNode(nodeId) {
+            if (!expandedNodes.has(nodeId)) {
+                console.log(`Node ${nodeId} is not expanded`);
+                return;
+            }
+            
+            console.log(`[COLLAPSE] Collapsing node ${nodeId}`);
+            
+            // Also collapse child expansions
+            const nodesToCollapse = [nodeId];
+            for (const [expNodeId] of expandedNodes.entries()) {
+                if (expNodeId.startsWith(nodeId + '_') && !expNodeId.endsWith('_collapse')) {
+                    nodesToCollapse.push(expNodeId);
+                }
+            }
+            
+            for (const nodeToRemove of nodesToCollapse) {
+                expandedNodes.delete(nodeToRemove);
+            }
+            
+            // Rebuild from base
+            let rebuiltDiagram = baseDiagramCode;
+            const sortedExpansions = Array.from(expandedNodes.entries()).sort((a, b) => {
+                const depthA = (a[0].match(/_/g) || []).length;
+                const depthB = (b[0].match(/_/g) || []).length;
+                return depthA - depthB;
+            });
+            
+            for (const [expNodeId, expState] of sortedExpansions) {
+                rebuiltDiagram = applyExpansionToDiagram(rebuiltDiagram, expNodeId, expState.targetModuleId, expState.originalLabel);
+            }
+            
+            currentDiagramCode = rebuiltDiagram;
+            selectedNodeId = null;
+            selectedModuleId = null;
+            
+            // Use combined links for remaining expanded nodes
+            renderDiagram(rebuiltDiagram, getCombinedLinks(), currentModule);
+        }
+
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                return diagram;
+            }
+            
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            // Get target module's diagram content
+            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            
+            // Prefix all node IDs to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z]+\d*)\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Replace node definition with subgraph
+            const nodePattern = new RegExp(`(\\s*)${nodeId}\\["?[^"\\]]*"?\\]`, 'g');
+            const hasNodeDef = nodePattern.test(diagram);
+            
+            if (!hasNodeDef) {
+                console.log(`Node ${nodeId} definition not found`);
+                return diagram;
+            }
+            
+            // Build subgraph
+            const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+            const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+            const subgraphDef = `\n    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end\n`;
+            
+            // Replace node with subgraph - ensure newlines around the subgraph
+            let newDiagram = diagram.replace(
+                new RegExp(`\\s*${nodeId}\\["?[^"\\]]*"?\\]\\s*`),
+                subgraphDef
+            );
+            
+            // Update edges to point to subgraph
+            newDiagram = newDiagram.replace(
+                new RegExp(`(-->\\s*)${nodeId}(?!_)`, 'g'),
+                `$1${subgraphName}`
+            );
+            newDiagram = newDiagram.replace(
+                new RegExp(`${nodeId}(?!_)(\\s*-->)`, 'g'),
+                `${subgraphName}$1`
+            );
+            
+            // Ensure graph declaration
+            if (!newDiagram.trim().startsWith('graph')) {
+                newDiagram = 'graph TD\n' + newDiagram;
+            }
+            
+            return newDiagram;
+        }
+
+        function renderDiagram(diagramCode, links, currentModuleId) {
+            if (!diagramCode) {
+                document.getElementById('mermaid-diagram').innerHTML = '<p style="color: #64748b;">No diagram available.</p>';
+                return;
+            }
+            
+            currentDiagramCode = diagramCode;
+            
+            // Build node mappings
+            const localNodeIdToModule = {};
+            const labelToNodeId = {};
+            
+            const nodePattern = /(\w+)\["?([^"\]]+)"?\]/g;
+            let match;
+            while ((match = nodePattern.exec(diagramCode)) !== null) {
+                const nodeId = match[1];
+                const label = match[2].trim();
+                labelToNodeId[label] = nodeId;
+                
+                // Match label to links
+                for (const [linkText, moduleId] of Object.entries(links)) {
+                    if (label.toLowerCase() === linkText.toLowerCase() ||
+                        label.toLowerCase().includes(linkText.toLowerCase()) ||
+                        linkText.toLowerCase().includes(label.toLowerCase())) {
+                        localNodeIdToModule[nodeId] = moduleId;
+                        break;
+                    }
+                }
+            }
+            
+            // Ensure graph declaration - but only if it's a flowchart/graph
+            let finalDiagramCode = diagramCode.trim();
+            const validDiagramStarts = ['graph ', 'flowchart ', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'pie', 'erDiagram', 'journey', 'gantt', 'gitGraph'];
+            const startsWithValid = validDiagramStarts.some(start => finalDiagramCode.startsWith(start));
+            if (!startsWithValid) {
+                finalDiagramCode = 'graph TD\n' + finalDiagramCode;
+            }
+            
+            const diagramDiv = document.getElementById('mermaid-diagram');
+            diagramDiv.innerHTML = '<div class="loading">Rendering diagram...</div>';
+            const diagramId = 'diagram-' + Date.now();
+
+            (async () => {
+                try {
+                    const { svg } = await mermaid.render(diagramId, finalDiagramCode);
+                    diagramDiv.innerHTML = svg;
+                    
+                    const processedNodes = new WeakSet();
+                    
+                    const processNodes = () => {
+                        const svgEl = diagramDiv.querySelector('svg');
+                        if (!svgEl) return;
+                        
+                        const nodeGroups = svgEl.querySelectorAll('g.node');
+                        
+                        nodeGroups.forEach((nodeGroup, idx) => {
+                            if (processedNodes.has(nodeGroup)) return;
+                            
+                            // Extract node ID from SVG element
+                            let svgNodeId = null;
+                            const groupId = nodeGroup.id || '';
+                            const idMatch = groupId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (idMatch) {
+                                svgNodeId = idMatch[1];
+                            }
+                            
+                            // Get text content - Mermaid 11.x may use different structures
+                            let fullText = '';
+                            
+                            // Method 1: Direct text/tspan elements
+                            const textElements = nodeGroup.querySelectorAll('text, tspan');
+                            textElements.forEach(el => {
+                                const text = el.textContent.trim();
+                                if (text && !fullText.includes(text)) {
+                                    fullText += (fullText ? ' ' : '') + text;
+                                }
+                            });
+                            
+                            // Method 2: foreignObject elements (Mermaid 11.x uses these)
+                            if (!fullText) {
+                                const foreignObjects = nodeGroup.querySelectorAll('foreignObject');
+                                foreignObjects.forEach(fo => {
+                                    const text = fo.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 3: span/div inside foreignObject
+                            if (!fullText) {
+                                const spans = nodeGroup.querySelectorAll('foreignObject span, foreignObject div, foreignObject p');
+                                spans.forEach(el => {
+                                    const text = el.textContent.trim();
+                                    if (text && !fullText.includes(text)) {
+                                        fullText += (fullText ? ' ' : '') + text;
+                                    }
+                                });
+                            }
+                            
+                            // Method 4: Any text content in the node
+                            if (!fullText) {
+                                fullText = nodeGroup.textContent.trim();
+                            }
+                            
+                            fullText = fullText.trim();
+                            
+                            if (!fullText) return;
+                            
+                            // Check for collapse button
+                            if (fullText.includes('Collapse') || fullText === '[-] Collapse') {
+                                processedNodes.add(nodeGroup);
+                                
+                                let collapseNodeId = null;
+                                if (svgNodeId && svgNodeId.endsWith('_collapse')) {
+                                    collapseNodeId = svgNodeId.replace(/_collapse$/, '');
+                                }
+                                
+                                if (collapseNodeId && expandedNodes.has(collapseNodeId)) {
+                                    const capturedNodeId = collapseNodeId;
+                                    
+                                    nodeGroup.style.cursor = 'pointer';
+                                    nodeGroup.classList.add('collapse-button');
+                                    
+                                    const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+                                    shapes.forEach(shape => {
+                                        shape.setAttribute('stroke', '#dc2626');
+                                        shape.setAttribute('stroke-width', '2');
+                                    });
+                                    
+                                    const collapseHandler = (e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        collapseNode(capturedNodeId);
+                                    };
+                                    
+                                    nodeGroup.addEventListener('click', collapseHandler, true);
+                                    nodeGroup.querySelectorAll('*').forEach(child => {
+                                        child.style.cursor = 'pointer';
+                                        child.addEventListener('click', collapseHandler, true);
+                                    });
+                                }
+                                return;
+                            }
+                            
+                            // Find target module
+                            let targetModule = null;
+                            let nodeId = svgNodeId;
+                            
+                            // Try to match by node ID
+                            if (svgNodeId && localNodeIdToModule[svgNodeId]) {
+                                targetModule = localNodeIdToModule[svgNodeId];
+                            }
+                            
+                            // Try to match by text
+                            if (!targetModule) {
+                                for (const [linkText, moduleId] of Object.entries(links)) {
+                                    if (fullText.toLowerCase() === linkText.toLowerCase() ||
+                                        fullText.toLowerCase().includes(linkText.toLowerCase())) {
+                                        targetModule = moduleId;
+                                        if (!nodeId) {
+                                            nodeId = labelToNodeId[fullText] || linkText.replace(/\s+/g, '_');
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (targetModule && moduleData[targetModule]) {
+                                processedNodes.add(nodeGroup);
+                                makeNodeBlueAndClickable(nodeGroup, targetModule, fullText, nodeId);
+                            }
+                        });
+                        
+                        // Apply selected styling to subgraphs
+                        if (selectedNodeId && selectedNodeId.endsWith('_sub')) {
+                            const subgraphs = svgEl.querySelectorAll('g.cluster');
+                            subgraphs.forEach(sg => {
+                                const sgId = sg.id || '';
+                                if (sgId.includes(selectedNodeId) || sgId.includes(selectedNodeId.replace('_sub', ''))) {
+                                    sg.classList.add('selected-subgraph');
+                                    const rects = sg.querySelectorAll('rect');
+                                    rects.forEach(rect => {
+                                        rect.setAttribute('stroke', '#10b981');
+                                        rect.setAttribute('stroke-width', '3');
+                                    });
+                                }
+                            });
+                        }
+                    };
+                    
+                    processNodes();
+                    setTimeout(processNodes, 100);
+                    setTimeout(processNodes, 500);
+                    
+                } catch (error) {
+                    console.error('Error rendering diagram:', error);
+                    diagramDiv.innerHTML = '<p style="color: #dc2626;">Error rendering diagram.</p>';
+                }
+            })();
+        }
+
+        function makeNodeBlueAndClickable(nodeGroup, targetModule, displayText, nodeId) {
+            // Make shapes blue
+            const shapes = nodeGroup.querySelectorAll('rect, circle, polygon, path, ellipse');
+            shapes.forEach(shape => {
+                shape.setAttribute('stroke', '#2563eb');
+                shape.setAttribute('stroke-width', '3');
+                shape.style.setProperty('stroke', '#2563eb', 'important');
+                shape.style.setProperty('stroke-width', '3px', 'important');
+            });
+            
+            // Bold text
+            const texts = nodeGroup.querySelectorAll('text, tspan');
+            texts.forEach(txt => {
+                txt.style.fontWeight = '600';
+            });
+            
+            // Make clickable
+            nodeGroup.style.cursor = 'pointer';
+            nodeGroup.classList.add('clickable-node');
+            nodeGroup.setAttribute('title', `Click to expand: ${displayText}`);
+            nodeGroup.setAttribute('data-node-id', nodeId);
+            
+            const capturedTargetModule = targetModule;
+            const capturedNodeId = nodeId;
+            
+            const clickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                    const targetModuleData = moduleData[capturedTargetModule];
+                    if (targetModuleData.diagram && targetModuleData.diagram.trim()) {
+                        if (!expandedNodes.has(capturedNodeId)) {
+                            expandNodeInline(capturedNodeId, capturedTargetModule);
+                        } else {
+                            selectNode(`${capturedNodeId}_sub`, capturedTargetModule);
+                        }
+                    } else {
+                        selectNode(capturedNodeId, capturedTargetModule);
+                    }
+                }
+            };
+            
+            nodeGroup.addEventListener('click', clickHandler, true);
+            nodeGroup.querySelectorAll('*').forEach(child => {
+                child.style.cursor = 'pointer';
+                child.addEventListener('click', clickHandler, true);
+            });
+            
+            // Hover effects
+            nodeGroup.addEventListener('mouseenter', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '4px';
+                    }
+                });
+            });
+            nodeGroup.addEventListener('mouseleave', () => {
+                shapes.forEach(shape => {
+                    if (shape.parentNode) {
+                        shape.style.strokeWidth = '3px';
+                    }
+                });
+            });
+            
+            // Apply selected styling if this node is selected
+            if (selectedNodeId === nodeId && selectedModuleId === targetModule) {
+                nodeGroup.classList.add('selected-node');
+                shapes.forEach(shape => {
+                    shape.setAttribute('stroke', '#10b981');
+                    shape.setAttribute('stroke-width', '4');
+                    shape.style.setProperty('stroke', '#10b981', 'important');
+                    shape.style.setProperty('stroke-width', '4px', 'important');
+                });
+            }
+        }
+
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) {
+                console.error(`Module not found: ${moduleId}`);
+                return;
+            }
+            
+            if (currentModule !== moduleId) {
+                navigationHistory.push(currentModule);
+                loadModule(moduleId);
+            }
+        }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const previousModule = navigationHistory.pop();
+                if (previousModule && moduleData[previousModule]) {
+                    loadModule(previousModule, true);
+                } else {
+                    navigationHistory = [];
+                    loadModule('overview', true);
+                }
+            } else if (currentModule !== 'overview') {
+                loadModule('overview', true);
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            goBack();
+        });
+
+        // Helper - click node by label (for testing)
+        window.clickNode = function(label) {
+            const nodes = document.querySelectorAll('.clickable-node');
+            for (const node of nodes) {
+                const title = node.getAttribute('title') || '';
+                if (title.toLowerCase().includes(label.toLowerCase())) {
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Keyboard shortcuts - press 1-9 to click on Nth clickable node in diagram
+        // Prioritizes child nodes in expanded subgraphs over their expanded parents
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const keyNum = parseInt(e.key);
+            if (keyNum >= 1 && keyNum <= 9) {
+                // Find all clickable nodes in the current diagram
+                const svg = document.querySelector('#mermaid-diagram svg');
+                if (!svg) return;
+                
+                const allClickableNodes = Array.from(svg.querySelectorAll('.clickable-node'));
+                
+                // Separate nodes: those inside subgraphs (children) vs those outside (parents)
+                const childNodes = [];
+                const parentNodes = [];
+                
+                allClickableNodes.forEach(node => {
+                    // Check if this node is inside a subgraph (cluster)
+                    const isInSubgraph = node.closest('g.cluster') !== null;
+                    if (isInSubgraph) {
+                        childNodes.push(node);
+                    } else {
+                        parentNodes.push(node);
+                    }
+                });
+                
+                // Prioritize child nodes first, then parent nodes
+                const prioritizedNodes = [...childNodes, ...parentNodes];
+                const index = keyNum - 1;
+                
+                if (index < prioritizedNodes.length) {
+                    const node = prioritizedNodes[index];
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    node.dispatchEvent(clickEvent);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
