@@ -11,22 +11,22 @@ The following diagram illustrates the end-to-end request-response lifecycle with
 ```mermaid
 graph TD
     src[Flask Core]
-    app[App Module]
-    blueprints[Blueprints]
-    ctx[Context]
-    sessions[Sessions]
-    templating[Templating]
-    views[Views]
-    scaffold[Scaffold]
+    src_app[App Module]
+    src_blueprints[Blueprints]
+    src_ctx[Context]
+    src_sessions[Sessions]
+    src_templating[Templating]
+    src_views[Views]
+    src_scaffold[Scaffold]
     
-    src --> app
-    src --> blueprints
-    src --> ctx
-    src --> sessions
-    src --> templating
-    src --> views
-    app --> scaffold
-    blueprints --> scaffold
+    src --> src_app
+    src --> src_blueprints
+    src --> src_ctx
+    src --> src_sessions
+    src --> src_templating
+    src --> src_views
+    src_app --> src_scaffold
+    src_blueprints --> src_scaffold
 ```
 
 ## Core Modules Documentation
