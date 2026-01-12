@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeWiki Demo - Repository Documentation</title>
+    <script>
+        // Redirect to Flask demo directly since it's the only repo
+        window.location.href = '/repos/flask/index.html';
+    </script>
     <style>
         * {
             margin: 0;
@@ -426,6 +430,11 @@
 
         // Initialize
         initRepoList();
+        
+        // Auto-load Flask since it's the only repo
+        if (repos.length === 1) {
+            loadRepo(repos[0]);
+        }
     </script>
 </body>
 </html>
