@@ -38,7 +38,7 @@ MANIFEST
 htmlcov/
 .tox/
 .hypothesis/
-tests/
+# Note: tests/ folder is tracked (removed from gitignore)
 
 # Jupyter
 *.ipynb
