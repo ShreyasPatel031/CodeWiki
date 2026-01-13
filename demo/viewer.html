@@ -702,7 +702,7 @@
             }
         }
         
-        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, fallbackLabel) {
             const targetModule = moduleData[targetModuleId];
             if (!targetModule || !targetModule.diagram) {
                 return diagram;
@@ -711,6 +711,12 @@
             const subgraphName = `${nodeId}_sub`;
             const prefix = `${nodeId}_`;
             const collapseNodeId = `${prefix}collapse`;
+            
+            // Extract the ACTUAL node label from the diagram (not the module name)
+            // Pattern: nodeId["label"] or nodeId[label]
+            const labelPattern = new RegExp(`${nodeId}\\["?([^"\\]]+)"?\\]`);
+            const labelMatch = diagram.match(labelPattern);
+            const nodeLabel = labelMatch ? labelMatch[1] : fallbackLabel;
             
             // Get target module's diagram content
             let subgraphContent = targetModule.diagram.trim().replace(/^(graph|flowchart)\s+\w+\s*\n?/, '');
@@ -730,10 +736,10 @@
                 subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
             }
             
-            // Build subgraph block
+            // Build subgraph block - use the ACTUAL node label from the diagram
             const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
             const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
-            const subgraphDef = `subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
+            const subgraphDef = `subgraph ${subgraphName} ["${nodeLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
             
             // Find and replace the node definition WITH the subgraph (in-place replacement)
             // This keeps the subgraph in the same location as the original node
