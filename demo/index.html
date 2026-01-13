@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeWiki Demo - Repository Documentation</title>
     <script>
-        // Redirect to Flask demo directly since it's the only repo
-        window.location.href = '/repos/flask/index.html';
+        // Redirect to generic viewer with Flask repo
+        window.location.href = '/viewer.html?repo=flask';
     </script>
     <style>
         * {
@@ -408,9 +408,9 @@
             document.getElementById('loadingState').style.display = 'block';
             document.getElementById('viewerFrame').style.display = 'none';
 
-            // Load the repo's index.html in the iframe
+            // Load the generic viewer with the repo parameter
             const frame = document.getElementById('viewerFrame');
-            const repoPath = `/repos/${repo.id}/index.html`;
+            const repoPath = `/viewer.html?repo=${repo.id}`;
             
             frame.onload = () => {
                 document.getElementById('loadingState').style.display = 'none';

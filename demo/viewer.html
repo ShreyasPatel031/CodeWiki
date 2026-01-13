@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeWiki Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        .back-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+        
+        .repo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: white;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .repo-link:hover {
+            background: #f8fafc;
+            border-color: #2563eb;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .diagram-pane {
+            width: 50%;
+            border-right: 1px solid #e2e8f0;
+            overflow: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .doc-pane {
+            width: 50%;
+            overflow: auto;
+            padding: 20px 30px;
+            background: #ffffff;
+        }
+
+        .doc-content {
+            max-width: 800px;
+            line-height: 1.7;
+            color: #334155;
+        }
+        
+        .doc-content h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+        }
+        
+        .doc-content h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #334155;
+        }
+        
+        .doc-content h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 10px;
+            color: #475569;
+        }
+        
+        .doc-content p {
+            margin: 12px 0;
+        }
+        
+        .doc-content ul, .doc-content ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        
+        .doc-content li {
+            margin: 6px 0;
+        }
+        
+        .doc-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .doc-content code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            color: #e11d48;
+        }
+        
+        .doc-content pre {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .doc-content pre code {
+            background: transparent;
+            padding: 0;
+            color: #334155;
+        }
+
+        .doc-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 16px 16px 16px 24px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .doc-content th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc2626;
+            background: #fef2f2;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        /* Make clickable nodes have blue border only */
+        svg g.node.clickable-node rect,
+        svg g.node.clickable-node circle,
+        svg g.node.clickable-node polygon,
+        svg g.node.clickable-node ellipse,
+        .mermaid g.node.clickable-node rect,
+        .mermaid g.node.clickable-node circle,
+        .mermaid g.node.clickable-node polygon,
+        .mermaid g.node.clickable-node ellipse,
+        #mermaid-diagram g.node.clickable-node rect,
+        #mermaid-diagram g.node.clickable-node circle,
+        #mermaid-diagram g.node.clickable-node polygon,
+        #mermaid-diagram g.node.clickable-node ellipse,
+        g.clickable-node rect,
+        g.clickable-node circle,
+        g.clickable-node polygon,
+        g.clickable-node ellipse,
+        .clickable-node rect,
+        .clickable-node circle,
+        .clickable-node polygon,
+        .clickable-node path:not(.edgePath *),
+        .clickable-node ellipse {
+            stroke: #2563eb !important;
+            stroke-width: 3px !important;
+        }
+
+        .clickable-node text,
+        .clickable-node tspan {
+            font-weight: 600 !important;
+        }
+
+        .clickable-node,
+        g.node.clickable-node {
+            cursor: pointer !important;
+        }
+        
+        .clickable-node *,
+        g.node.clickable-node * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        .mermaid .edgePath path,
+        .mermaid .edgePath .path {
+            stroke: inherit !important;
+        }
+        
+        .selected-node rect,
+        .selected-node circle,
+        .selected-node polygon,
+        .selected-node path,
+        .selected-node ellipse {
+            stroke: #10b981 !important;
+            stroke-width: 4px !important;
+        }
+        
+        .selected-subgraph {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+        
+        .selected-subgraph .flowchart-labelBox {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+        }
+
+        .collapse-button rect,
+        .collapse-button circle,
+        .collapse-button polygon {
+            stroke: #dc2626 !important;
+            stroke-width: 2px !important;
+        }
+
+        .collapse-button {
+            cursor: pointer !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .diagram-pane, .doc-pane {
+                width: 100%;
+                height: 50%;
+            }
+            .diagram-pane {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <div class="title" id="moduleTitle">📚 Loading...</div>
+        <a href="#" class="repo-link" id="repoLink" target="_blank" style="display: none;">🔗 View Repository</a>
+    </div>
+            
+    <div class="container">
+        <div class="diagram-pane">
+            <div id="mermaid-diagram" class="loading">Loading diagram...</div>
+        </div>
+        <div class="doc-pane">
+            <div class="doc-content" id="docContent">Loading documentation...</div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================================
+        // GENERIC VIEWER ENGINE
+        // This viewer dynamically loads repo data from JSON/MD files
+        // ============================================================
+        
+        // Get repo path from URL query param: ?repo=flask or ?repo=repos/flask
+        const urlParams = new URLSearchParams(window.location.search);
+        const repoPath = urlParams.get('repo') || 'repos/flask';
+        const basePath = repoPath.startsWith('repos/') ? repoPath : `repos/${repoPath}`;
+        
+        // State
+        let REPO_TITLE = '';
+        let REPO_URL = '';
+        let MODULE_TREE = {};
+        let DOCS_CONTENT = {};
+        let moduleData = {};
+        let overviewLinks = {};
+        let currentDiagramCode = '';
+        let baseDiagramCode = '';
+        let navigationHistory = [];
+        let expandedNodes = new Set();
+        let currentModuleId = 'overview';
+        
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+        
+        // ============================================================
+        // DATA LOADING
+        // ============================================================
+        
+        async function loadFile(filename) {
+            try {
+                const response = await fetch(`${basePath}/${filename}`);
+                if (!response.ok) throw new Error(`Failed to load ${filename}`);
+                const text = await response.text();
+                return filename.endsWith('.json') ? JSON.parse(text) : text;
+            } catch (err) {
+                console.error(`Error loading ${filename}:`, err);
+                return null;
+            }
+        }
+        
+        async function loadAllData() {
+            try {
+                // Load metadata
+                const metadata = await loadFile('metadata.json');
+                if (metadata) {
+                    const repoPathParts = (metadata.generation_info?.repo_path || repoPath).split('/');
+                    REPO_TITLE = repoPathParts[repoPathParts.length - 1] || 'Repository';
+                }
+                
+                // Load module tree
+                MODULE_TREE = await loadFile('module_tree.json') || {};
+                
+                // Load overview.md
+                const overviewMd = await loadFile('overview.md');
+                if (overviewMd) {
+                    DOCS_CONTENT['overview.md'] = overviewMd;
+                }
+                
+                // Load all module documentation files
+                const moduleFiles = Object.keys(MODULE_TREE).map(key => `${key}.md`);
+                await Promise.all(moduleFiles.map(async (filename) => {
+                    const content = await loadFile(filename);
+                    if (content) {
+                        DOCS_CONTENT[filename] = content;
+                    }
+                }));
+                
+                // Update UI
+                document.title = REPO_TITLE;
+                document.getElementById('moduleTitle').textContent = `📚 ${REPO_TITLE}`;
+                
+                // Try to extract repo URL from overview or hide link
+                const repoLinkEl = document.getElementById('repoLink');
+                if (REPO_URL) {
+                    repoLinkEl.href = REPO_URL;
+                    repoLinkEl.style.display = 'inline-flex';
+                }
+                
+                return true;
+            } catch (err) {
+                console.error('Failed to load data:', err);
+                return false;
+            }
+        }
+        
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+        
+        function formatModuleName(key) {
+            return key.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
+        function extractMermaidFromMarkdown(markdown) {
+            const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+            const match = mermaidRegex.exec(markdown);
+            return match ? match[1].trim() : null;
+        }
+        
+        function stripClickStatements(diagram) {
+            // Strip out click statements to allow custom click handling
+            // Also strip :::className styling from node definitions
+            let cleaned = diagram.replace(/^\s*click\s+.+$/gm, '');
+            cleaned = cleaned.replace(/:::[a-zA-Z_][a-zA-Z0-9_]*/g, '');
+            return cleaned;
+        }
+        
+        function generateModuleDiagram(key, data) {
+            if (!data.children || Object.keys(data.children).length === 0) {
+                return '';
+            }
+            
+            const formattedName = formatModuleName(key);
+            let diagram = `graph TD\n    ${key}["${formattedName}"]\n`;
+            
+            for (const [childKey, childData] of Object.entries(data.children)) {
+                const childFormatted = formatModuleName(childKey);
+                diagram += `    ${childKey}["${childFormatted}"]\n`;
+                diagram += `    ${key} --> ${childKey}\n`;
+            }
+            
+            return diagram;
+        }
+        
+        // ============================================================
+        // BUILD MODULE DATA
+        // ============================================================
+        
+        function buildModuleData() {
+            // Build overview from overview.md
+            const overviewContent = DOCS_CONTENT['overview.md'] || '';
+            const overviewDiagram = extractMermaidFromMarkdown(overviewContent);
+            
+            if (overviewDiagram) {
+                // Parse click statements to build node-to-module mappings
+                const clickRegex = /click\s+(\w+)\s+"([^"]+)"/g;
+                let match;
+                while ((match = clickRegex.exec(overviewDiagram)) !== null) {
+                    const nodeId = match[1];
+                    const targetFile = match[2];
+                    const moduleId = targetFile.replace('.md', '');
+                    overviewLinks[nodeId] = moduleId;
+                }
+                
+                // Also build label-to-module mappings from node definitions
+                const nodeDefRegex = /(\w+)\s*\["([^"]+)"\]/g;
+                while ((match = nodeDefRegex.exec(overviewDiagram)) !== null) {
+                    const nodeId = match[1];
+                    const label = match[2];
+                    if (overviewLinks[nodeId]) {
+                        overviewLinks[label] = overviewLinks[nodeId];
+                    }
+                }
+            }
+            
+            moduleData['overview'] = {
+                name: REPO_TITLE + ' Overview',
+                diagram: stripClickStatements(overviewDiagram || ''),
+                documentation: overviewContent || '# Overview\n\nNo overview available.',
+                links: overviewLinks
+            };
+            
+            // Build module data from tree
+            buildModulesFromTree(MODULE_TREE, '');
+        }
+        
+        function buildModulesFromTree(tree, parentPath) {
+            for (const [key, data] of Object.entries(tree)) {
+                const moduleId = parentPath ? `${parentPath}/${key}` : key;
+                const formattedName = formatModuleName(key);
+                
+                // Try to get documentation for this module
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                // Extract diagram from markdown FIRST, then fallback to generated
+                const extractedDiagram = extractMermaidFromMarkdown(documentation);
+                const diagram = extractedDiagram || generateModuleDiagram(key, data);
+                
+                // Build links for children and from diagram click statements
+                const links = {};
+                if (data.children) {
+                    for (const [childKey, childData] of Object.entries(data.children)) {
+                        const childFormattedName = formatModuleName(childKey);
+                        links[childFormattedName] = childKey;
+                    }
+                }
+                
+                // Parse click statements from extracted diagram
+                if (extractedDiagram) {
+                    const clickRegex = /click\s+(\w+)\s+"([^"]+)"/g;
+                    let match;
+                    while ((match = clickRegex.exec(extractedDiagram)) !== null) {
+                        const nodeId = match[1];
+                        const targetFile = match[2];
+                        const targetModuleId = targetFile.replace('.md', '');
+                        links[nodeId] = targetModuleId;
+                    }
+                }
+                
+                moduleData[key] = {
+                    name: formattedName,
+                    diagram: stripClickStatements(diagram),
+                    documentation: documentation,
+                    links: links,
+                    path: data.path
+                };
+                
+                // Recursively process children
+                if (data.children && Object.keys(data.children).length > 0) {
+                    buildModulesFromTree(data.children, moduleId);
+                }
+            }
+        }
+        
+        // ============================================================
+        // RENDERING
+        // ============================================================
+        
+        async function renderDiagram(code, links, moduleId) {
+            const container = document.getElementById('mermaid-diagram');
+            if (!code || !code.trim()) {
+                container.innerHTML = '<div class="loading">No diagram available</div>';
+                return;
+            }
+            
+            try {
+                container.innerHTML = '';
+                const id = 'mermaid-' + Date.now();
+                const { svg } = await mermaid.render(id, code);
+                container.innerHTML = svg;
+                
+                // Process nodes to make them clickable
+                setTimeout(() => processNodes(links, moduleId), 100);
+            } catch (err) {
+                console.error('Mermaid render error:', err);
+                container.innerHTML = `<div class="error">Error rendering diagram.<br>${err.message}</div>`;
+            }
+        }
+        
+        function renderDocumentation(content) {
+            const docEl = document.getElementById('docContent');
+            
+            // Remove mermaid blocks from documentation display
+            const cleanContent = content.replace(/```mermaid[\s\S]*?```/g, '');
+            
+            // Handle markdown links to other modules
+            const linkedContent = cleanContent.replace(/\[([^\]]+)\]\(([^)]+\.md)\)/g, (match, text, href) => {
+                const moduleId = href.replace('.md', '');
+                return `<a href="#" onclick="navigateToModule('${moduleId}'); return false;">${text}</a>`;
+            });
+            
+            docEl.innerHTML = marked.parse(linkedContent);
+        }
+        
+        // ============================================================
+        // NODE PROCESSING & CLICK HANDLING
+        // ============================================================
+        
+        function processNodes(links, contextModuleId) {
+            const svg = document.querySelector('#mermaid-diagram svg');
+            if (!svg) return;
+            
+            const nodes = svg.querySelectorAll('.node');
+            
+            nodes.forEach(node => {
+                const nodeId = node.id?.replace(/^flowchart-/, '').split('-')[0] || '';
+                const textEl = node.querySelector('text, .nodeLabel');
+                const nodeText = textEl?.textContent?.trim() || '';
+                
+                // Handle collapse buttons
+                if (nodeText === '[-] Collapse' || nodeId.endsWith('_collapse')) {
+                    node.classList.add('collapse-button');
+                    // Extract parent node ID (e.g., "A_collapse" -> "A")
+                    const parentNodeId = nodeId.replace(/_collapse$/, '');
+                    node.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        collapseNode(parentNodeId);
+                    });
+                    return;
+                }
+                
+                // Try to find target module by various methods
+                let targetModule = null;
+                
+                // 1. Direct ID match in overviewLinks (from click statements)
+                // Only for non-prefixed nodes (top-level overview nodes)
+                if (!nodeId.includes('_') && overviewLinks[nodeId]) {
+                    targetModule = overviewLinks[nodeId];
+                }
+                // 2. For prefixed nodes (inside subgraphs), use the module's own links
+                // NOT the overview links - this prevents random mapping
+                else if (nodeId.includes('_')) {
+                    // These are nodes inside expanded subgraphs
+                    // They should use the links from their parent module, not overview
+                    // For now, just make them non-clickable (they're already expanded content)
+                    return;
+                }
+                
+                // 3. Context links (from current module's diagram)
+                if (!targetModule && links[nodeText]) {
+                    targetModule = links[nodeText];
+                }
+                // 4. overviewLinks by label (only for top-level)
+                if (!targetModule && overviewLinks[nodeText]) {
+                    targetModule = overviewLinks[nodeText];
+                }
+                
+                // Check if target exists in moduleData
+                if (targetModule && moduleData[targetModule]) {
+                    makeNodeClickable(node, nodeId, targetModule);
+                }
+            });
+        }
+        
+        function makeNodeClickable(node, nodeId, targetModuleId) {
+            node.classList.add('clickable-node');
+            
+            // Capture values for closure
+            const capturedNodeId = nodeId;
+            const capturedTargetModule = targetModuleId;
+            
+            const clickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (capturedNodeId && capturedTargetModule && moduleData[capturedTargetModule]) {
+                    const targetModuleData = moduleData[capturedTargetModule];
+                    if (targetModuleData.diagram && targetModuleData.diagram.trim()) {
+                        if (!expandedNodes.has(capturedNodeId)) {
+                            expandNodeInline(capturedNodeId, capturedTargetModule);
+                        } else {
+                            selectNode(`${capturedNodeId}_sub`, capturedTargetModule);
+                        }
+                    } else {
+                        selectNode(capturedNodeId, capturedTargetModule);
+                    }
+                }
+            };
+            
+            node.addEventListener('click', clickHandler);
+            node.addEventListener('touchend', clickHandler);
+        }
+        
+        // ============================================================
+        // EXPANSION LOGIC
+        // ============================================================
+        
+        function expandNodeInline(nodeId, targetModuleId) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) return;
+            
+            const newDiagram = applyExpansionToDiagram(currentDiagramCode, nodeId, targetModuleId, targetModule.name);
+            if (newDiagram !== currentDiagramCode) {
+                expandedNodes.add(nodeId);
+                currentDiagramCode = newDiagram;
+                renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
+                
+                // Update documentation
+                renderDocumentation(targetModule.documentation);
+                document.getElementById('moduleTitle').textContent = targetModule.name;
+            }
+        }
+        
+        function applyExpansionToDiagram(diagram, nodeId, targetModuleId, originalLabel) {
+            const targetModule = moduleData[targetModuleId];
+            if (!targetModule || !targetModule.diagram) {
+                return diagram;
+            }
+            
+            const subgraphName = `${nodeId}_sub`;
+            const prefix = `${nodeId}_`;
+            const collapseNodeId = `${prefix}collapse`;
+            
+            // Get target module's diagram content
+            let subgraphContent = targetModule.diagram.trim().replace(/^(graph|flowchart)\s+\w+\s*\n?/, '');
+            
+            // Strip out styling statements incompatible with subgraphs
+            subgraphContent = subgraphContent.replace(/^\s*classDef\s+.+$/gm, '');
+            subgraphContent = subgraphContent.replace(/^\s*class\s+.+$/gm, '');
+            subgraphContent = subgraphContent.replace(/^\s*style\s+.+$/gm, '');
+            
+            // Prefix all node IDs to avoid conflicts
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Za-z][A-Za-z0-9_]*)\b(?=\s*\[|-->|--)/g)];
+            const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))].filter(id => 
+                !['subgraph', 'end', 'graph', 'flowchart', 'direction', 'style', 'classDef', 'class'].includes(id.toLowerCase())
+            );
+            for (const oldId of uniqueIds) {
+                const newId = prefix + oldId;
+                subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
+            }
+            
+            // Build subgraph block
+            const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
+            const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
+            const subgraphDef = `subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
+            
+            // Find and replace the node definition WITH the subgraph (in-place replacement)
+            // This keeps the subgraph in the same location as the original node
+            // Pattern matches: nodeId["label"] or nodeId[label]
+            const nodeDefPattern = new RegExp(`(^|\\n)(\\s*)${nodeId}\\[[^\\]]+\\]`, 'm');
+            const nodeDefMatch = diagram.match(nodeDefPattern);
+            
+            let newDiagram;
+            if (nodeDefMatch) {
+                // Replace node definition in-place with the subgraph
+                const indent = nodeDefMatch[2] || '    ';
+                const indentedSubgraph = subgraphDef.split('\n').map((line, i) => i === 0 ? indent + line : indent + line).join('\n');
+                newDiagram = diagram.replace(nodeDefPattern, `$1${indentedSubgraph}`);
+            } else {
+                // Fallback: append at end if node definition not found
+                newDiagram = diagram.trimEnd() + '\n    ' + subgraphDef + '\n';
+            }
+            
+            // Update edge references: any edge to/from nodeId should go to the subgraph
+            newDiagram = newDiagram.replace(new RegExp(`-->\\s*${nodeId}(?![_\\w])`, 'g'), `--> ${subgraphName}`);
+            newDiagram = newDiagram.replace(new RegExp(`${nodeId}(?![_\\w])\\s*-->`, 'g'), `${subgraphName} -->`);
+            
+            return newDiagram;
+        }
+        
+        function collapseNode(nodeId) {
+            // Remove from expanded set and re-render from base
+            expandedNodes.delete(nodeId);
+            
+            // Rebuild diagram with remaining expansions
+            currentDiagramCode = baseDiagramCode;
+            
+            for (const expandedNodeId of expandedNodes) {
+                const targetModuleId = overviewLinks[expandedNodeId];
+                if (targetModuleId && moduleData[targetModuleId]) {
+                    currentDiagramCode = applyExpansionToDiagram(
+                        currentDiagramCode, 
+                        expandedNodeId, 
+                        targetModuleId, 
+                        moduleData[targetModuleId].name
+                    );
+                }
+            }
+            
+            // Update the title and documentation back to overview if no expansions remain
+            if (expandedNodes.size === 0) {
+                document.getElementById('moduleTitle').textContent = moduleData['overview']?.name || REPO_TITLE + ' Overview';
+                renderDocumentation(moduleData['overview']?.documentation || '');
+            }
+            
+            renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
+        }
+        
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        
+        function navigateToModule(moduleId) {
+            if (!moduleData[moduleId]) return;
+            
+            navigationHistory.push({
+                moduleId: currentModuleId,
+                diagramCode: currentDiagramCode,
+                expanded: new Set(expandedNodes)
+            });
+            
+            currentModuleId = moduleId;
+            expandedNodes.clear();
+            baseDiagramCode = moduleData[moduleId].diagram;
+            currentDiagramCode = baseDiagramCode;
+            
+            document.getElementById('moduleTitle').textContent = moduleData[moduleId].name;
+            document.getElementById('backButton').style.display = 'inline-block';
+            
+            renderDiagram(currentDiagramCode, moduleData[moduleId].links || {}, moduleId);
+            renderDocumentation(moduleData[moduleId].documentation);
+        }
+        
+        function selectNode(nodeId, moduleId) {
+            if (!moduleData[moduleId]) return;
+            
+            document.getElementById('moduleTitle').textContent = moduleData[moduleId].name;
+            renderDocumentation(moduleData[moduleId].documentation);
+        }
+        
+        function goBack() {
+            if (navigationHistory.length === 0) return;
+            
+            const prev = navigationHistory.pop();
+            currentModuleId = prev.moduleId;
+            currentDiagramCode = prev.diagramCode;
+            expandedNodes = prev.expanded;
+            baseDiagramCode = moduleData[currentModuleId]?.diagram || '';
+            
+            document.getElementById('moduleTitle').textContent = moduleData[currentModuleId]?.name || REPO_TITLE;
+            document.getElementById('backButton').style.display = navigationHistory.length > 0 ? 'inline-block' : 'none';
+            
+            renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
+            renderDocumentation(moduleData[currentModuleId]?.documentation || '');
+        }
+        
+        // ============================================================
+        // KEYBOARD SHORTCUTS
+        // ============================================================
+        
+        document.addEventListener('keydown', (e) => {
+            // Number keys 1-9 to click on nodes
+            if (e.key >= '1' && e.key <= '9') {
+                const nodeIndex = parseInt(e.key) - 1;
+                const clickableNodes = document.querySelectorAll('.clickable-node');
+                if (clickableNodes[nodeIndex]) {
+                    // SVG elements don't have .click(), so dispatch a click event
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    clickableNodes[nodeIndex].dispatchEvent(clickEvent);
+                }
+            }
+            // Key '0' or 'c' to click collapse buttons
+            if (e.key === '0' || e.key === 'c') {
+                const collapseButtons = document.querySelectorAll('.collapse-button');
+                if (collapseButtons.length > 0) {
+                    const clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    collapseButtons[0].dispatchEvent(clickEvent);
+                }
+            }
+            // Escape to go back
+            if (e.key === 'Escape') {
+                goBack();
+            }
+        });
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        async function init() {
+            const success = await loadAllData();
+            if (!success) {
+                document.getElementById('mermaid-diagram').innerHTML = 
+                    `<div class="error">Failed to load repository data from "${basePath}"</div>`;
+                document.getElementById('docContent').innerHTML = 
+                    `<div class="error">Check that the repository exists and contains the required files.</div>`;
+                return;
+            }
+            
+            buildModuleData();
+            
+            // Initialize with overview
+            currentModuleId = 'overview';
+            baseDiagramCode = moduleData['overview']?.diagram || '';
+            currentDiagramCode = baseDiagramCode;
+            
+            renderDiagram(currentDiagramCode, overviewLinks, 'overview');
+            renderDocumentation(moduleData['overview']?.documentation || '');
+        }
+        
+        // Start
+        init();
+    </script>
+</body>
+</html>
+
