@@ -1,50 +1,53 @@
 {
   "repo_name": "flask",
   "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/flask",
-  "repo_size_mb": 437457.6796875,
+  "repo_size_mb": 425485.875,
   "total_files": 0,
   "total_code_files": 82,
   "stages": {
     "Dependency Analysis": {
       "stage_name": "Dependency Analysis",
-      "duration": 0.10222101211547852,
+      "duration": 0.1729581356048584,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Module Clustering": {
       "stage_name": "Module Clustering",
-      "duration": 30.161903858184814,
+      "duration": 22.795974254608154,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Documentation Generation": {
       "stage_name": "Documentation Generation",
-      "duration": 478.3895900249481,
+      "duration": 219.10798001289368,
       "tokens_used": 0,
-      "files_created": 12,
+      "files_created": 15,
       "files_created_list": [
-        "scaffold.md",
-        "app.md",
-        "src.md",
+        "flask_testing.md",
         "overview.md",
-        "views.md",
-        "ctx.md",
-        "templating.md",
-        "core_app_logic.md",
-        "sessions.md",
-        "blueprints.md",
-        "flask_wsgi.md",
-        "sansio_app.md"
+        "flask_app.md",
+        "flask_context.md",
+        "flask_debug_helpers.md",
+        "flask_cli.md",
+        "flask_sessions.md",
+        "flask_views.md",
+        "flask_globals.md",
+        "flask_config.md",
+        "flask_blueprints.md",
+        "flask_wrappers.md",
+        "flask_sansio.md",
+        "flask_templating.md",
+        "flask_json.md"
       ]
     }
   },
-  "time_to_first_overview": 508.6644332408905,
+  "time_to_first_overview": 242.10760879516602,
   "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/flask/docs/overview.md",
-  "total_duration": 508.6645429134369,
+  "total_duration": 242.10763502120972,
   "total_tokens": 0,
-  "total_files_created": 12,
-  "start_time": 1768223054.489863,
-  "end_time": 1768223563.1544058
+  "total_files_created": 15,
+  "start_time": 1768305070.073699,
+  "end_time": 1768305312.181334
 }

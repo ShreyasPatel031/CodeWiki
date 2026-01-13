@@ -40,17 +40,20 @@ from codewiki.src.be.agent_tools.deps import CodeWikiDeps
 from codewiki.src.be.agent_tools.read_code_components import read_code_components_tool
 from codewiki.src.be.agent_tools.str_replace_editor import str_replace_editor_tool
 from codewiki.src.be.agent_tools.generate_sub_module_documentations import generate_sub_module_documentation_tool
+from codewiki.src.be.agent_tools.list_module_components import list_module_components_tool, get_module_summary_tool
 from codewiki.src.be.llm_services import create_fallback_models
 from codewiki.src.be.prompt_template import (
     SYSTEM_PROMPT,
     LEAF_SYSTEM_PROMPT,
     format_user_prompt,
+    _count_total_components,
 )
 from codewiki.src.be.utils import is_complex_module
 from codewiki.src.config import (
     Config,
     MODULE_TREE_FILENAME,
     OVERVIEW_FILENAME,
+    LARGE_REPO_COMPONENT_THRESHOLD,
 )
 from codewiki.src.file_manager import file_manager
 from codewiki.src.be.dependency_analyzer.models.core import Node
@@ -64,40 +67,208 @@ class AgentOrchestrator:
         self.fallback_models = create_fallback_models(config)
     
     def create_agent(self, module_name: str, components: Dict[str, Any], 
-                    core_component_ids: List[str]) -> Agent:
-        """Create an appropriate agent based on module complexity."""
+                    core_component_ids: List[str], module_tree: Dict[str, Any] = None) -> Agent:
+        """Create an appropriate agent based on module complexity and repo size."""
         logger.debug(f"[STAGE 4.3] Creating agent for module: {module_name}")
         logger.debug(f"[STAGE 4.3] Core component IDs: {len(core_component_ids)}")
         logger.debug(f"[STAGE 4.3] Total components: {len(components)}")
         
         is_complex = is_complex_module(components, core_component_ids)
         
+        # Check if this is a large repo that needs on-demand component loading
+        is_large_repo = False
+        if module_tree:
+            total_components = _count_total_components(module_tree)
+            is_large_repo = total_components > LARGE_REPO_COMPONENT_THRESHOLD
+            if is_large_repo:
+                logger.info(f"[STAGE 4.3] Large repo detected ({total_components} components)")
+                logger.info(f"[STAGE 4.3] Adding list_module_components and get_module_summary tools")
+        
+        # Build tool list
+        base_tools = [read_code_components_tool, str_replace_editor_tool]
+        
+        # Add module exploration tools for large repos
+        if is_large_repo:
+            base_tools.extend([list_module_components_tool, get_module_summary_tool])
+        
         if is_complex:
             logger.debug(f"[STAGE 4.3] Module is complex - creating complex agent with sub-module tool")
+            tools = base_tools + [generate_sub_module_documentation_tool]
             agent = Agent(
                 self.fallback_models,
                 name=module_name,
                 deps_type=CodeWikiDeps,
-                tools=[
-                    read_code_components_tool, 
-                    str_replace_editor_tool, 
-                    generate_sub_module_documentation_tool
-                ],
+                tools=tools,
                 system_prompt=SYSTEM_PROMPT.format(module_name=module_name),
             )
-            logger.debug(f"[STAGE 4.3] Complex agent created with 3 tools")
+            logger.debug(f"[STAGE 4.3] Complex agent created with {len(tools)} tools")
         else:
             logger.debug(f"[STAGE 4.3] Module is leaf - creating leaf agent without sub-module tool")
             agent = Agent(
                 self.fallback_models,
                 name=module_name,
                 deps_type=CodeWikiDeps,
-                tools=[read_code_components_tool, str_replace_editor_tool],
+                tools=base_tools,
                 system_prompt=LEAF_SYSTEM_PROMPT.format(module_name=module_name),
             )
-            logger.debug(f"[STAGE 4.3] Leaf agent created with 2 tools")
+            logger.debug(f"[STAGE 4.3] Leaf agent created with {len(base_tools)} tools")
         
         return agent
+    
+    def _auto_split_module(self, core_component_ids: List[str], 
+                           components: Dict[str, Node]) -> Dict[str, Any]:
+        """
+        Automatically split a large module into sub-modules based on directory structure.
+        Used when prompt tokens exceed LLM context limits.
+        """
+        from collections import defaultdict
+        
+        logger.info(f"[AUTO-SPLIT] Splitting {len(core_component_ids)} components by directory")
+        
+        # Group components by their top-level directory
+        dir_groups = defaultdict(list)
+        
+        for comp_id in core_component_ids:
+            if comp_id not in components:
+                continue
+            
+            component = components[comp_id]
+            path = component.relative_path
+            
+            # Get directory path
+            parts = path.split(os.sep)
+            if len(parts) > 2:
+                # Use first two directory levels for finer granularity
+                key = f"{parts[0]}_{parts[1]}"
+            elif len(parts) > 1:
+                key = parts[0]
+            else:
+                key = "root"
+            
+            dir_groups[key].append(comp_id)
+        
+        # If still too few groups, try third level
+        if len(dir_groups) <= 3:
+            logger.info(f"[AUTO-SPLIT] Only {len(dir_groups)} groups, trying finer split")
+            dir_groups = defaultdict(list)
+            
+            for comp_id in core_component_ids:
+                if comp_id not in components:
+                    continue
+                
+                component = components[comp_id]
+                path = component.relative_path
+                parts = path.split(os.sep)
+                
+                if len(parts) > 3:
+                    key = f"{parts[0]}_{parts[1]}_{parts[2]}"
+                elif len(parts) > 2:
+                    key = f"{parts[0]}_{parts[1]}"
+                elif len(parts) > 1:
+                    key = parts[0]
+                else:
+                    key = "root"
+                
+                dir_groups[key].append(comp_id)
+        
+        # Convert to sub-module format
+        sub_modules = {}
+        for dir_name, comp_list in dir_groups.items():
+            if not comp_list:
+                continue
+            
+            # Create clean module name
+            sub_name = dir_name.lower().replace("-", "_").replace(".", "_").replace(" ", "_")
+            if not sub_name:
+                sub_name = "other"
+            
+            sub_modules[sub_name] = {
+                "path": dir_name,
+                "components": comp_list
+            }
+        
+        # CRITICAL: If directory-based splitting didn't help (only 1 group with same components),
+        # fall back to token-budget based chunking
+        if len(sub_modules) <= 1:
+            logger.warning(f"[AUTO-SPLIT] Directory-based split created only {len(sub_modules)} group(s)")
+            logger.warning(f"[AUTO-SPLIT] Falling back to token-budget chunked splitting")
+            
+            from codewiki.src.be.utils import count_module_tokens
+            
+            # Target: each chunk should fit in LLM context (~80k tokens to leave room for response)
+            TARGET_TOKENS_PER_CHUNK = 80000
+            
+            sub_modules = {}
+            current_chunk = []
+            current_chunk_tokens = 0
+            chunk_idx = 0
+            
+            for comp_id in core_component_ids:
+                if comp_id not in components:
+                    continue
+                    
+                # Estimate tokens for this component
+                comp_tokens = count_module_tokens([comp_id], components)
+                
+                # If adding this component exceeds budget, start a new chunk
+                if current_chunk and (current_chunk_tokens + comp_tokens > TARGET_TOKENS_PER_CHUNK):
+                    chunk_idx += 1
+                    sub_name = f"part_{chunk_idx}"
+                    sub_modules[sub_name] = {
+                        "path": f"chunk_{chunk_idx}",
+                        "components": current_chunk
+                    }
+                    logger.info(f"[AUTO-SPLIT] Created chunk {chunk_idx}: {len(current_chunk)} components, {current_chunk_tokens} tokens")
+                    current_chunk = []
+                    current_chunk_tokens = 0
+                
+                current_chunk.append(comp_id)
+                current_chunk_tokens += comp_tokens
+            
+            # Add the last chunk
+            if current_chunk:
+                chunk_idx += 1
+                sub_name = f"part_{chunk_idx}"
+                sub_modules[sub_name] = {
+                    "path": f"chunk_{chunk_idx}",
+                    "components": current_chunk
+                }
+                logger.info(f"[AUTO-SPLIT] Created chunk {chunk_idx}: {len(current_chunk)} components, {current_chunk_tokens} tokens")
+            
+            logger.info(f"[AUTO-SPLIT] Token-budget chunking created {len(sub_modules)} parts")
+        
+        logger.info(f"[AUTO-SPLIT] Created {len(sub_modules)} sub-modules")
+        return sub_modules
+    
+    async def _generate_parent_overview(self, module_name: str, sub_modules: Dict[str, Any],
+                                        working_dir: str, deps: 'CodeWikiDeps') -> None:
+        """
+        Generate a simple overview document for a parent module after its sub-modules are processed.
+        """
+        docs_path = os.path.join(working_dir, f"{module_name}.md")
+        
+        # Build simple overview
+        content = f"# {module_name.replace('_', ' ').title()}\n\n"
+        content += f"This module contains {len(sub_modules)} sub-modules:\n\n"
+        
+        for sub_name, sub_info in sub_modules.items():
+            component_count = len(sub_info.get("components", []))
+            content += f"- [{sub_name}]({sub_name}.md) - {component_count} components\n"
+        
+        content += "\n## Architecture\n\n"
+        content += "```mermaid\ngraph TD\n"
+        
+        # Create simple diagram showing sub-modules
+        parent_id = module_name.replace("_", "").upper()[:3]
+        for i, sub_name in enumerate(sub_modules.keys()):
+            sub_id = chr(65 + i)  # A, B, C, ...
+            content += f"    {parent_id} --> {sub_id}[{sub_name}]\n"
+        
+        content += "```\n"
+        
+        # Save the overview
+        file_manager.save_text(content, docs_path)
+        logger.info(f"[AUTO-SPLIT] Generated parent overview: {docs_path}")
     
     async def process_module(self, module_name: str, components: Dict[str, Node], 
                            core_component_ids: List[str], module_path: List[str], working_dir: str) -> Dict[str, Any]:
@@ -181,7 +352,7 @@ class AgentOrchestrator:
             logger.info(f"[STAGE 4.3]   - Max depth: {self.config.max_depth}")
             logger.info(f"[STAGE 4.3]   - Current depth: 1")
             
-            agent = self.create_agent(module_name, components, core_component_ids)
+            agent = self.create_agent(module_name, components, core_component_ids, module_tree)
             agent_duration = time.time() - agent_start
             
             agent_type = "complex" if is_complex else "leaf"
@@ -248,6 +419,78 @@ class AgentOrchestrator:
             logger.error(f"[STAGE 4.5] Traceback: {traceback.format_exc()}")
             raise
         
+        # STAGE 4.5.5: PRE-FLIGHT CHECK - Auto-split if prompt exceeds LLM context
+        MAX_LLM_CONTEXT = 100000  # Safety margin below GPT-4o's 128k context
+        MAX_AUTO_SPLIT_DEPTH = 5  # Prevent infinite recursion
+        
+        current_depth = len(module_path)
+        if prompt_tokens > MAX_LLM_CONTEXT and current_depth < MAX_AUTO_SPLIT_DEPTH:
+            logger.warning(f"[STAGE 4.5.5: AUTO-SPLIT] Prompt too large ({prompt_tokens} tokens > {MAX_LLM_CONTEXT})")
+            logger.warning(f"[STAGE 4.5.5] Automatically splitting module '{module_name}' before LLM call")
+            
+            # Split using directory-based approach
+            sub_modules = self._auto_split_module(core_component_ids, components)
+            logger.info(f"[STAGE 4.5.5] Split into {len(sub_modules)} sub-modules")
+            
+            for sub_name, sub_info in sub_modules.items():
+                logger.info(f"[STAGE 4.5.5]   - {sub_name}: {len(sub_info['components'])} components")
+            
+            # Add sub-modules to module tree
+            # FIX: Navigate to the parent container correctly, then update children
+            if len(module_path) == 0:
+                # Root level call - shouldn't happen but handle it
+                target = deps.module_tree
+            elif len(module_path) == 1:
+                # Top-level module (e.g., "aten") - module is directly in module_tree
+                target = deps.module_tree
+            else:
+                # Nested module - navigate to parent's children
+                target = deps.module_tree
+                for key in module_path[:-1]:  # All path parts except the last
+                    if key in target:
+                        target = target[key].get("children", {})
+            
+            # Now update the module's children
+            if module_name in target:
+                target[module_name]["children"] = {}
+                for sub_name, sub_info in sub_modules.items():
+                    target[module_name]["children"][sub_name] = {
+                        "components": sub_info["components"],
+                        "children": {}
+                    }
+                logger.info(f"[STAGE 4.5.5] Updated module tree: {module_name} now has {len(sub_modules)} children")
+            else:
+                logger.error(f"[STAGE 4.5.5] BUG: Module '{module_name}' not found in tree at path {module_path}")
+                logger.error(f"[STAGE 4.5.5] Available keys in target: {list(target.keys())[:10]}")
+            
+            # Save updated module tree
+            file_manager.save_json(deps.module_tree, module_tree_path)
+            
+            # Recursively process each sub-module
+            for sub_name, sub_info in sub_modules.items():
+                sub_components = sub_info["components"]
+                new_module_path = module_path + [module_name]
+                logger.info(f"[STAGE 4.5.5] Recursively processing sub-module: {sub_name}")
+                await self.process_module(
+                    sub_name, 
+                    components, 
+                    sub_components, 
+                    new_module_path, 
+                    working_dir
+                )
+            
+            # After processing sub-modules, generate parent overview
+            logger.info(f"[STAGE 4.5.5] Sub-modules processed, generating parent overview for {module_name}")
+            await self._generate_parent_overview(module_name, sub_modules, working_dir, deps)
+            
+            module_duration = time.time() - module_start
+            logger.info(f"[STAGE 4: AGENT MODULE PROCESSING] COMPLETE in {module_duration:.1f}s (auto-split) for module: {module_name}")
+            return deps.module_tree
+        elif prompt_tokens > MAX_LLM_CONTEXT:
+            # Hit depth limit but still too large - log warning but proceed anyway
+            logger.warning(f"[STAGE 4.5.5] Module still too large ({prompt_tokens} tokens) but hit depth limit ({current_depth})")
+            logger.warning(f"[STAGE 4.5.5] Proceeding with LLM call - expect possible failure")
+        
         # STAGE 4.6: Run agent
         logger.info(f"[STAGE 4.6: AGENT EXECUTION] Running agent for module: {module_name}")
         logger.info(f"[STAGE 4.6] Model: {self.config.main_model}")
@@ -263,6 +506,49 @@ class AgentOrchestrator:
             
             logger.info(f"[STAGE 4.6] Agent execution completed in {execution_duration:.1f}s")
             logger.info(f"[STAGE 4.6] Result type: {type(result)}")
+            
+            # Track token usage from pydantic-ai result
+            try:
+                from codewiki.src.be.llm_services import get_token_tracker, LLMCallStats
+                tracker = get_token_tracker()
+                
+                # pydantic-ai stores usage in result._usage or result.usage()
+                if hasattr(result, 'usage'):
+                    usage = result.usage()
+                    if usage:
+                        stats = LLMCallStats(
+                            model=self.config.main_model,
+                            prompt_tokens=usage.request_tokens or 0,
+                            completion_tokens=usage.response_tokens or 0,
+                            duration_seconds=execution_duration,
+                            success=True
+                        )
+                        tracker.add_call(stats)
+                        logger.info(f"[STAGE 4.6] Token usage - Prompt: {stats.prompt_tokens:,}, Completion: {stats.completion_tokens:,}")
+                elif hasattr(result, '_usage'):
+                    usage = result._usage
+                    stats = LLMCallStats(
+                        model=self.config.main_model,
+                        prompt_tokens=getattr(usage, 'request_tokens', prompt_tokens) or prompt_tokens,
+                        completion_tokens=getattr(usage, 'response_tokens', 0) or 0,
+                        duration_seconds=execution_duration,
+                        success=True
+                    )
+                    tracker.add_call(stats)
+                    logger.info(f"[STAGE 4.6] Token usage - Prompt: {stats.prompt_tokens:,}, Completion: {stats.completion_tokens:,}")
+                else:
+                    # Fallback: estimate from prompt tokens
+                    stats = LLMCallStats(
+                        model=self.config.main_model,
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=2000,  # Rough estimate for documentation output
+                        duration_seconds=execution_duration,
+                        success=True
+                    )
+                    tracker.add_call(stats)
+                    logger.info(f"[STAGE 4.6] Token usage (estimated) - Prompt: {stats.prompt_tokens:,}, Completion: ~2000")
+            except Exception as track_err:
+                logger.debug(f"[STAGE 4.6] Token tracking failed (non-critical): {track_err}")
             
             # Save updated module tree
             save_start = time.time()

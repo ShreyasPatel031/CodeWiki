@@ -39,17 +39,16 @@ dependencies = [
     "tree-sitter-c-sharp>=0.23.1",
     "openai>=1.107.0",
     "litellm>=1.77.0",
+    "google-generativeai>=0.8.0",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "pydantic-ai>=1.0.6",
     "requests>=2.32.4",
     "python-dotenv>=1.1.1",
     "rich>=14.1.0",
-    "networkx>=3.5",
+    "networkx>=3.0",
     "psutil>=7.0.0",
-    "PyYAML>=6.0.2",
-    "mermaid-parser-py>=0.0.2",
-    "mermaid-py>=0.8.0"
+    "PyYAML>=6.0.2"
 ]
 
 [external]

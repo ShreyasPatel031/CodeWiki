@@ -1,45 +1,102 @@
-# Flask Repository Overview
+## Flask Repository Overview
 
-## Purpose
-Flask is a lightweight WSGI (Web Server Gateway Interface) web application framework for Python. It is designed to make getting started with web development quick and easy, while providing the flexibility to scale up to complex, high-performance applications. Flask provides the core essentials for web development—including routing, request handling, template rendering, and session management—without imposing a rigid project structure.
+The Flask repository contains the source code for the Flask web framework, a lightweight and extensible WSGI web application framework for Python. Its primary purpose is to provide a solid foundation for building web applications and APIs, emphasizing simplicity, flexibility, and modularity. Flask offers core functionalities such as URL routing, request and response handling, templating with Jinja2, session management, and a robust context system, while allowing developers to choose their preferred tools and extensions for other aspects like database integration or authentication.
 
-## End-to-End Architecture
-Flask operates as a WSGI application that manages the lifecycle of an HTTP request. It uses a context-based system to ensure that application and request-specific data are accessible globally within a thread or coroutine.
+### Architecture Diagram
 
-The following diagram illustrates the end-to-end request-response lifecycle within the Flask framework:
+The following diagram illustrates the main modules within the Flask repository and their key relationships:
 
 ```mermaid
 graph TD
-    src[Flask Core]
-    src_app[App Module]
-    src_blueprints[Blueprints]
-    src_ctx[Context]
-    src_sessions[Sessions]
-    src_templating[Templating]
-    src_views[Views]
-    src_scaffold[Scaffold]
-    
-    src --> src_app
-    src --> src_blueprints
-    src --> src_ctx
-    src --> src_sessions
-    src --> src_templating
-    src --> src_views
-    src_app --> src_scaffold
-    src_blueprints --> src_scaffold
+    subgraph Core Application
+        A[Flask Application Core]:::main_app
+        B[Sans-I/O Base]:::core_base
+    end
+
+    subgraph Request/Response Flow
+        C[Request & Response Wrappers]:::req_res
+        D[Application & Request Context]:::context
+        E[Context Proxies]:::globals
+    end
+
+    subgraph Application Structure
+        F[Modular Blueprints]:::structure
+        G[Class-Based Views]:::structure
+    end
+
+    subgraph Data & Configuration
+        H[Configuration Management]:::config
+        I[JSON Serialization]:::data_feature
+        J[Session Management]:::data_feature
+    end
+
+    subgraph Developer Tools
+        K[Jinja2 Templating]:::dev_tool
+        L[Command Line Interface]:::dev_tool
+        M[Testing Utilities]:::dev_tool
+        N[Debug Helpers]:::dev_tool
+    end
+
+    %% Core Application Relationships
+    A -- "Extends" --> B
+    A -- "Handles via" --> C
+    A -- "Manages" --> D
+    A -- "Registers" --> F
+    A -- "Uses" --> H
+    A -- "Integrates" --> I
+    A -- "Manages" --> J
+    A -- "Integrates" --> K
+
+    %% Request/Response Flow Relationships
+    D -- "Provides objects for" --> E
+    E -- "Proxies" --> A
+    E -- "Proxies" --> C
+    E -- "Proxies" --> D
+    E -- "Proxies" --> J
+
+    %% Application Structure Relationships
+    F -- "Defines" --> G
+    G -- "Interacts with" --> C
+    G -- "Uses" --> K
+
+    %% Data and Configuration Relationships
+    H -- "Configures" --> A
+    I -- "Used by" --> C
+    J -- "Used by" --> C
+
+    %% Developer Tools Relationships
+    L -- "Interacts with" --> A
+    L -- "Uses" --> D
+    L -- "Uses" --> H
+    M -- "Tests" --> A
+    M -- "Simulates" --> C
+    M -- "Invokes" --> L
+    N -- "Aids in debugging" --> A
+    N -- "Interacts with" --> C
+
+    %% Clickable nodes
+    click A "flask_app.md" "View Flask Application Core Documentation"
+    click B "flask_sansio.md" "View Sans-I/O Base Documentation"
+    click C "flask_wrappers.md" "View Request & Response Wrappers Documentation"
+    click D "flask_context.md" "View Application & Request Context Documentation"
+    click E "flask_globals.md" "View Context Proxies Documentation"
+    click F "flask_blueprints.md" "View Modular Blueprints Documentation"
+    click G "flask_views.md" "View Class-Based Views Documentation"
+    click H "flask_config.md" "View Configuration Management Documentation"
+    click I "flask_json.md" "View JSON Serialization Documentation"
+    click J "flask_sessions.md" "View Session Management Documentation"
+    click K "flask_templating.md" "View Jinja2 Templating Documentation"
+    click L "flask_cli.md" "View Command Line Interface Documentation"
+    click M "flask_testing.md" "View Testing Utilities Documentation"
+    click N "flask_debug_helpers.md" "View Debug Helpers Documentation"
+
+    classDef main_app fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef core_base fill:#ccf,stroke:#333,stroke-width:2px;
+    classDef req_res fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef context fill:#ddf,stroke:#333,stroke-width:2px;
+    classDef globals fill:#eef,stroke:#333,stroke-width:2px;
+    classDef structure fill:#cfc,stroke:#333,stroke-width:2px;
+    classDef config fill:#ffc,stroke:#333,stroke-width:2px;
+    classDef data_feature fill:#fcc,stroke:#333,stroke-width:2px;
+    classDef dev_tool fill:#cff,stroke:#333,stroke-width:2px;
 ```
-
-## Core Modules Documentation
-The framework is organized into specialized modules that handle different aspects of the web application lifecycle. For detailed information on specific components, refer to the following documentation:
-
-*   [App Module](app.md): The central `Flask` application object and base `Scaffold` logic.
-*   [Blueprints Module](blueprints.md): Modular application structure and registration logic.
-*   [Context Module](ctx.md): Application and Request context management.
-*   [Wrappers Module](wrappers.md): Flask-specific extensions to Werkzeug's Request and Response objects.
-*   [Config Module](config.md): Configuration loading and management system.
-*   [Sessions Module](sessions.md): Server-side and client-side session persistence interfaces.
-*   [JSON Module](json.md): Extensible JSON serialization and tagging system.
-*   [CLI Module](cli.md): Integration with Click for command-line management.
-*   [Templating Module](templating.md): Integration with the Jinja2 template engine.
-*   [Testing Module](testing.md): Utilities for unit testing Flask applications and CLI commands.
-*   [Views Module](views.md): Generic and method-based class views.

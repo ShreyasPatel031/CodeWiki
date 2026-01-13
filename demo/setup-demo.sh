@@ -34,3 +34,5 @@ echo "To deploy to Vercel:"
 echo "  cd $SCRIPT_DIR"
 echo "  vercel --prod"
 
+
+

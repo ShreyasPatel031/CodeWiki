@@ -6,8 +6,110 @@ logger = logging.getLogger(__name__)
 from codewiki.src.be.dependency_analyzer.models.core import Node
 from codewiki.src.be.llm_services import call_llm
 from codewiki.src.be.utils import count_tokens, count_module_tokens
-from codewiki.src.config import MAX_TOKEN_PER_MODULE, Config
+from codewiki.src.config import (
+    MAX_TOKEN_PER_MODULE, 
+    MIN_COMPONENTS_FOR_CLUSTERING,
+    MAX_CLUSTERING_PROMPT_TOKENS,
+    Config
+)
 from codewiki.src.be.prompt_template import format_cluster_prompt
+
+
+def _create_directory_based_modules(
+    leaf_nodes: List[str],
+    components: Dict[str, Node],
+    current_module_name: str = None
+) -> Dict[str, Any]:
+    """
+    Create modules based on directory structure when LLM clustering fails.
+    This is a deterministic fallback that doesn't require LLM calls.
+    
+    Groups components by their top-level directory, creating manageable modules.
+    """
+    from collections import defaultdict
+    import os
+    
+    logger.info(f"[STAGE 2 FALLBACK] Creating directory-based modules for {len(leaf_nodes)} leaf nodes")
+    
+    # Group leaf nodes by their top-level directory
+    dir_groups = defaultdict(list)
+    
+    for leaf_node in leaf_nodes:
+        if leaf_node not in components:
+            continue
+        
+        component = components[leaf_node]
+        path = component.relative_path
+        
+        # Get top-level directory (or file name if no directory)
+        parts = path.split(os.sep)
+        if len(parts) > 1:
+            # Use first directory level
+            top_dir = parts[0]
+        else:
+            # Single file, use filename without extension
+            top_dir = os.path.splitext(parts[0])[0] if parts else "root"
+        
+        dir_groups[top_dir].append(leaf_node)
+    
+    # If we have too few groups, try second-level directories
+    if len(dir_groups) <= 2 and any(len(v) > 500 for v in dir_groups.values()):
+        logger.info(f"[STAGE 2 FALLBACK] Too few groups ({len(dir_groups)}), trying second-level directories")
+        dir_groups = defaultdict(list)
+        
+        for leaf_node in leaf_nodes:
+            if leaf_node not in components:
+                continue
+            
+            component = components[leaf_node]
+            path = component.relative_path
+            parts = path.split(os.sep)
+            
+            if len(parts) > 2:
+                # Use first two directory levels
+                key = f"{parts[0]}_{parts[1]}"
+            elif len(parts) > 1:
+                key = parts[0]
+            else:
+                key = os.path.splitext(parts[0])[0] if parts else "root"
+            
+            dir_groups[key].append(leaf_node)
+    
+    # Convert to module tree format
+    module_tree = {}
+    for dir_name, node_list in dir_groups.items():
+        # Create clean module name
+        module_name = dir_name.lower().replace("-", "_").replace(".", "_").replace(" ", "_")
+        if not module_name:
+            module_name = "other"
+        
+        # Skip empty modules
+        if not node_list:
+            continue
+        
+        module_tree[module_name] = {
+            "path": dir_name,
+            "components": node_list,
+            "children": {}
+        }
+    
+    logger.info(f"[STAGE 2 FALLBACK] Created {len(module_tree)} directory-based modules:")
+    for name, info in module_tree.items():
+        logger.info(f"[STAGE 2 FALLBACK]   - {name}: {len(info['components'])} components")
+    
+    # If still no modules, create a single fallback module
+    if not module_tree:
+        fallback_name = current_module_name or "main"
+        module_tree = {
+            fallback_name: {
+                "path": "",
+                "components": leaf_nodes,
+                "children": {}
+            }
+        }
+        logger.warning(f"[STAGE 2 FALLBACK] No directory structure found, created single module '{fallback_name}'")
+    
+    return module_tree
 
 
 def format_potential_core_components(leaf_nodes: List[str], components: Dict[str, Node]) -> tuple[str, str]:
@@ -68,6 +170,30 @@ def cluster_modules(
     token_count = count_module_tokens(leaf_nodes, components)
     logger.info(f"[STAGE 2] Module token count (full files): {token_count}, MAX_TOKEN_PER_MODULE: {MAX_TOKEN_PER_MODULE}")
 
+    # FIX: Don't try to cluster too few components (prevents infinite nesting bug)
+    # Even if files are large, 2 components can't be meaningfully clustered further
+    if len(leaf_nodes) < MIN_COMPONENTS_FOR_CLUSTERING:
+        logger.info(f"[STAGE 2] Too few components to cluster ({len(leaf_nodes)} < {MIN_COMPONENTS_FOR_CLUSTERING})")
+        cluster_duration = time.time() - cluster_start
+        
+        if current_module_name is not None:
+            logger.info(f"[STAGE 2] Recursive call - returning empty children (too few components)")
+            logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (leaf module)")
+            return {}
+        
+        # Root level with very few components
+        repo_name = "main"
+        single_module = {
+            repo_name: {
+                "path": "",
+                "components": leaf_nodes,
+                "children": {}
+            }
+        }
+        logger.info(f"[STAGE 2] Root level - created single module '{repo_name}' with {len(leaf_nodes)} components")
+        logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (too few to cluster)")
+        return single_module
+
     if token_count <= MAX_TOKEN_PER_MODULE:
         # Module fits in single module - no further clustering needed
         logger.info(f"[STAGE 2] Module fits in single module ({token_count} <= {MAX_TOKEN_PER_MODULE})")
@@ -104,13 +230,12 @@ def cluster_modules(
     logger.info(f"[STAGE 2] Formatting cluster prompt...")
     prompt = format_cluster_prompt(potential_core_components, current_module_tree, current_module_name)
     
-    # Check prompt size and chunk if needed (max ~100k tokens to leave room for response)
+    # Check prompt size and chunk if needed
     prompt_tokens = count_tokens(prompt)
-    MAX_PROMPT_TOKENS = 100000  # Leave room for response
     
-    logger.info(f"[STAGE 2] Prompt size: {prompt_tokens} tokens, {len(leaf_nodes)} leaf nodes, threshold: {MAX_PROMPT_TOKENS}")
+    logger.info(f"[STAGE 2] Prompt size: {prompt_tokens} tokens, {len(leaf_nodes)} leaf nodes, threshold: {MAX_CLUSTERING_PROMPT_TOKENS}")
     
-    if prompt_tokens > MAX_PROMPT_TOKENS:
+    if prompt_tokens > MAX_CLUSTERING_PROMPT_TOKENS:
         logger.warning(f"[STAGE 2] Prompt too large ({prompt_tokens} tokens), truncating component list to fit context window")
         original_line_count = len(potential_core_components.split('\n'))
         # Truncate potential_core_components to fit
@@ -119,7 +244,7 @@ def cluster_modules(
         current_tokens = count_tokens('\n'.join(truncated))
         for line in lines:
             line_tokens = count_tokens(line)
-            if current_tokens + line_tokens > MAX_PROMPT_TOKENS - 5000:  # Safety margin
+            if current_tokens + line_tokens > MAX_CLUSTERING_PROMPT_TOKENS - 5000:  # Safety margin
                 break
             truncated.append(line)
             current_tokens += line_tokens
@@ -140,9 +265,39 @@ def cluster_modules(
     try:
         response = call_llm(prompt, config, model=config.cluster_model)
         llm_duration = time.time() - llm_start
+        response_tokens = count_tokens(response)
         logger.info(f"[STAGE 2] LLM call completed in {llm_duration:.1f}s")
         logger.info(f"[STAGE 2] Response length: {len(response)} chars")
-        logger.info(f"[STAGE 2] Response tokens: {count_tokens(response)}")
+        logger.info(f"[STAGE 2] Response tokens: {response_tokens}")
+        
+        # CRITICAL: Detect if response was truncated (hit max_tokens limit)
+        # GPT-4o max_tokens is 16384, if we're within 100 tokens of that, likely truncated
+        MAX_OUTPUT_TOKENS = 16384
+        if response_tokens >= MAX_OUTPUT_TOKENS - 100:
+            logger.warning(f"[STAGE 2] RESPONSE LIKELY TRUNCATED! Response tokens ({response_tokens}) near max ({MAX_OUTPUT_TOKENS})")
+            logger.warning(f"[STAGE 2] Truncation detected - checking if <GROUPED_COMPONENTS> tags are present")
+            if "<GROUPED_COMPONENTS>" not in response or "</GROUPED_COMPONENTS>" not in response:
+                logger.error(f"[STAGE 2] CONFIRMED TRUNCATION - missing required tags")
+                logger.error(f"[STAGE 2] This repo has too many components ({len(leaf_nodes)}) for a single clustering call")
+                logger.error(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING")
+                module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+                logger.info(f"[STAGE 2] Directory-based fallback created {len(module_tree)} modules")
+                
+                # Continue with tree merge logic after fallback
+                if current_module_tree == {}:
+                    current_module_tree = module_tree
+                else:
+                    value = current_module_tree
+                    for key in current_module_path:
+                        value = value[key]["children"]
+                    for module_name, module_info in module_tree.items():
+                        del module_info["path"]
+                        value[module_name] = module_info
+                
+                cluster_duration = time.time() - cluster_start
+                logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (directory-based fallback)")
+                return module_tree
+                
     except Exception as e:
         llm_duration = time.time() - llm_start
         error_msg = str(e)
@@ -185,7 +340,27 @@ def cluster_modules(
         
         import traceback
         logger.error(f"[STAGE 2] Full traceback: {traceback.format_exc()}")
-        raise
+        
+        # FALLBACK: Instead of re-raising, use directory-based clustering
+        logger.warning(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING due to LLM failure")
+        module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+        logger.info(f"[STAGE 2] Directory-based fallback created {len(module_tree)} modules")
+        
+        # Merge into current tree
+        if current_module_tree == {}:
+            current_module_tree = module_tree
+        else:
+            value = current_module_tree
+            for key in current_module_path:
+                value = value[key]["children"]
+            for mod_name, mod_info in module_tree.items():
+                if "path" in mod_info:
+                    del mod_info["path"]
+                value[mod_name] = mod_info
+        
+        cluster_duration = time.time() - cluster_start
+        logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (LLM-failure fallback)")
+        return module_tree
 
     #parse the response
     logger.info(f"[STAGE 2] Parsing LLM response...")
@@ -195,7 +370,24 @@ def cluster_modules(
             logger.error(f"[STAGE 2] Response preview (first 500 chars): {response[:500]}...")
             logger.error(f"[STAGE 2] Response length: {len(response)} chars")
             logger.error(f"[STAGE 2] Looking for <GROUPED_COMPONENTS> and </GROUPED_COMPONENTS> tags")
-            return {}
+            logger.error(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING")
+            module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+            
+            # Continue with tree merge logic 
+            if current_module_tree == {}:
+                current_module_tree = module_tree
+            else:
+                value = current_module_tree
+                for key in current_module_path:
+                    value = value[key]["children"]
+                for mod_name, mod_info in module_tree.items():
+                    if "path" in mod_info:
+                        del mod_info["path"]
+                    value[mod_name] = mod_info
+            
+            cluster_duration = time.time() - cluster_start
+            logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (parse-failed fallback)")
+            return module_tree
         
         response_content = response.split("<GROUPED_COMPONENTS>")[1].split("</GROUPED_COMPONENTS>")[0]
         logger.info(f"[STAGE 2] Extracted response content: {len(response_content)} chars")
@@ -213,14 +405,46 @@ def cluster_modules(
         logger.error(f"[STAGE 2] CRITICAL: Syntax error parsing LLM response: {e}")
         logger.error(f"[STAGE 2] Response content that failed to parse: {response_content[:500] if 'response_content' in locals() else 'N/A'}...")
         logger.error(f"[STAGE 2] Full response length: {len(response)} chars")
-        return {}
+        logger.error(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING")
+        module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+        
+        if current_module_tree == {}:
+            current_module_tree = module_tree
+        else:
+            value = current_module_tree
+            for key in current_module_path:
+                value = value[key]["children"]
+            for mod_name, mod_info in module_tree.items():
+                if "path" in mod_info:
+                    del mod_info["path"]
+                value[mod_name] = mod_info
+        
+        cluster_duration = time.time() - cluster_start
+        logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (syntax-error fallback)")
+        return module_tree
     except Exception as e:
         logger.error(f"[STAGE 2] CRITICAL: Failed to parse LLM response: {type(e).__name__}: {str(e)}")
         logger.error(f"[STAGE 2] Response preview: {response[:500]}...")
         logger.error(f"[STAGE 2] Full response length: {len(response)} chars")
         import traceback
         logger.error(f"[STAGE 2] Traceback: {traceback.format_exc()}")
-        return {}
+        logger.error(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING")
+        module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+        
+        if current_module_tree == {}:
+            current_module_tree = module_tree
+        else:
+            value = current_module_tree
+            for key in current_module_path:
+                value = value[key]["children"]
+            for mod_name, mod_info in module_tree.items():
+                if "path" in mod_info:
+                    del mod_info["path"]
+                value[mod_name] = mod_info
+        
+        cluster_duration = time.time() - cluster_start
+        logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (parse-exception fallback)")
+        return module_tree
 
     # check if the module tree is valid - only reject if truly empty
     # Single module results (len=1) are valid and should be accepted
@@ -232,18 +456,11 @@ def cluster_modules(
         logger.warning(f"[STAGE 2]   - LLM response length: {len(response)} chars")
         if len(response) > 500:
             logger.warning(f"[STAGE 2]   - LLM response preview: {response[:500]}...")
-        logger.warning(f"[STAGE 2] Creating fallback single module to prevent downstream failures")
+        logger.warning(f"[STAGE 2] FALLING BACK TO DIRECTORY-BASED CLUSTERING")
         
-        # Create fallback single module instead of returning empty
-        repo_name = current_module_name or "main"
-        module_tree = {
-            repo_name: {
-                "path": "",
-                "components": leaf_nodes,
-                "children": {}
-            }
-        }
-        logger.info(f"[STAGE 2] Created fallback single module '{repo_name}' with {len(leaf_nodes)} components")
+        # Use directory-based fallback instead of single giant module
+        module_tree = _create_directory_based_modules(leaf_nodes, components, current_module_name)
+        logger.info(f"[STAGE 2] Directory-based fallback created {len(module_tree)} modules")
     elif len(module_tree) == 1:
         # Single module is valid - log it but don't reject
         logger.info(f"[STAGE 2] LLM returned single module: {list(module_tree.keys())}")

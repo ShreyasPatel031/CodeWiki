@@ -1,56 +1,134 @@
 {
-    "src": {
-        "path": "src",
+    "flask_app": {
+        "path": "src/flask/app.py",
         "components": [
-            "src.flask.sansio.blueprints.BlueprintSetupState",
-            "src.flask.wrappers.Response",
-            "src.flask.templating.Environment",
-            "src.flask.globals.SessionMixinProxy",
-            "src.flask.cli.AppGroup",
-            "src.flask.config.ConfigAttribute",
-            "src.flask.sansio.blueprints.Blueprint",
-            "src.flask.json.tag.TagDict",
-            "src.flask.app.Flask",
-            "src.flask.ctx._AppCtxGlobals",
-            "src.flask.globals.RequestProxy",
-            "src.flask.sessions.SessionMixin",
-            "src.flask.blueprints.Blueprint",
-            "src.flask.templating.DispatchingJinjaLoader",
-            "src.flask.testing.FlaskCliRunner",
-            "src.flask.views.MethodView",
-            "src.flask.globals._AppCtxGlobalsProxy",
-            "src.flask.json.provider.DefaultJSONProvider",
-            "src.flask.json.tag.TagDateTime",
-            "src.flask.wrappers.Request",
-            "src.flask.json.tag.JSONTag",
-            "src.flask.globals.AppContextProxy",
-            "src.flask.json.tag.TaggedJSONSerializer",
-            "src.flask.json.tag.TagBytes",
-            "src.flask.testing.FlaskClient",
-            "src.flask.cli.ScriptInfo",
-            "src.flask.sansio.scaffold.Scaffold",
-            "src.flask.cli.CertParamType",
-            "src.flask.testing.EnvironBuilder",
-            "src.flask.json.tag.TagUUID",
-            "src.flask.json.provider.JSONProvider",
-            "src.flask.sessions.SecureCookieSessionInterface",
-            "src.flask.json.tag.PassDict",
-            "src.flask.debughelpers.newcls",
-            "src.flask.sessions.NullSession",
-            "src.flask.globals.FlaskProxy",
-            "src.flask.json.tag.PassList",
-            "src.flask.sessions.SecureCookieSession",
-            "src.flask.config.Config",
-            "src.flask.json.tag.TagMarkup",
-            "src.flask.ctx.AppContext",
-            "src.flask.cli.SeparatedPathType",
-            "src.flask.views.View",
-            "src.flask.sansio.app.App",
-            "src.flask.debughelpers.FormDataRoutingRedirect",
-            "src.flask.globals.ProxyMixin",
-            "src.flask.cli.FlaskGroup",
-            "src.flask.sessions.SessionInterface",
-            "src.flask.json.tag.TagTuple"
+            "Flask"
+        ],
+        "children": {}
+    },
+    "flask_blueprints": {
+        "path": "src/flask/blueprints.py",
+        "components": [
+            "Blueprint"
+        ],
+        "children": {}
+    },
+    "flask_cli": {
+        "path": "src/flask/cli.py",
+        "components": [
+            "ScriptInfo",
+            "AppGroup",
+            "SeparatedPathType",
+            "FlaskGroup",
+            "CertParamType"
+        ],
+        "children": {}
+    },
+    "flask_config": {
+        "path": "src/flask/config.py",
+        "components": [
+            "ConfigAttribute",
+            "Config"
+        ],
+        "children": {}
+    },
+    "flask_context": {
+        "path": "src/flask/ctx.py",
+        "components": [
+            "_AppCtxGlobals",
+            "AppContext"
+        ],
+        "children": {}
+    },
+    "flask_debug_helpers": {
+        "path": "src/flask/debughelpers.py",
+        "components": [
+            "newcls",
+            "FormDataRoutingRedirect"
+        ],
+        "children": {}
+    },
+    "flask_globals": {
+        "path": "src/flask/globals.py",
+        "components": [
+            "_AppCtxGlobalsProxy",
+            "FlaskProxy",
+            "SessionMixinProxy",
+            "ProxyMixin",
+            "RequestProxy",
+            "AppContextProxy"
+        ],
+        "children": {}
+    },
+    "flask_json": {
+        "path": "src/flask/json",
+        "components": [
+            "JSONProvider",
+            "DefaultJSONProvider",
+            "PassList",
+            "TagMarkup",
+            "TagTuple",
+            "TaggedJSONSerializer",
+            "TagDict",
+            "TagUUID",
+            "JSONTag",
+            "TagDateTime",
+            "TagBytes",
+            "PassDict"
+        ],
+        "children": {}
+    },
+    "flask_sansio": {
+        "path": "src/flask/sansio",
+        "components": [
+            "App",
+            "BlueprintSetupState",
+            "Blueprint",
+            "Scaffold"
+        ],
+        "children": {}
+    },
+    "flask_sessions": {
+        "path": "src/flask/sessions.py",
+        "components": [
+            "SessionMixin",
+            "SecureCookieSessionInterface",
+            "SecureCookieSession",
+            "NullSession",
+            "SessionInterface"
+        ],
+        "children": {}
+    },
+    "flask_templating": {
+        "path": "src/flask/templating.py",
+        "components": [
+            "DispatchingJinjaLoader",
+            "Environment"
+        ],
+        "children": {}
+    },
+    "flask_testing": {
+        "path": "src/flask/testing.py",
+        "components": [
+            "FlaskClient",
+            "FlaskCliRunner",
+            "EnvironBuilder"
+        ],
+        "children": {}
+    },
+    "flask_views": {
+        "path": "src/flask/views.py",
+        "components": [
+            "View",
+            "MethodView"
+        ],
+        "children": {}
+    },
+    "flask_wrappers": {
+        "path": "src/flask/wrappers.py",
+        "components": [
+            "Response",
+            "Request"
         ],
         "children": {}
     }

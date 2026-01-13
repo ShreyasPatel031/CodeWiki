@@ -12,9 +12,28 @@ DOCS_DIR = 'docs'
 FIRST_MODULE_TREE_FILENAME = 'first_module_tree.json'
 MODULE_TREE_FILENAME = 'module_tree.json'
 OVERVIEW_FILENAME = 'overview.md'
-MAX_DEPTH = 10
-MAX_TOKEN_PER_MODULE = 36_369
-MAX_TOKEN_PER_LEAF_MODULE = 16_000
+
+# =============================================================================
+# CONSOLIDATED THRESHOLDS - All size/token limits in one place
+# =============================================================================
+
+# Clustering Thresholds (Stage 2)
+MAX_DEPTH = 10                          # Maximum recursion depth for clustering
+MAX_TOKEN_PER_MODULE = 32_768           # Paper: 32768 tokens per leaf module
+MAX_TOKEN_PER_LEAF_MODULE = 16_000      # Threshold for sub-module delegation in Stage 4
+MIN_COMPONENTS_FOR_CLUSTERING = 3       # Don't try to cluster fewer than this many components
+                                        # Fixes infinite nesting bug when 2 components have large files
+
+# LLM Context Thresholds
+MAX_CLUSTERING_PROMPT_TOKENS = 100_000  # Max tokens for clustering prompt before chunking
+MAX_LLM_CONTEXT = 128_000               # GPT-4o context window (use 200K for Claude/Kimi)
+MAX_LLM_OUTPUT_TOKENS = 16_384          # GPT-4o max output tokens
+
+# Module Tree Tiering Thresholds (for large repos)
+LARGE_REPO_COMPONENT_THRESHOLD = 500    # Switch to tiered module tree above this
+BEHEMOTH_REPO_COMPONENT_THRESHOLD = 2000 # Use on-demand loading above this
+MAX_MODULE_TREE_TOKENS = 10_000         # Max tokens for module tree in prompt
+                                        # If exceeded, switch to summaries + tools
 
 # CLI context detection
 _CLI_CONTEXT = False
@@ -31,7 +50,7 @@ def is_cli_context() -> bool:
 # LLM services
 # In CLI mode, these will be loaded from ~/.codewiki/config.json + keyring
 # In web app mode, use environment variables
-MAIN_MODEL = os.getenv('MAIN_MODEL', 'claude-sonnet-4')
+MAIN_MODEL = os.getenv('MAIN_MODEL', 'gemini-2.5-flash')
 FALLBACK_MODEL_1 = os.getenv('FALLBACK_MODEL_1', 'glm-4p5')
 CLUSTER_MODEL = os.getenv('CLUSTER_MODEL', MAIN_MODEL)
 LLM_BASE_URL = os.getenv('LLM_BASE_URL', 'http://0.0.0.0:4000/')

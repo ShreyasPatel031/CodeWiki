@@ -27,8 +27,39 @@ Generate documentation following this structure:
    - Mermaid architecture diagrams showing module relationships and dependencies
    - IMPORTANT: Use ONLY "graph TD" or "flowchart TD" syntax for diagrams
    - DO NOT use "sequenceDiagram", "classDiagram", or other diagram types
-   - Each diagram node should represent a sub-module or component that can be clicked to navigate
-   - Include edges showing relationships between components
+   - Each diagram node should represent a sub-module that links to its documentation file
+   - Include edges showing relationships between modules
+
+<ARCHITECTURE_DIAGRAM_EXAMPLE>
+CORRECT - Architecture diagram with clickable nodes linking to child module docs:
+
+```mermaid
+graph TD
+    core[Core Module]
+    auth[Authentication]
+    db[Database Layer]
+    api[API Routes]
+    utils[Utilities]
+    
+    core --> auth
+    core --> db
+    core --> api
+    auth --> utils
+    db --> utils
+    
+    click auth "authentication.md" "View Authentication Module"
+    click db "database_layer.md" "View Database Module"
+    click api "api_routes.md" "View API Module"
+    click utils "utilities.md" "View Utilities Module"
+```
+
+Key requirements:
+- Use "graph TD" or "flowchart TD" only
+- Each node represents a sub-module or documentation file
+- Use "click nodeId 'filename.md' 'tooltip'" to make nodes navigable
+- Show relationships between modules with arrows
+- DO NOT use classDiagram, sequenceDiagram, or other diagram types
+</ARCHITECTURE_DIAGRAM_EXAMPLE>
 </DOCUMENTATION_STRUCTURE>
 
 <WORKFLOW>
@@ -61,8 +92,27 @@ Create a comprehensive documentation that helps developers and maintainers under
 <DOCUMENTATION_REQUIREMENTS>
 Generate documentation following the following requirements:
 1. Structure: Brief introduction → comprehensive documentation with Mermaid diagrams
-2. Diagrams: Include architecture, dependencies, data flow, component interaction, and process flows as relevant
+2. Diagrams: Use ONLY "graph TD" or "flowchart TD" for architecture diagrams. DO NOT use classDiagram or sequenceDiagram.
 3. References: Link to other module documentation instead of duplicating information
+
+<ARCHITECTURE_DIAGRAM_EXAMPLE>
+CORRECT - Architecture diagram with clickable nodes:
+
+```mermaid
+graph TD
+    main[Main Component]
+    helper[Helper Utils]
+    config[Configuration]
+    
+    main --> helper
+    main --> config
+    
+    click helper "helper_utils.md" "View Helper Module"
+    click config "configuration.md" "View Config Module"
+```
+
+Use "click nodeId 'filename.md' 'tooltip'" to make nodes navigable to other documentation files.
+</ARCHITECTURE_DIAGRAM_EXAMPLE>
 </DOCUMENTATION_REQUIREMENTS>
 
 <WORKFLOW>
@@ -95,9 +145,24 @@ You are an AI documentation assistant. Your task is to generate a brief overview
 
 The overview should be a brief documentation of the repository, including:
 - The purpose of the repository
-- A mermaid architecture diagram showing the main modules and their relationships (use ONLY "graph TD" or "flowchart TD" syntax, NO sequence/class diagrams)
-- Each node in the diagram should represent a module that links to its documentation
-- The references to the core modules documentation
+- A mermaid architecture diagram showing the main modules and their relationships
+- Each node in the diagram should be clickable and link to its documentation file
+
+IMPORTANT: Use ONLY "graph TD" or "flowchart TD" syntax. DO NOT use classDiagram or sequenceDiagram.
+
+Example architecture diagram with clickable nodes:
+```mermaid
+graph TD
+    core[Core Module]
+    auth[Authentication]
+    db[Database]
+    
+    core --> auth
+    core --> db
+    
+    click auth "authentication.md" "View Auth Module"
+    click db "database.md" "View Database Module"
+```
 
 IMPORTANT: When creating links to module documentation, use the module's markdown file name format: [Module Name](module_name.md). 
 For example, if a module is named "chat_module", link to it as [Chat Module](chat_module.md). 
@@ -119,8 +184,24 @@ You are an AI documentation assistant. Your task is to generate a brief overview
 
 The overview should be a brief documentation of the module, including:
 - The purpose of the module
-- The architecture of the module visualized by mermaid diagrams (use "graph TD" or "flowchart TD" syntax, NOT "classDiagram")
+- The architecture of the module visualized by mermaid diagrams
 - The references to the core components documentation
+
+IMPORTANT: Use ONLY "graph TD" or "flowchart TD" syntax. DO NOT use classDiagram or sequenceDiagram.
+
+Example architecture diagram with clickable nodes:
+```mermaid
+graph TD
+    main[Main Component]
+    sub1[Sub Component 1]
+    sub2[Sub Component 2]
+    
+    main --> sub1
+    main --> sub2
+    
+    click sub1 "sub_component_1.md" "View Sub Component 1"
+    click sub2 "sub_component_2.md" "View Sub Component 2"
+```
 
 Provide repo structure and core components documentation of the `{module_name}` module:
 <REPO_STRUCTURE>

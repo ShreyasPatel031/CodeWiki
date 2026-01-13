@@ -31,6 +31,7 @@ PRICING = {
     "gpt-4o": {"input": 2.50, "output": 10.00},
     "claude-3-5-sonnet": {"input": 3.00, "output": 15.00},
     "gemini-1.5-flash": {"input": 0.075, "output": 0.30},
+    "gemini-2.0-flash": {"input": 0.075, "output": 0.30},  # Same pricing as 1.5 Flash
     "default": {"input": 1.00, "output": 4.00}  # Conservative estimate
 }
 
@@ -118,7 +119,7 @@ def run_codewiki(repo_path: str, output_dir: str) -> dict:
     # Run codewiki generate
     # Note: codewiki generate should be run from repo directory or with proper args
     cmd = [
-        "codewiki", "generate",
+        "python3.12", "-m", "codewiki", "generate",
         "-o", output_dir,
         "--github-pages",
         "-v"  # Verbose for stage timings
@@ -168,10 +169,16 @@ def run_codewiki(repo_path: str, output_dir: str) -> dict:
         if match:
             stage_timings[stage_name] = float(match.group(1))
     
-    # Extract token counts
+    # Extract token counts and actual cost from TokenTracker
     token_matches = re.findall(r'(\d+)\s*tokens?', combined_output)
     if token_matches:
         tokens_used = sum(int(t) for t in token_matches if int(t) < 1000000)  # Filter out unreasonable values
+    
+    # Extract actual cost from TokenTracker logs (more accurate than estimation)
+    cost_match = re.search(r'Running total:\s*\$([\d.]+)', combined_output)
+    actual_cost = 0.0
+    if cost_match:
+        actual_cost = float(cost_match.group(1))
     
     # Load metrics from generated files if available
     metrics_path = docs_path / "metrics.json"
@@ -206,7 +213,7 @@ def run_codewiki(repo_path: str, output_dir: str) -> dict:
         "duration_seconds": round(duration, 2),
         "stage_timings": stage_timings,
         "tokens_used": tokens_used,
-        "estimated_cost_usd": round(estimate_cost(tokens_used), 4),
+        "cost_usd": round(actual_cost, 4) if actual_cost > 0 else round(estimate_cost(tokens_used), 4),
         "code_files": count_code_files(repo_path),
         "repo_size_mb": round(get_repo_size_mb(repo_path), 2),
         "module_count": module_count,
@@ -276,7 +283,7 @@ def main():
             print(f"\n📊 {result['repo_name']}:")
             print(f"   ✓ Duration: {result['duration_seconds']}s")
             print(f"   ✓ Tokens: {result['tokens_used']}")
-            print(f"   ✓ Est. Cost: ${result['estimated_cost_usd']}")
+            print(f"   ✓ Cost: ${result['cost_usd']}")
             print(f"   ✓ Modules: {result['module_count']} (depth: {result['module_depth']})")
             print(f"   ✓ MD Files: {result['md_files_generated']}")
             print(f"   ✓ HTML: {'✅' if result['html_generated'] else '❌'} ({result['html_size_kb']}KB)")
@@ -310,9 +317,9 @@ def main():
         "failed": len(failed),
         "total_duration_seconds": sum(r.get('duration_seconds', 0) for r in results),
         "total_tokens": sum(r.get('tokens_used', 0) for r in results),
-        "total_cost_usd": sum(r.get('estimated_cost_usd', 0) for r in results),
+        "total_cost_usd": sum(r.get('cost_usd', 0) for r in results),
         "avg_duration_per_repo": round(sum(r.get('duration_seconds', 0) for r in successful) / len(successful), 2) if successful else 0,
-        "avg_cost_per_repo": round(sum(r.get('estimated_cost_usd', 0) for r in successful) / len(successful), 4) if successful else 0,
+        "avg_cost_per_repo": round(sum(r.get('cost_usd', 0) for r in successful) / len(successful), 4) if successful else 0,
         "results": results
     }
     
@@ -345,7 +352,7 @@ def main():
         # Calculate averages per code file and per module
         total_code_files = sum(r.get('code_files', 0) for r in successful)
         total_duration = sum(r.get('duration_seconds', 0) for r in successful)
-        total_cost = sum(r.get('estimated_cost_usd', 0) for r in successful)
+        total_cost = sum(r.get('cost_usd', 0) for r in successful)
         
         if total_code_files > 0:
             print(f"Time per code file: {total_duration / total_code_files:.3f}s")

@@ -1,21 +1,16 @@
 """
-Configuration manager with keyring integration for secure credential storage.
+Configuration manager - stores all config including API key in config.json.
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Optional
-import keyring
-from keyring.errors import KeyringError
 
 from codewiki.cli.models.config import Configuration
 from codewiki.cli.utils.errors import ConfigurationError, FileSystemError
 from codewiki.cli.utils.fs import ensure_directory, safe_write, safe_read
 
-
-# Keyring configuration
-KEYRING_SERVICE = "codewiki"
-KEYRING_API_KEY_ACCOUNT = "api_key"
 
 # Configuration file location
 CONFIG_DIR = Path.home() / ".codewiki"
@@ -25,32 +20,21 @@ CONFIG_VERSION = "1.0"
 
 class ConfigManager:
     """
-    Manages CodeWiki configuration with secure keyring storage for API keys.
+    Manages CodeWiki configuration.
     
     Storage:
-        - API key: System keychain via keyring (macOS Keychain, Windows Credential Manager, 
-                  Linux Secret Service)
-        - Other settings: ~/.codewiki/config.json
+        - All settings including API key: ~/.codewiki/config.json
+        - Environment variable fallback: GEMINI_API_KEY or LLM_API_KEY
     """
     
     def __init__(self):
         """Initialize the configuration manager."""
         self._api_key: Optional[str] = None
         self._config: Optional[Configuration] = None
-        self._keyring_available = self._check_keyring_available()
-    
-    def _check_keyring_available(self) -> bool:
-        """Check if system keyring is available."""
-        try:
-            # Try to get/set a test value
-            keyring.get_password(KEYRING_SERVICE, "__test__")
-            return True
-        except KeyringError:
-            return False
     
     def load(self) -> bool:
         """
-        Load configuration from file and keyring.
+        Load configuration from file.
         
         Returns:
             True if configuration exists, False otherwise
@@ -70,12 +54,8 @@ class ConfigManager:
             
             self._config = Configuration.from_dict(data)
             
-            # Load API key from keyring
-            try:
-                self._api_key = keyring.get_password(KEYRING_SERVICE, KEYRING_API_KEY_ACCOUNT)
-            except KeyringError:
-                # Keyring unavailable, API key will be None
-                pass
+            # Load API key from config file or env var
+            self._api_key = data.get('api_key') or os.getenv('GEMINI_API_KEY') or os.getenv('LLM_API_KEY')
             
             return True
         except (json.JSONDecodeError, FileSystemError) as e:
@@ -90,10 +70,10 @@ class ConfigManager:
         default_output: Optional[str] = None
     ):
         """
-        Save configuration to file and keyring.
+        Save configuration to file.
         
         Args:
-            api_key: API key (stored in keyring)
+            api_key: API key (stored in config file)
             base_url: LLM API base URL
             main_model: Primary model
             cluster_model: Clustering model
@@ -130,21 +110,14 @@ class ConfigManager:
         # Validate configuration
         self._config.validate()
         
-        # Save API key to keyring
+        # Update API key
         if api_key is not None:
             self._api_key = api_key
-            try:
-                keyring.set_password(KEYRING_SERVICE, KEYRING_API_KEY_ACCOUNT, api_key)
-            except KeyringError as e:
-                # Fallback: warn about keyring unavailability
-                raise ConfigurationError(
-                    f"System keychain unavailable: {e}\n"
-                    f"Please ensure your system keychain is properly configured."
-                )
         
-        # Save non-sensitive config to JSON
+        # Save everything to JSON (including API key)
         config_data = {
             "version": CONFIG_VERSION,
+            "api_key": self._api_key,
             **self._config.to_dict()
         }
         
@@ -155,16 +128,14 @@ class ConfigManager:
     
     def get_api_key(self) -> Optional[str]:
         """
-        Get API key from keyring.
+        Get API key from config or environment.
         
         Returns:
             API key or None if not set
         """
         if self._api_key is None:
-            try:
-                self._api_key = keyring.get_password(KEYRING_SERVICE, KEYRING_API_KEY_ACCOUNT)
-            except KeyringError:
-                pass
+            # Try environment variables as fallback
+            self._api_key = os.getenv('GEMINI_API_KEY') or os.getenv('LLM_API_KEY')
         
         return self._api_key
     
@@ -195,18 +166,14 @@ class ConfigManager:
         return self._config.is_complete()
     
     def delete_api_key(self):
-        """Delete API key from keyring."""
-        try:
-            keyring.delete_password(KEYRING_SERVICE, KEYRING_API_KEY_ACCOUNT)
-            self._api_key = None
-        except KeyringError:
-            pass
+        """Delete API key."""
+        self._api_key = None
+        # Re-save config without API key
+        if self._config:
+            self.save()
     
     def clear(self):
-        """Clear all configuration (file and keyring)."""
-        # Delete API key from keyring
-        self.delete_api_key()
-        
+        """Clear all configuration."""
         # Delete config file
         if CONFIG_FILE.exists():
             CONFIG_FILE.unlink()
@@ -216,11 +183,10 @@ class ConfigManager:
     
     @property
     def keyring_available(self) -> bool:
-        """Check if keyring is available."""
-        return self._keyring_available
+        """Kept for compatibility - always returns False now."""
+        return False
     
     @property
     def config_file_path(self) -> Path:
         """Get configuration file path."""
         return CONFIG_FILE
-

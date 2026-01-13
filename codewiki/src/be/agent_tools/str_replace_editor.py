@@ -451,6 +451,8 @@ class EditTool:
         if not path.parent.exists():
             self.logs.append(f"The parent directory {self._get_display_path(path.parent)} does not exist. Please create it first.")
             return
+        # Unescape literal \n and \t that LLMs sometimes output
+        file_text = file_text.replace('\\n', '\n').replace('\\t', '\t')
         self.write_file(path, file_text)
         self._file_history[path].append(file_text)
         self.logs.append(f"File created successfully at: {self._get_display_path(path)}")
@@ -540,6 +542,9 @@ class EditTool:
         file_content = self.read_file(path).expandtabs()
         old_str = old_str.expandtabs()
         new_str = new_str.expandtabs() if new_str is not None else ""
+        # Unescape literal \n and \t that LLMs sometimes output
+        old_str = old_str.replace('\\n', '\n').replace('\\t', '\t')
+        new_str = new_str.replace('\\n', '\n').replace('\\t', '\t')
 
         # Check if old_str is unique in the file
         occurrences = file_content.count(old_str)
@@ -618,6 +623,8 @@ class EditTool:
         """Implement the insert command, which inserts new_str at the specified line in the file content."""
         file_text = self.read_file(path).expandtabs()
         new_str = new_str.expandtabs()
+        # Unescape literal \n and \t that LLMs sometimes output
+        new_str = new_str.replace('\\n', '\n').replace('\\t', '\t')
         file_text_lines = file_text.split("\n")
         n_lines_file = len(file_text_lines)
 

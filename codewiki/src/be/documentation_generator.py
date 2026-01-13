@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Local imports
 from codewiki.src.be.dependency_analyzer import DependencyGraphBuilder
-from codewiki.src.be.llm_services import call_llm
+from codewiki.src.be.llm_services import call_llm, get_token_tracker
 from codewiki.src.be.prompt_template import (
     REPO_OVERVIEW_PROMPT,
     MODULE_OVERVIEW_PROMPT,
@@ -427,6 +427,10 @@ This is a quick overview generated from the module structure. Detailed documenta
             module_tree_path = os.path.join(working_dir, MODULE_TREE_FILENAME)
             
             # Check if module tree exists
+            # Set token tracker stage for cost tracking
+            tracker = get_token_tracker()
+            tracker.set_stage("Stage 2: Module Clustering")
+            
             logger.info(f"[STAGE 2: MODULE CLUSTERING] Checking for cached module tree...")
             if os.path.exists(first_module_tree_path):
                 logger.info(f"[STAGE 2] Module tree found at {first_module_tree_path}")
@@ -501,6 +505,9 @@ This is a quick overview generated from the module structure. Detailed documenta
                 except Exception as e:
                     logger.warning(f"Failed to generate quick overview: {e}")
             
+            # Set stage for cost tracking
+            tracker.set_stage("Stage 4: Module Documentation")
+            
             # Generate module documentation using dynamic programming approach
             # This processes leaf modules first, then parent modules
             working_dir = await self.generate_module_documentation(components, leaf_nodes)
@@ -511,6 +518,10 @@ This is a quick overview generated from the module structure. Detailed documenta
             logger.debug(f"Documentation generation completed successfully using dynamic programming!")
             logger.debug(f"Processing order: leaf modules → parent modules → repository overview")
             logger.debug(f"Documentation saved to: {working_dir}")
+            
+            # Print final token usage summary
+            tracker.set_stage("Complete")
+            logger.info("\n" + tracker.get_summary())
             
         except Exception as e:
             logger.error(f"Documentation generation failed: {str(e)}")
