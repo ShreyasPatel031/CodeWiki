@@ -610,7 +610,6 @@
                 // Handle collapse buttons
                 if (nodeText === '[-] Collapse' || nodeId.endsWith('_collapse')) {
                     node.classList.add('collapse-button');
-                    // Extract parent node ID (e.g., "A_collapse" -> "A")
                     const parentNodeId = nodeId.replace(/_collapse$/, '');
                     node.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -628,12 +627,8 @@
                 if (!nodeId.includes('_') && overviewLinks[nodeId]) {
                     targetModule = overviewLinks[nodeId];
                 }
-                // 2. For prefixed nodes (inside subgraphs), use the module's own links
-                // NOT the overview links - this prevents random mapping
+                // 2. For prefixed nodes (inside subgraphs), skip - they're already expanded content
                 else if (nodeId.includes('_')) {
-                    // These are nodes inside expanded subgraphs
-                    // They should use the links from their parent module, not overview
-                    // For now, just make them non-clickable (they're already expanded content)
                     return;
                 }
                 
@@ -759,8 +754,12 @@
             }
             
             // Update edge references: any edge to/from nodeId should go to the subgraph
+            // Handle simple edges: A --> B, B --> A
             newDiagram = newDiagram.replace(new RegExp(`-->\\s*${nodeId}(?![_\\w])`, 'g'), `--> ${subgraphName}`);
             newDiagram = newDiagram.replace(new RegExp(`${nodeId}(?![_\\w])\\s*-->`, 'g'), `${subgraphName} -->`);
+            // Handle labeled edges: A -- "label" --> B, B -- "label" --> A
+            newDiagram = newDiagram.replace(new RegExp(`${nodeId}(?![_\\w])\\s*--`, 'g'), `${subgraphName} --`);
+            newDiagram = newDiagram.replace(new RegExp(`-->\\s*${nodeId}(?![_\\w])`, 'g'), `--> ${subgraphName}`);
             
             return newDiagram;
         }
