@@ -383,7 +383,7 @@
 </head>
 <body>
     <div class="header">
-        <button class="back-button" id="backButton" onclick="goBack()" style="display: none;">← Back</button>
+        <button class="back-button" id="backButton" onclick="goBack()">← Back</button>
         <div class="title" id="moduleTitle">📚 Loading...</div>
         <a href="#" class="repo-link" id="repoLink" target="_blank" style="display: none;">🔗 View Repository</a>
     </div>
@@ -897,7 +897,6 @@
             currentDiagramCode = baseDiagramCode;
             
             document.getElementById('moduleTitle').textContent = moduleData[moduleId].name;
-            document.getElementById('backButton').style.display = 'inline-block';
             
             renderDiagram(currentDiagramCode, moduleData[moduleId].links || {}, moduleId);
             renderDocumentation(moduleData[moduleId].documentation);
@@ -911,19 +910,33 @@
         }
         
         function goBack() {
-            if (navigationHistory.length === 0) return;
+            // If there's navigation history, go back in history
+            if (navigationHistory.length > 0) {
+                const prev = navigationHistory.pop();
+                currentModuleId = prev.moduleId;
+                currentDiagramCode = prev.diagramCode;
+                expandedNodes = prev.expanded;
+                baseDiagramCode = moduleData[currentModuleId]?.diagram || '';
+                
+                document.getElementById('moduleTitle').textContent = moduleData[currentModuleId]?.name || REPO_TITLE;
+                
+                renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
+                renderDocumentation(moduleData[currentModuleId]?.documentation || '');
+                return;
+            }
             
-            const prev = navigationHistory.pop();
-            currentModuleId = prev.moduleId;
-            currentDiagramCode = prev.diagramCode;
-            expandedNodes = prev.expanded;
-            baseDiagramCode = moduleData[currentModuleId]?.diagram || '';
+            // If on overview with expanded nodes, collapse all
+            if (expandedNodes.size > 0) {
+                expandedNodes.clear();
+                currentDiagramCode = baseDiagramCode;
+                document.getElementById('moduleTitle').textContent = moduleData['overview']?.name || REPO_TITLE + ' Overview';
+                renderDiagram(currentDiagramCode, overviewLinks, 'overview');
+                renderDocumentation(moduleData['overview']?.documentation || '');
+                return;
+            }
             
-            document.getElementById('moduleTitle').textContent = moduleData[currentModuleId]?.name || REPO_TITLE;
-            document.getElementById('backButton').style.display = navigationHistory.length > 0 ? 'inline-block' : 'none';
-            
-            renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
-            renderDocumentation(moduleData[currentModuleId]?.documentation || '');
+            // Otherwise, go back to the main index page
+            window.location.href = '/';
         }
         
         // ============================================================
