@@ -168,6 +168,7 @@ def detect_supported_languages(directory: Path) -> List[Tuple[str, int]]:
         'Java': ['.java'],
         'JavaScript': ['.js', '.jsx'],
         'TypeScript': ['.ts', '.tsx'],
+        'Go': ['.go'],
         'C': ['.c', '.h'],
         'C++': ['.cpp', '.hpp', '.cc', '.hh', '.cxx', '.hxx'],
         'C#': ['.cs'],

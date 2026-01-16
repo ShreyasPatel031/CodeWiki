@@ -221,7 +221,7 @@ class CLIDocumentationGenerator:
             metrics.repo_size_mb = total_size / (1024 * 1024)
             # Count code files
             code_files = []
-            for ext in ['.py', '.js', '.ts', '.java', '.cpp', '.c', '.h']:
+            for ext in ['.py', '.js', '.ts', '.java', '.cpp', '.c', '.h', '.go', '.rs', '.rb', '.php', '.swift', '.kt']:
                 code_files.extend(list(Path(self.repo_path).rglob(f"*{ext}")))
             code_files = [f for f in code_files if 'node_modules' not in str(f) and '.git' not in str(f)]
             metrics.total_code_files = len(code_files)

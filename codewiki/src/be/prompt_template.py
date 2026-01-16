@@ -164,9 +164,19 @@ graph TD
     click db "database.md" "View Database Module"
 ```
 
-IMPORTANT: When creating links to module documentation, use the module's markdown file name format: [Module Name](module_name.md). 
+CRITICAL: You can ONLY link to modules that exist in the AVAILABLE_MODULES list below.
+DO NOT create links to files that don't exist. DO NOT infer modules from directory structure or component paths.
+If there is only one module (e.g., "main"), create a diagram showing the internal architecture without click statements,
+or use click statements ONLY for that single module.
+
+<AVAILABLE_MODULES>
+{available_modules}
+</AVAILABLE_MODULES>
+
+When creating links to module documentation, use the module's markdown file name format: [Module Name](module_name.md). 
 For example, if a module is named "chat_module", link to it as [Chat Module](chat_module.md). 
 DO NOT link to source code files - only link to the generated markdown documentation files.
+ONLY use modules from the AVAILABLE_MODULES list above.
 
 Provide `{repo_name}` repo structure and its core modules documentation:
 <REPO_STRUCTURE>
@@ -309,6 +319,7 @@ EXTENSION_TO_LANGUAGE = {
     ".ts": "typescript",
     ".cpp": "cpp",
     ".c": "c",
+    ".go": "go",
     ".h": "c",
     ".hpp": "cpp",
     ".tsx": "typescript",

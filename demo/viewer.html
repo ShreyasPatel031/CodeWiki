@@ -676,8 +676,9 @@
                     }
                 }
                 
-                // NEW: Auto-map diagram nodes to modules WITHOUT requiring click statements
-                buildAutoNodeMappings(overviewDiagram);
+                // Map nodes to modules ONLY if they match an actual module key in MODULE_TREE
+                // No fuzzy matching - only exact matches
+                buildExactModuleMappings(overviewDiagram);
             }
             
             moduleData['overview'] = {
@@ -688,41 +689,21 @@
             };
         }
         
-        // Build automatic node-to-module mappings by matching diagram nodes to module tree
-        function buildAutoNodeMappings(diagram) {
-            // Build lookup maps from module tree
-            const moduleLookup = {}; // normalized name -> module key
+        // Build EXACT module mappings - only map nodes that exactly match module keys
+        // NO fuzzy matching - prevents false positives like mapping "Resolver" to "main"
+        function buildExactModuleMappings(diagram) {
+            // Get all module keys from the tree (flattened)
             const moduleKeys = new Set();
-            let allModuleKeys = []; // Flat list of all module keys
             
-            function addModuleLookups(tree) {
+            function collectModuleKeys(tree) {
                 for (const [key, data] of Object.entries(tree)) {
                     moduleKeys.add(key);
-                    allModuleKeys.push(key);
-                    const normalized = normalizeForMatch(key);
-                    moduleLookup[normalized] = key;
-                    
-                    // Also add formatted name variations
-                    const formatted = formatModuleName(key);
-                    moduleLookup[normalizeForMatch(formatted)] = key;
-                    
-                    // Add component-based lookups (first part of component path)
-                    if (data.components) {
-                        for (const comp of data.components) {
-                            const parts = comp.split('.');
-                            if (parts.length > 0) {
-                                moduleLookup[normalizeForMatch(parts[0])] = key;
-                            }
-                        }
-                    }
-                    
                     if (data.children) {
-                        addModuleLookups(data.children);
+                        collectModuleKeys(data.children);
                     }
                 }
             }
-            
-            addModuleLookups(MODULE_TREE);
+            collectModuleKeys(MODULE_TREE);
             
             // Parse all node definitions from diagram
             const nodeDefRegex = /(\w+)\s*\[["']?([^\]"']+)["']?\]/g;
@@ -731,98 +712,15 @@
                 const nodeId = match[1];
                 const label = match[2];
                 
-                // Skip if already mapped
+                // Skip if already mapped (from click statements)
                 if (overviewLinks[nodeId]) continue;
                 
-                // Try to find a matching module
-                let targetModule = findMatchingModule(nodeId, label, moduleLookup, moduleKeys);
-                if (targetModule) {
-                    overviewLinks[nodeId] = targetModule;
-                    overviewLinks[label] = targetModule;
+                // ONLY map if nodeId exactly matches a module key
+                if (moduleKeys.has(nodeId)) {
+                    overviewLinks[nodeId] = nodeId;
+                    overviewLinks[label] = nodeId;
                 }
             }
-            
-            // Also check for nodes defined without labels: NodeId or NodeId[NodeId]
-            const simpleNodeRegex = /^\s*(\w+)(?:\s*-->|\s*$)/gm;
-            while ((match = simpleNodeRegex.exec(diagram)) !== null) {
-                const nodeId = match[1];
-                if (overviewLinks[nodeId]) continue;
-                
-                let targetModule = findMatchingModule(nodeId, nodeId, moduleLookup, moduleKeys);
-                if (targetModule) {
-                    overviewLinks[nodeId] = targetModule;
-                }
-            }
-        }
-        
-        function normalizeForMatch(str) {
-            return str.toLowerCase()
-                .replace(/[_\-\s]+/g, '')  // Remove separators
-                .replace(/[^a-z0-9]/g, ''); // Keep only alphanumeric
-        }
-        
-        function findMatchingModule(nodeId, label, moduleLookup, moduleKeys) {
-            const normalizedId = normalizeForMatch(nodeId);
-            const normalizedLabel = normalizeForMatch(label);
-            
-            // 1. Exact module key match
-            if (moduleKeys.has(nodeId)) {
-                return nodeId;
-            }
-            
-            // 2. Normalized ID match
-            if (moduleLookup[normalizedId]) {
-                return moduleLookup[normalizedId];
-            }
-            
-            // 3. Normalized label match  
-            if (moduleLookup[normalizedLabel]) {
-                return moduleLookup[normalizedLabel];
-            }
-            
-            // 4. Partial match - if label contains module name or vice versa
-            for (const [normName, moduleKey] of Object.entries(moduleLookup)) {
-                if (normalizedLabel.includes(normName) || normName.includes(normalizedLabel)) {
-                    if (normalizedLabel.length > 2 && normName.length > 2) { // Avoid tiny matches
-                        return moduleKey;
-                    }
-                }
-            }
-            
-            return null;
-        }
-        
-        // Runtime fuzzy match against all loaded modules
-        function findModuleByFuzzyMatch(nodeId, nodeText) {
-            const normalizedId = normalizeForMatch(nodeId);
-            const normalizedText = normalizeForMatch(nodeText);
-            
-            for (const [moduleKey, data] of Object.entries(moduleData)) {
-                if (moduleKey === 'overview') continue;
-                
-                const normalizedKey = normalizeForMatch(moduleKey);
-                const normalizedName = normalizeForMatch(data.name || '');
-                
-                // Exact matches
-                if (normalizedKey === normalizedId || normalizedKey === normalizedText) {
-                    return moduleKey;
-                }
-                if (normalizedName === normalizedId || normalizedName === normalizedText) {
-                    return moduleKey;
-                }
-                
-                // Partial matches (one contains the other)
-                if (normalizedText.length > 3 && normalizedKey.length > 3) {
-                    if (normalizedText.includes(normalizedKey) || normalizedKey.includes(normalizedText)) {
-                        return moduleKey;
-                    }
-                    if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
-                        return moduleKey;
-                    }
-                }
-            }
-            
-            return null;
         }
         
         function buildModulesFromTree(tree, parentPath) {
@@ -1070,10 +968,7 @@
                     targetModule = overviewLinks[nodeText];
                 }
                 
-                // 4. Real-time fuzzy match against all modules (fallback)
-                if (!targetModule) {
-                    targetModule = findModuleByFuzzyMatch(nodeId, nodeText);
-                }
+                // NO fuzzy matching - only exact matches from click statements or module keys
                 
                 // Check if target exists in moduleData
                 if (targetModule && moduleData[targetModule]) {

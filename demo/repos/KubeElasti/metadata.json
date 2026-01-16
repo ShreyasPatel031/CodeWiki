@@ -1,7 +1,7 @@
 {
     "generation_info": {
-        "timestamp": "2026-01-16T13:23:47.856771",
-        "main_model": "gemini-3-flash-preview",
+        "timestamp": "2026-01-16T20:52:10.990105",
+        "main_model": "gemini-2.5-flash",
         "generator_version": "1.0.0",
         "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
         "commit_id": null
@@ -15,6 +15,19 @@
         "overview.md",
         "module_tree.json",
         "first_module_tree.json",
-        "main.md"
+        "resolver.md",
+        "crddirectory.md",
+        "pkg.md",
+        "elastiserver.md",
+        "messages.md",
+        "informer.md",
+        "config.md",
+        "controller.md",
+        "scaling.md",
+        "throttler.md",
+        "operator.md",
+        "api_v1alpha1.md",
+        "k8shelper.md",
+        "logger.md"
     ]
 }

@@ -350,12 +350,28 @@ This is a quick overview generated from the module structure. Detailed documenta
         # Create repo structure with 1-depth children docs and target indicator
         repo_structure = self.build_overview_structure(module_tree, module_path, working_dir)
 
+        # Build list of available modules from the module tree
+        # This prevents the LLM from creating links to non-existent modules
+        def collect_module_keys(tree, prefix=""):
+            keys = []
+            for key, data in tree.items():
+                full_key = f"{prefix}/{key}" if prefix else key
+                keys.append(key)  # Just the key name (maps to key.md)
+                if data.get("children"):
+                    keys.extend(collect_module_keys(data["children"], full_key))
+            return keys
+        
+        available_modules = collect_module_keys(module_tree)
+        available_modules_str = ", ".join([f'"{m}.md"' for m in available_modules]) if available_modules else "(no sub-modules)"
+        logger.info(f"[STAGE 3] Available modules for linking: {available_modules_str}")
+
         prompt = MODULE_OVERVIEW_PROMPT.format(
             module_name=module_name,
             repo_structure=json.dumps(repo_structure, indent=4)
         ) if len(module_path) >= 1 else REPO_OVERVIEW_PROMPT.format(
             repo_name=module_name,
-            repo_structure=json.dumps(repo_structure, indent=4)
+            repo_structure=json.dumps(repo_structure, indent=4),
+            available_modules=available_modules_str
         )
         
         try:

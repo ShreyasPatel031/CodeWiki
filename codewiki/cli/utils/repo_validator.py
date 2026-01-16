@@ -18,6 +18,7 @@ SUPPORTED_EXTENSIONS = {
     '.jsx',     # JavaScript (React)
     '.ts',      # TypeScript
     '.tsx',     # TypeScript (React)
+    '.go',      # Go
     '.c',       # C
     '.h',       # C headers
     '.cpp',     # C++

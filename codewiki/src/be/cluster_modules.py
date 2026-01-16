@@ -212,7 +212,19 @@ def cluster_modules(
             logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (leaf module, no children)")
             return {}
         
-        # Root level: create single module structure
+        # Root level: Use directory-based splitting for better organization
+        # Even if token count is low, split by top-level directories for logical grouping
+        logger.info(f"[STAGE 2] Root level - using directory-based splitting for organization")
+        directory_modules = _create_directory_based_modules(leaf_nodes, components)
+        
+        if len(directory_modules) > 1:
+            logger.info(f"[STAGE 2] Directory-based split created {len(directory_modules)} modules")
+            for mod_name, mod_info in directory_modules.items():
+                logger.info(f"[STAGE 2]   - {mod_name}: {len(mod_info['components'])} components")
+            logger.info(f"[STAGE 2: MODULE CLUSTERING] COMPLETE in {cluster_duration:.1f}s (directory-based)")
+            return directory_modules
+        
+        # Fallback to single module if directory splitting didn't help
         repo_name = "main"
         single_module = {
             repo_name: {
