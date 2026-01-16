@@ -1,0 +1,20 @@
+{
+    "generation_info": {
+        "timestamp": "2026-01-16T13:23:47.856771",
+        "main_model": "gemini-3-flash-preview",
+        "generator_version": "1.0.0",
+        "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
+        "commit_id": null
+    },
+    "statistics": {
+        "total_components": 202,
+        "leaf_nodes": 36,
+        "max_depth": 10
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "main.md"
+    ]
+}

@@ -1,0 +1,40 @@
+{
+  "repo_name": "KubeElasti",
+  "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
+  "repo_size_mb": 448653.12109375,
+  "total_files": 0,
+  "total_code_files": 1,
+  "stages": {
+    "Dependency Analysis": {
+      "stage_name": "Dependency Analysis",
+      "duration": 0.10293102264404297,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Module Clustering": {
+      "stage_name": "Module Clustering",
+      "duration": 0.014186859130859375,
+      "tokens_used": 0,
+      "files_created": 0,
+      "files_created_list": []
+    },
+    "Documentation Generation": {
+      "stage_name": "Documentation Generation",
+      "duration": 23.361593008041382,
+      "tokens_used": 2245,
+      "files_created": 2,
+      "files_created_list": [
+        "overview.md",
+        "main.md"
+      ]
+    }
+  },
+  "time_to_first_overview": 23.49153709411621,
+  "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti/docs/overview.md",
+  "total_duration": 23.491599082946777,
+  "total_tokens": 2245,
+  "total_files_created": 2,
+  "start_time": 1768550004.365961,
+  "end_time": 1768550027.8575602
+}

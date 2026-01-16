@@ -638,7 +638,7 @@
             
             moduleData['overview'] = {
                 name: REPO_TITLE + ' Overview',
-                diagram: overviewDiagram,
+                diagram: stripClickStatements(overviewDiagram),
                 documentation: DOCS_CONTENT['overview.md'] || '# Overview\n\nNo overview available.',
                 links: overviewLinks
             };
@@ -652,8 +652,16 @@
                 const moduleId = parentPath ? `${parentPath}/${key}` : key;
                 const formattedName = formatModuleName(key);
                 
-                // Generate diagram for this module showing its children
-                const diagram = generateModuleDiagram(key, data);
+                // Try to find documentation file
+                const docFilename = `${key}.md`;
+                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
+                
+                // FIX: Extract diagram from markdown FIRST, then fallback to generated
+                const extractedDiagram = extractMermaidFromMarkdown(documentation);
+                const diagram = extractedDiagram || generateModuleDiagram(key, data);
+                
+                // Strip click statements to allow custom click handling
+                const cleanDiagram = diagram ? stripClickStatements(diagram) : diagram;
                 
                 // Build links for children
                 const links = {};
@@ -664,13 +672,9 @@
                     }
                 }
                 
-                // Try to find documentation file
-                const docFilename = `${key}.md`;
-                const documentation = DOCS_CONTENT[docFilename] || `# ${formattedName}\n\nNo documentation available.`;
-                
                 moduleData[key] = {
                     name: formattedName,
-                    diagram: diagram,
+                    diagram: cleanDiagram,
                     documentation: documentation,
                     links: links,
                     children: data.children || {}
@@ -810,6 +814,14 @@
             const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
             const match = mermaidRegex.exec(markdown);
             return match ? match[1].trim() : null;
+        }
+        
+        function stripClickStatements(diagram) {
+            // Strip out click statements to allow custom click handling
+            // Also strip :::className styling from node definitions (causes issues with subgraph insertion)
+            let cleaned = diagram.replace(/^\s*click\s+.+$/gm, '');
+            cleaned = cleaned.replace(/:::[a-zA-Z_][a-zA-Z0-9_]*/g, '');
+            return cleaned;
         }
 
         // Combine links from current module + all expanded modules
@@ -1004,48 +1016,47 @@
             const collapseNodeId = `${prefix}collapse`;
             
             // Get target module's diagram content
-            let subgraphContent = targetModule.diagram.trim().replace(/^graph\s+\w+\s*\n?/, '');
+            let subgraphContent = targetModule.diagram.trim().replace(/^(graph|flowchart)\s+\w+\s*\n?/, '');
             
-            // Prefix all node IDs to avoid conflicts
-            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z]+\d*)\b(?=\s*\[|\s*-->|-->\s*)/g)];
+            // Strip out styling statements that are incompatible with subgraphs
+            subgraphContent = subgraphContent.replace(/^\s*classDef\s+.+$/gm, '');
+            subgraphContent = subgraphContent.replace(/^\s*class\s+.+$/gm, '');
+            subgraphContent = subgraphContent.replace(/:::[a-zA-Z_][a-zA-Z0-9_]*/g, '');
+            
+            // Prefix all node IDs to avoid conflicts - match uppercase letter sequences possibly followed by numbers
+            const nodeIdMatches = [...subgraphContent.matchAll(/\b([A-Z][A-Za-z0-9_]*)\b(?=\s*\[|\s*--)/g)];
             const uniqueIds = [...new Set(nodeIdMatches.map(m => m[1]))];
             for (const oldId of uniqueIds) {
                 const newId = prefix + oldId;
                 subgraphContent = subgraphContent.replace(new RegExp(`\\b${oldId}\\b`, 'g'), newId);
             }
             
-            // Replace node definition with subgraph
-            const nodePattern = new RegExp(`(\\s*)${nodeId}\\["?[^"\\]]*"?\\]`, 'g');
-            const hasNodeDef = nodePattern.test(diagram);
-            
-            if (!hasNodeDef) {
-                console.log(`Node ${nodeId} definition not found`);
-                return diagram;
-            }
-            
-            // Build subgraph
+            // Build subgraph block
             const subgraphLines = subgraphContent.split('\n').filter(l => l.trim());
             const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
-            const subgraphDef = `\n    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end\n`;
+            const subgraphDef = `    subgraph ${subgraphName} ["${originalLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
             
-            // Replace node with subgraph - ensure newlines around the subgraph
+            // STEP 1: Remove the node DEFINITION (the [label] part) but keep the node ID for edges
+            // This handles both standalone definitions and inline definitions in edges
+            // Pattern: nodeId[anything] or nodeId["anything"] optionally with :::class
             let newDiagram = diagram.replace(
-                new RegExp(`\\s*${nodeId}\\["?[^"\\]]*"?\\]\\s*`),
-                subgraphDef
+                new RegExp(`${nodeId}\\[[^\\]]+\\](?:::[a-zA-Z_][a-zA-Z0-9_]*)?`, 'g'),
+                nodeId
             );
             
-            // Update edges to point to subgraph
+            // STEP 2: Update all edge references from nodeId to subgraphName
+            // Match nodeId only when not followed by underscore (to avoid matching prefixed nodes)
             newDiagram = newDiagram.replace(
-                new RegExp(`(-->\\s*)${nodeId}(?!_)`, 'g'),
-                `$1${subgraphName}`
+                new RegExp(`\\b${nodeId}\\b(?!_)`, 'g'),
+                subgraphName
             );
-            newDiagram = newDiagram.replace(
-                new RegExp(`${nodeId}(?!_)(\\s*-->)`, 'g'),
-                `${subgraphName}$1`
-            );
+            
+            // STEP 3: Add subgraph definition at the end
+            // Insert before any trailing whitespace
+            newDiagram = newDiagram.trimEnd() + '\n\n' + subgraphDef + '\n';
             
             // Ensure graph declaration
-            if (!newDiagram.trim().startsWith('graph')) {
+            if (!newDiagram.trim().startsWith('graph') && !newDiagram.trim().startsWith('flowchart')) {
                 newDiagram = 'graph TD\n' + newDiagram;
             }
             

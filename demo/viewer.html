@@ -336,23 +336,72 @@
             stroke: inherit !important;
         }
         
+        /* Selection styling - light grey border */
         .selected-node rect,
         .selected-node circle,
         .selected-node polygon,
         .selected-node path,
         .selected-node ellipse {
-            stroke: #10b981 !important;
+            stroke: #94a3b8 !important;
             stroke-width: 4px !important;
+            fill: #f1f5f9 !important;
         }
         
-        .selected-subgraph {
-            stroke: #10b981 !important;
+        .selected-subgraph > rect,
+        .selected-subgraph > .cluster-label rect,
+        svg g.selected-subgraph > rect {
+            stroke: #94a3b8 !important;
             stroke-width: 3px !important;
+            fill: rgba(148, 163, 184, 0.1) !important;
         }
         
         .selected-subgraph .flowchart-labelBox {
-            stroke: #10b981 !important;
+            stroke: #94a3b8 !important;
             stroke-width: 3px !important;
+        }
+        
+        /* Breadcrumb navigation */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            color: #64748b;
+            flex-shrink: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .breadcrumb-link {
+            color: #2563eb;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        
+        .breadcrumb-link:hover {
+            background: #e0e7ff;
+        }
+        
+        .breadcrumb-current {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .breadcrumb-separator {
+            color: #cbd5e1;
+            font-size: 10px;
         }
 
         .collapse-button rect,
@@ -390,6 +439,11 @@
             
     <div class="container">
         <div class="diagram-pane">
+            <div class="breadcrumb" id="breadcrumb">
+                <span class="breadcrumb-item">
+                    <span class="breadcrumb-current" id="breadcrumbRoot">Loading...</span>
+                </span>
+            </div>
             <div class="zoom-controls">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
@@ -432,6 +486,8 @@
         let navigationHistory = [];
         let expandedNodes = new Set();
         let currentModuleId = 'overview';
+        let selectedModuleId = null;  // Currently selected module
+        let selectionPath = [];       // Breadcrumb path: [{id, name}, ...]
         
         // Initialize mermaid
         mermaid.initialize({
@@ -530,6 +586,46 @@
             return cleaned;
         }
         
+        // Sanitize Mermaid diagram to fix common issues that break rendering
+        function sanitizeMermaidDiagram(diagram) {
+            if (!diagram) return diagram;
+            
+            let sanitized = diagram;
+            
+            // Fix 1: Edge labels like |1. Something| get misinterpreted as markdown list
+            // Remove the number prefix from edge labels to prevent markdown interpretation
+            sanitized = sanitized.replace(/\|(\d+)\.\s*([^|]+)\|/g, (match, num, text) => {
+                // Remove "1. " prefix, keep just the text
+                return `|${text.trim()}|`;
+            });
+            
+            // Fix 2: Any remaining edge labels with problematic characters - wrap in quotes
+            sanitized = sanitized.replace(/\|([^|"]+)\|/g, (match, content) => {
+                // If content has special chars, wrap in quotes
+                if (/[.:\-><]/.test(content)) {
+                    return `|"${content.trim()}"|`;
+                }
+                return match;
+            });
+            
+            // Fix 3: Subgraph names with spaces need quotes
+            sanitized = sanitized.replace(/subgraph\s+([^"[\n]+)$/gm, (match, name) => {
+                const trimmed = name.trim();
+                if (trimmed && !trimmed.startsWith('"') && trimmed.includes(' ')) {
+                    return `subgraph "${trimmed}"`;
+                }
+                return match;
+            });
+            
+            // Fix 4: Remove any HTML-like tags that might break rendering
+            sanitized = sanitized.replace(/<[^>]+>/g, '');
+            
+            // Fix 5: Escape backticks inside labels
+            sanitized = sanitized.replace(/\["([^"]*)`([^"]*)"]/g, '["$1\'$2"]');
+            
+            return sanitized;
+        }
+        
         function generateModuleDiagram(key, data) {
             if (!data.children || Object.keys(data.children).length === 0) {
                 return '';
@@ -556,8 +652,11 @@
             const overviewContent = DOCS_CONTENT['overview.md'] || '';
             const overviewDiagram = extractMermaidFromMarkdown(overviewContent);
             
+            // FIRST: Build module data from tree so we have all modules available
+            buildModulesFromTree(MODULE_TREE, '');
+            
             if (overviewDiagram) {
-                // Parse click statements to build node-to-module mappings
+                // Parse click statements to build node-to-module mappings (legacy support)
                 const clickRegex = /click\s+(\w+)\s+"([^"]+)"/g;
                 let match;
                 while ((match = clickRegex.exec(overviewDiagram)) !== null) {
@@ -576,6 +675,9 @@
                         overviewLinks[label] = overviewLinks[nodeId];
                     }
                 }
+                
+                // NEW: Auto-map diagram nodes to modules WITHOUT requiring click statements
+                buildAutoNodeMappings(overviewDiagram);
             }
             
             moduleData['overview'] = {
@@ -584,9 +686,143 @@
                 documentation: overviewContent || '# Overview\n\nNo overview available.',
                 links: overviewLinks
             };
+        }
+        
+        // Build automatic node-to-module mappings by matching diagram nodes to module tree
+        function buildAutoNodeMappings(diagram) {
+            // Build lookup maps from module tree
+            const moduleLookup = {}; // normalized name -> module key
+            const moduleKeys = new Set();
+            let allModuleKeys = []; // Flat list of all module keys
             
-            // Build module data from tree
-            buildModulesFromTree(MODULE_TREE, '');
+            function addModuleLookups(tree) {
+                for (const [key, data] of Object.entries(tree)) {
+                    moduleKeys.add(key);
+                    allModuleKeys.push(key);
+                    const normalized = normalizeForMatch(key);
+                    moduleLookup[normalized] = key;
+                    
+                    // Also add formatted name variations
+                    const formatted = formatModuleName(key);
+                    moduleLookup[normalizeForMatch(formatted)] = key;
+                    
+                    // Add component-based lookups (first part of component path)
+                    if (data.components) {
+                        for (const comp of data.components) {
+                            const parts = comp.split('.');
+                            if (parts.length > 0) {
+                                moduleLookup[normalizeForMatch(parts[0])] = key;
+                            }
+                        }
+                    }
+                    
+                    if (data.children) {
+                        addModuleLookups(data.children);
+                    }
+                }
+            }
+            
+            addModuleLookups(MODULE_TREE);
+            
+            // Parse all node definitions from diagram
+            const nodeDefRegex = /(\w+)\s*\[["']?([^\]"']+)["']?\]/g;
+            let match;
+            while ((match = nodeDefRegex.exec(diagram)) !== null) {
+                const nodeId = match[1];
+                const label = match[2];
+                
+                // Skip if already mapped
+                if (overviewLinks[nodeId]) continue;
+                
+                // Try to find a matching module
+                let targetModule = findMatchingModule(nodeId, label, moduleLookup, moduleKeys);
+                if (targetModule) {
+                    overviewLinks[nodeId] = targetModule;
+                    overviewLinks[label] = targetModule;
+                }
+            }
+            
+            // Also check for nodes defined without labels: NodeId or NodeId[NodeId]
+            const simpleNodeRegex = /^\s*(\w+)(?:\s*-->|\s*$)/gm;
+            while ((match = simpleNodeRegex.exec(diagram)) !== null) {
+                const nodeId = match[1];
+                if (overviewLinks[nodeId]) continue;
+                
+                let targetModule = findMatchingModule(nodeId, nodeId, moduleLookup, moduleKeys);
+                if (targetModule) {
+                    overviewLinks[nodeId] = targetModule;
+                }
+            }
+        }
+        
+        function normalizeForMatch(str) {
+            return str.toLowerCase()
+                .replace(/[_\-\s]+/g, '')  // Remove separators
+                .replace(/[^a-z0-9]/g, ''); // Keep only alphanumeric
+        }
+        
+        function findMatchingModule(nodeId, label, moduleLookup, moduleKeys) {
+            const normalizedId = normalizeForMatch(nodeId);
+            const normalizedLabel = normalizeForMatch(label);
+            
+            // 1. Exact module key match
+            if (moduleKeys.has(nodeId)) {
+                return nodeId;
+            }
+            
+            // 2. Normalized ID match
+            if (moduleLookup[normalizedId]) {
+                return moduleLookup[normalizedId];
+            }
+            
+            // 3. Normalized label match  
+            if (moduleLookup[normalizedLabel]) {
+                return moduleLookup[normalizedLabel];
+            }
+            
+            // 4. Partial match - if label contains module name or vice versa
+            for (const [normName, moduleKey] of Object.entries(moduleLookup)) {
+                if (normalizedLabel.includes(normName) || normName.includes(normalizedLabel)) {
+                    if (normalizedLabel.length > 2 && normName.length > 2) { // Avoid tiny matches
+                        return moduleKey;
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        // Runtime fuzzy match against all loaded modules
+        function findModuleByFuzzyMatch(nodeId, nodeText) {
+            const normalizedId = normalizeForMatch(nodeId);
+            const normalizedText = normalizeForMatch(nodeText);
+            
+            for (const [moduleKey, data] of Object.entries(moduleData)) {
+                if (moduleKey === 'overview') continue;
+                
+                const normalizedKey = normalizeForMatch(moduleKey);
+                const normalizedName = normalizeForMatch(data.name || '');
+                
+                // Exact matches
+                if (normalizedKey === normalizedId || normalizedKey === normalizedText) {
+                    return moduleKey;
+                }
+                if (normalizedName === normalizedId || normalizedName === normalizedText) {
+                    return moduleKey;
+                }
+                
+                // Partial matches (one contains the other)
+                if (normalizedText.length > 3 && normalizedKey.length > 3) {
+                    if (normalizedText.includes(normalizedKey) || normalizedKey.includes(normalizedText)) {
+                        return moduleKey;
+                    }
+                    if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
+                        return moduleKey;
+                    }
+                }
+            }
+            
+            return null;
         }
         
         function buildModulesFromTree(tree, parentPath) {
@@ -649,17 +885,28 @@
                 return;
             }
             
+            // Sanitize diagram to fix common Mermaid parsing issues
+            const sanitizedCode = sanitizeMermaidDiagram(code);
+            
             try {
                 container.innerHTML = '';
                 const id = 'mermaid-' + Date.now();
-                const { svg } = await mermaid.render(id, code);
+                const { svg } = await mermaid.render(id, sanitizedCode);
                 container.innerHTML = svg;
                 
                 // Process nodes to make them clickable
                 setTimeout(() => processNodes(links, moduleId), 100);
             } catch (err) {
                 console.error('Mermaid render error:', err);
-                container.innerHTML = `<div class="error">Error rendering diagram.<br>${err.message}</div>`;
+                // Try rendering without sanitization as fallback
+                try {
+                    const id2 = 'mermaid-fallback-' + Date.now();
+                    const { svg } = await mermaid.render(id2, code);
+                    container.innerHTML = svg;
+                    setTimeout(() => processNodes(links, moduleId), 100);
+                } catch (err2) {
+                    container.innerHTML = `<div class="error">Error rendering diagram.<br>${err2.message}</div>`;
+                }
             }
         }
         
@@ -676,6 +923,101 @@
             });
             
             docEl.innerHTML = marked.parse(linkedContent);
+        }
+        
+        // ============================================================
+        // SELECTION & BREADCRUMB
+        // ============================================================
+        
+        function updateSelection(moduleId, nodeId = null) {
+            selectedModuleId = moduleId;
+            
+            // Build selection path
+            selectionPath = [{id: 'overview', name: REPO_TITLE}];
+            
+            if (moduleId && moduleId !== 'overview') {
+                const mod = moduleData[moduleId];
+                if (mod) {
+                    selectionPath.push({id: moduleId, name: mod.name});
+                }
+            }
+            
+            // Update breadcrumb UI
+            updateBreadcrumb();
+            
+            // Update selection highlighting in diagram
+            updateSelectionHighlight(nodeId);
+            
+            // Update documentation
+            if (moduleId && moduleData[moduleId]) {
+                renderDocumentation(moduleData[moduleId].documentation);
+                document.getElementById('moduleTitle').textContent = moduleData[moduleId].name;
+            }
+        }
+        
+        function updateBreadcrumb() {
+            const breadcrumbEl = document.getElementById('breadcrumb');
+            if (!breadcrumbEl) return;
+            
+            let html = '';
+            selectionPath.forEach((item, index) => {
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator">›</span>';
+                }
+                
+                if (index === selectionPath.length - 1) {
+                    // Current item (not clickable)
+                    html += `<span class="breadcrumb-item"><span class="breadcrumb-current">${item.name}</span></span>`;
+                } else {
+                    // Clickable parent
+                    html += `<span class="breadcrumb-item"><a class="breadcrumb-link" onclick="navigateToBreadcrumb('${item.id}')">${item.name}</a></span>`;
+                }
+            });
+            
+            breadcrumbEl.innerHTML = html;
+        }
+        
+        function navigateToBreadcrumb(moduleId) {
+            if (moduleId === 'overview') {
+                // Go back to overview
+                expandedNodes.clear();
+                currentDiagramCode = baseDiagramCode;
+                currentModuleId = 'overview';
+                updateSelection('overview');
+                renderDiagram(currentDiagramCode, overviewLinks, 'overview');
+            } else {
+                updateSelection(moduleId);
+            }
+        }
+        
+        function updateSelectionHighlight(nodeId) {
+            const svg = document.querySelector('#mermaid-diagram svg');
+            if (!svg) return;
+            
+            // Remove existing selection classes
+            svg.querySelectorAll('.selected-node, .selected-subgraph').forEach(el => {
+                el.classList.remove('selected-node', 'selected-subgraph');
+            });
+            
+            if (!nodeId) return;
+            
+            // Find and highlight the subgraph for this node
+            const subgraphId = `${nodeId}_sub`;
+            
+            // Try to find subgraph by various ID patterns
+            const subgraph = svg.querySelector(`g[id*="${subgraphId}"], g.cluster[id*="${nodeId}"]`);
+            if (subgraph) {
+                subgraph.classList.add('selected-subgraph');
+            }
+            
+            // Also highlight the node itself if visible
+            const nodes = svg.querySelectorAll('.node');
+            nodes.forEach(node => {
+                const id = node.id?.replace(/^flowchart-/, '').split('-')[0] || '';
+                if (id === nodeId || id === subgraphId) {
+                    node.classList.add('selected-node');
+                }
+            });
         }
         
         // ============================================================
@@ -708,23 +1050,29 @@
                 // Try to find target module by various methods
                 let targetModule = null;
                 
-                // 1. Direct ID match in overviewLinks (from click statements)
-                // Only for non-prefixed nodes (top-level overview nodes)
-                if (!nodeId.includes('_') && overviewLinks[nodeId]) {
-                    targetModule = overviewLinks[nodeId];
-                }
-                // 2. For prefixed nodes (inside subgraphs), skip - they're already expanded content
-                else if (nodeId.includes('_')) {
+                // Skip prefixed nodes (inside subgraphs) - they're already expanded content
+                if (nodeId.includes('_')) {
                     return;
                 }
                 
-                // 3. Context links (from current module's diagram)
+                // 1. Direct ID match in overviewLinks (from click statements or auto-mapping)
+                if (overviewLinks[nodeId]) {
+                    targetModule = overviewLinks[nodeId];
+                }
+                
+                // 2. Context links (from current module's diagram)
                 if (!targetModule && links[nodeText]) {
                     targetModule = links[nodeText];
                 }
-                // 4. overviewLinks by label (only for top-level)
+                
+                // 3. overviewLinks by label
                 if (!targetModule && overviewLinks[nodeText]) {
                     targetModule = overviewLinks[nodeText];
+                }
+                
+                // 4. Real-time fuzzy match against all modules (fallback)
+                if (!targetModule) {
+                    targetModule = findModuleByFuzzyMatch(nodeId, nodeText);
                 }
                 
                 // Check if target exists in moduleData
@@ -769,17 +1117,22 @@
         
         function expandNodeInline(nodeId, targetModuleId) {
             const targetModule = moduleData[targetModuleId];
-            if (!targetModule || !targetModule.diagram) return;
+            if (!targetModule) return;
             
-            const newDiagram = applyExpansionToDiagram(currentDiagramCode, nodeId, targetModuleId, targetModule.name);
-            if (newDiagram !== currentDiagramCode) {
-                expandedNodes.add(nodeId);
-                currentDiagramCode = newDiagram;
-                renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
-                
-                // Update documentation
-                renderDocumentation(targetModule.documentation);
-                document.getElementById('moduleTitle').textContent = targetModule.name;
+            // Update selection (this updates breadcrumb and documentation)
+            updateSelection(targetModuleId, nodeId);
+            
+            // Try to expand diagram if module has one
+            if (targetModule.diagram && targetModule.diagram.trim()) {
+                const newDiagram = applyExpansionToDiagram(currentDiagramCode, nodeId, targetModuleId, targetModule.name);
+                if (newDiagram !== currentDiagramCode) {
+                    expandedNodes.add(nodeId);
+                    currentDiagramCode = newDiagram;
+                    renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
+                    
+                    // Re-apply selection highlight after re-render
+                    setTimeout(() => updateSelectionHighlight(nodeId), 150);
+                }
             }
         }
         
@@ -822,30 +1175,66 @@
             const indentedContent = subgraphLines.map(l => '        ' + l.trim()).join('\n');
             const subgraphDef = `subgraph ${subgraphName} ["${nodeLabel}"]\n${indentedContent}\n        ${collapseNodeId}["[-] Collapse"]\n    end`;
             
-            // Find and replace the node definition WITH the subgraph (in-place replacement)
-            // This keeps the subgraph in the same location as the original node
-            // Pattern matches: nodeId["label"] or nodeId[label]
-            const nodeDefPattern = new RegExp(`(^|\\n)(\\s*)${nodeId}\\[[^\\]]+\\]`, 'm');
-            const nodeDefMatch = diagram.match(nodeDefPattern);
+            // STEP 1: Normalize diagram - extract inline node definitions to separate lines
+            // Handles: A[Label] --> B[Label] or A -->|text| B[Label]
+            let normalizedDiagram = diagram;
+            
+            // First, strip inline node definitions from edge lines
+            // Pattern: NodeId[Label] in context of an edge (has --> or -- on same line)
+            normalizedDiagram = normalizedDiagram.replace(
+                new RegExp(`(\\s+)${nodeId}\\[[^\\]]+\\](\\s*)(-->|--[^>])`, 'g'),
+                `$1${nodeId}$2$3`
+            );
+            normalizedDiagram = normalizedDiagram.replace(
+                new RegExp(`(-->|\\|[^|]*\\|)\\s*${nodeId}\\[[^\\]]+\\]`, 'g'),
+                `$1 ${nodeId}`
+            );
+            
+            // STEP 2: Check if the node is defined standalone (on its own line or in a subgraph)
+            // Pattern 1: nodeId["label"] or nodeId[label] on its own line
+            const standaloneWithLabelPattern = new RegExp(`(^|\\n)(\\s*)${nodeId}\\[[^\\]]+\\]\\s*$`, 'm');
+            const standaloneWithLabelMatch = normalizedDiagram.match(standaloneWithLabelPattern);
+            
+            // Pattern 2: Plain nodeId on its own line (inside a subgraph typically)
+            const standalonePlainPattern = new RegExp(`(^|\\n)(\\s*)${nodeId}\\s*$`, 'm');
+            const standalonePlainMatch = normalizedDiagram.match(standalonePlainPattern);
             
             let newDiagram;
-            if (nodeDefMatch) {
-                // Replace node definition in-place with the subgraph
-                const indent = nodeDefMatch[2] || '    ';
+            if (standaloneWithLabelMatch) {
+                // Replace standalone node definition (with label) with the subgraph
+                const indent = standaloneWithLabelMatch[2] || '    ';
                 const indentedSubgraph = subgraphDef.split('\n').map((line, i) => i === 0 ? indent + line : indent + line).join('\n');
-                newDiagram = diagram.replace(nodeDefPattern, `$1${indentedSubgraph}`);
+                newDiagram = normalizedDiagram.replace(standaloneWithLabelPattern, `$1${indentedSubgraph}`);
+            } else if (standalonePlainMatch) {
+                // Replace plain node reference (inside subgraph) with the subgraph
+                const indent = standalonePlainMatch[2] || '        ';
+                const indentedSubgraph = subgraphDef.split('\n').map((line, i) => i === 0 ? indent + line : indent + line).join('\n');
+                newDiagram = normalizedDiagram.replace(standalonePlainPattern, `$1${indentedSubgraph}`);
             } else {
-                // Fallback: append at end if node definition not found
-                newDiagram = diagram.trimEnd() + '\n    ' + subgraphDef + '\n';
+                // Node is only referenced in edges, add subgraph after the graph header
+                const headerMatch = normalizedDiagram.match(/^(graph|flowchart)\s+\w+\s*\n/);
+                if (headerMatch) {
+                    const insertPos = headerMatch.index + headerMatch[0].length;
+                    newDiagram = normalizedDiagram.slice(0, insertPos) + 
+                                 '    ' + subgraphDef + '\n' + 
+                                 normalizedDiagram.slice(insertPos);
+                } else {
+                    // Fallback: append at end
+                    newDiagram = normalizedDiagram.trimEnd() + '\n    ' + subgraphDef + '\n';
+                }
             }
             
-            // Update edge references: any edge to/from nodeId should go to the subgraph
+            // STEP 3: Update edge references - any edge to/from nodeId should go to the subgraph
+            // Use word boundaries to avoid matching nodeId inside prefixed node names (e.g., Resolver_Resolver)
+            
             // Handle simple edges: A --> B, B --> A
-            newDiagram = newDiagram.replace(new RegExp(`-->\\s*${nodeId}(?![_\\w])`, 'g'), `--> ${subgraphName}`);
-            newDiagram = newDiagram.replace(new RegExp(`${nodeId}(?![_\\w])\\s*-->`, 'g'), `${subgraphName} -->`);
-            // Handle labeled edges: A -- "label" --> B, B -- "label" --> A
-            newDiagram = newDiagram.replace(new RegExp(`${nodeId}(?![_\\w])\\s*--`, 'g'), `${subgraphName} --`);
-            newDiagram = newDiagram.replace(new RegExp(`-->\\s*${nodeId}(?![_\\w])`, 'g'), `--> ${subgraphName}`);
+            newDiagram = newDiagram.replace(new RegExp(`-->\\s*\\b${nodeId}\\b`, 'g'), `--> ${subgraphName}`);
+            newDiagram = newDiagram.replace(new RegExp(`\\b${nodeId}\\b\\s*-->`, 'g'), `${subgraphName} -->`);
+            // Handle labeled edges with pipe syntax: A -->|label| B
+            newDiagram = newDiagram.replace(new RegExp(`\\|\\s*\\b${nodeId}\\b`, 'g'), `| ${subgraphName}`);
+            newDiagram = newDiagram.replace(new RegExp(`\\b${nodeId}\\b\\s*\\|`, 'g'), `${subgraphName} |`);
+            // Handle labeled edges with dash syntax: A -- "label" --> B
+            newDiagram = newDiagram.replace(new RegExp(`\\b${nodeId}\\b\\s*--(?!>)`, 'g'), `${subgraphName} --`);
             
             return newDiagram;
         }
@@ -905,8 +1294,7 @@
         function selectNode(nodeId, moduleId) {
             if (!moduleData[moduleId]) return;
             
-            document.getElementById('moduleTitle').textContent = moduleData[moduleId].name;
-            renderDocumentation(moduleData[moduleId].documentation);
+            updateSelection(moduleId, nodeId);
         }
         
         function goBack() {
@@ -918,20 +1306,17 @@
                 expandedNodes = prev.expanded;
                 baseDiagramCode = moduleData[currentModuleId]?.diagram || '';
                 
-                document.getElementById('moduleTitle').textContent = moduleData[currentModuleId]?.name || REPO_TITLE;
-                
+                updateSelection(currentModuleId);
                 renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
-                renderDocumentation(moduleData[currentModuleId]?.documentation || '');
                 return;
             }
             
-            // If on overview with expanded nodes, collapse all
+            // If on overview with expanded nodes, collapse all and reset selection
             if (expandedNodes.size > 0) {
                 expandedNodes.clear();
                 currentDiagramCode = baseDiagramCode;
-                document.getElementById('moduleTitle').textContent = moduleData['overview']?.name || REPO_TITLE + ' Overview';
+                updateSelection('overview');
                 renderDiagram(currentDiagramCode, overviewLinks, 'overview');
-                renderDocumentation(moduleData['overview']?.documentation || '');
                 return;
             }
             
@@ -1189,8 +1574,10 @@
             baseDiagramCode = moduleData['overview']?.diagram || '';
             currentDiagramCode = baseDiagramCode;
             
+            // Initialize selection and breadcrumb
+            updateSelection('overview');
+            
             renderDiagram(currentDiagramCode, overviewLinks, 'overview');
-            renderDocumentation(moduleData['overview']?.documentation || '');
         }
         
         // Start

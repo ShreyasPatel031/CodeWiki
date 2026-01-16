@@ -438,3 +438,4 @@ if __name__ == "__main__":
         print("Usage: python test_diagram_format.py <path_to_markdown>")
         print("Or run with pytest: python -m pytest tests/test_diagram_format.py -v")
 
+
