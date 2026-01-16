@@ -1,55 +1,55 @@
 {
-    "operator": {
-        "path": "operator",
-        "components": [
-            "operator.internal.informer.informer.KeyParams",
-            "operator.api.v1alpha1.elastiservice_types.ElastiService",
-            "operator.internal.informer.informer.RequestWatch",
-            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler",
-            "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
-            "operator.internal.crddirectory.directory.CRDDetails",
-            "operator.internal.controller.opsInformer.updateObjInfo",
-            "operator.internal.crddirectory.directory.Directory",
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec",
-            "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
-            "operator.internal.elastiserver.elastiServer.Server",
-            "operator.api.v1alpha1.elastiservice_types.ScaleTrigger",
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceList"
-        ],
-        "children": {}
-    },
     "resolver": {
         "path": "resolver",
         "components": [
-            "resolver.internal.throttler.semaphore.semaphore",
             "resolver.internal.handler.handler.QueueStatusResponse",
-            "resolver.internal.handler.handler.HostManager",
-            "resolver.internal.throttler.throttler.Params",
+            "resolver.internal.handler.writer.responseWriter",
+            "resolver.internal.handler.handler.Response",
             "resolver.internal.operator.RPCClient.Client",
-            "resolver.internal.handler.handler.bufferPool",
             "resolver.internal.throttler.breaker.Breaker",
             "resolver.cmd.main.config",
+            "resolver.internal.throttler.breaker.BreakerParams",
+            "resolver.internal.handler.handler.HostManager",
+            "resolver.internal.throttler.semaphore.semaphore",
             "resolver.internal.hostmanager.hostManager.HostManager",
-            "resolver.internal.handler.handler.Response",
-            "resolver.internal.handler.writer.responseWriter",
-            "resolver.internal.throttler.breaker.BreakerParams"
+            "resolver.internal.handler.handler.bufferPool",
+            "resolver.internal.throttler.throttler.Params"
         ],
         "children": {}
     },
     "pkg": {
         "path": "pkg",
         "components": [
-            "pkg.config.config.Config",
             "pkg.scaling.scalers.scaler.Scaler",
-            "pkg.config.config.ResolverConfig",
-            "pkg.k8shelper.ops.Ops",
-            "pkg.messages.host.Host",
             "pkg.scaling.scale_handler.ScaleHandler",
-            "pkg.messages.operator.RequestCount",
+            "pkg.messages.host.Host",
+            "pkg.config.config.ResolverConfig",
             "pkg.logger.logger.CustomCore",
+            "pkg.config.config.Config",
             "pkg.scaling.scalers.prometheus_scaler.prometheusMetadata",
+            "pkg.messages.operator.RequestCount",
+            "pkg.k8shelper.ops.Ops",
             "pkg.scaling.scalers.prometheus_scaler.prometheusScaler"
+        ],
+        "children": {}
+    },
+    "operator": {
+        "path": "operator",
+        "components": [
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec",
+            "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
+            "operator.internal.elastiserver.elastiServer.Server",
+            "operator.api.v1alpha1.elastiservice_types.ElastiService",
+            "operator.internal.crddirectory.directory.Directory",
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceList",
+            "operator.internal.informer.informer.RequestWatch",
+            "operator.internal.crddirectory.directory.CRDDetails",
+            "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
+            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler",
+            "operator.internal.controller.opsInformer.updateObjInfo",
+            "operator.internal.informer.informer.KeyParams",
+            "operator.api.v1alpha1.elastiservice_types.ScaleTrigger"
         ],
         "children": {}
     }

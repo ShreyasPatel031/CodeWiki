@@ -2,66 +2,64 @@
 
 ## Introduction
 
-The `controller` module in the `operator` package is a crucial component responsible for reconciling `ElastiService` custom resources within a Kubernetes cluster. It observes changes in `ElastiService` objects and their dependent resources, then takes necessary actions to align the actual state of the system with the desired state defined in the `ElastiService` specification. This module leverages Kubernetes informers for efficient change detection and integrates with a scaling handler to manage the dynamic scaling of target resources.
+The `controller` module, located within `operator/internal/controller`, is a critical component of the operator responsible for reconciling `ElastiService` custom resources. It acts as the brain of the operator, observing changes in the Kubernetes cluster related to `ElastiService` objects and taking appropriate actions to ensure the desired state matches the actual state. This module orchestrates scaling operations, manages informers, and maintains the lifecycle of `ElastiService` instances.
 
-## Core Components
+## Core Functionality
 
-### 1. `ElastiServiceReconciler`
+### ElastiServiceReconciler
 
-The `ElastiServiceReconciler` is the heart of the `controller` module. It implements the `Reconciler` interface for the `ElastiService` custom resource, ensuring its lifecycle management and desired state enforcement. Its primary function involves continuously watching for `ElastiService` resource events (create, update, delete) and orchestrating the necessary actions to bring the cluster's state into alignment with the `ElastiService` definition.
+The `ElastiServiceReconciler` is the primary component within this module, implementing the `Reconciler` interface from `controller-runtime`. Its main responsibilities include:
 
-**Key Fields and Dependencies:**
+*   **Reconciling ElastiService Resources**: Watches for create, update, and delete events for `ElastiService` custom resources and triggers reconciliation loops.
+*   **Managing Scaling Operations**: Interacts with the `ScaleHandler` to initiate scaling up or down of associated workloads based on the `ElastiService`'s scaling policies.
+*   **Informer Management**: Utilizes an `InformerManager` to set up and manage informers for various Kubernetes resources, allowing the controller to efficiently track changes.
+*   **State Management**: Uses `SwitchModeLocks`, `InformerStartLocks`, and `ReconcileLocks` to handle concurrent operations and prevent race conditions during reconciliation and mode switching.
+*   **Logging**: Employs a `zap.Logger` for structured logging, providing insights into the reconciliation process.
 
-*   **`client.Client`**: A Kubernetes API client used for performing CRUD (Create, Read, Update, Delete) operations on Kubernetes resources within the cluster.
-*   **`Scheme`**: An instance of `*kRuntime.Scheme` that provides a mapping between Kubernetes API group/version/kind and Go types, facilitating object serialization and deserialization.
-*   **`Logger`**: A `*zap.Logger` instance for structured logging of events, errors, and debugging information throughout the reconciliation process.
-*   **`InformerManager`**: An instance of `informer.Manager` responsible for managing Kubernetes informers. This component is essential for efficiently watching Kubernetes resources and receiving event notifications. For a deeper understanding, refer to the [informer documentation](informer.md).
-*   **`SwitchModeLocks`, `InformerStartLocks`, `ReconcileLocks`**: These are `sync.Map` instances used for robust concurrency control. They ensure that critical operations such as switching modes for an `ElastiService`, starting informers for specific resources, or reconciling a particular `ElastiService` instance are properly synchronized. This prevents race conditions and maintains data integrity in a multi-threaded environment.
-*   **`ScaleHandler`**: An instance of `scaling.ScaleHandler` (from the `pkg` module) responsible for executing scaling operations based on the `ElastiService` configuration. This component interacts with various scalers to dynamically adjust the replica count of target resources. For more details, refer to the [pkg documentation](pkg.md).
+### updateObjInfo
 
-**Reconciliation Workflow:**
+The `updateObjInfo` struct is a data container used to hold relevant information about an object during updates or reconciliation. It encapsulates key details necessary for processing changes, such as:
 
-The `ElastiServiceReconciler` follows a standard Kubernetes reconciliation loop:
-1.  **Event Detection**: Watches for changes in `ElastiService` custom resources and their associated Kubernetes objects.
-2.  **Resource Fetching**: Retrieves the latest state of the `ElastiService` and any dependent resources (e.g., Deployments, StatefulSets).
-3.  **State Comparison**: Compares the current actual state with the desired state defined in the `ElastiService`'s `spec`.
-4.  **Action Execution**: Performs necessary operations to achieve the desired state, which may include:
-    *   Creating, updating, or deleting underlying Kubernetes resources.
-    *   Configuring and managing autoscaling logic based on `AutoscalerSpec` and `ScaleTrigger` definitions in the `ElastiService`.
-    *   Updating the `ElastiServiceStatus` to reflect the current operational state and any encountered conditions.
-
-### 2. `updateObjInfo`
-
-The `updateObjInfo` struct is an internal helper component used within the `controller` module, primarily during the reconciliation process. It serves to encapsulate and temporarily hold relevant information about a Kubernetes object when it's being updated or processed. This struct simplifies the passing of key object details between different functions or stages of the reconciliation, particularly when dealing with scaling decisions or status updates.
-
-**Fields:**
-
-*   **`specReplicas`**: The desired number of replicas as specified in the object's `.spec`.
-*   **`statusReplicas`**: The current number of replicas as reported in the object's `.status`.
-*   **`selector`**: A map of labels typically used to select associated pods or other child resources.
-*   **`namespace`**: The Kubernetes namespace where the object resides.
-*   **`name`**: The name of the Kubernetes object.
+*   `specReplicas`: The number of replicas desired in the specification.
+*   `statusReplicas`: The current number of replicas reported in the status.
+*   `selector`: A map of labels used to select associated pods or resources.
+*   `namespace`: The namespace of the object.
+*   `name`: The name of the object.
 
 ## Architecture and Component Relationships
 
-The following diagram illustrates the high-level architecture of the `controller` module and its interactions with other components within the `operator` system and the broader Kubernetes environment.
+The `ElastiServiceReconciler` is at the heart of the controller's operations, interacting with several key components and modules:
 
 ```mermaid
 graph TD
-    A[Kubernetes API Server] --> B(ElastiService Events)
-    B --> C{ElastiServiceReconciler}
-    C -- "Uses" --> D[Client: K8s API Operations]
-    C -- "Manages CRD" --> K[ElastiService CRD]
-    C -- "Leverages" --> E[InformerManager]
-    C -- "Utilizes" --> F[ScaleHandler]
-    C -- "Internal Helper" --> J[updateObjInfo]
+    A[ElastiServiceReconciler] --> B[client.Client]
+    A --> C[kRuntime.Scheme]
+    A --> D[zap.Logger]
+    A --> E[InformerManager]
+    A --> F[ScaleHandler]
 
-    E --> G[Kubernetes Informers]
-    G --> H[Watched Kubernetes Resources]
+    E[InformerManager] --> informer_module[Informer Module]
+    F[ScaleHandler] --> scaling_module[Scaling Module]
+    B[client.Client] --> k8s_api[Kubernetes API]
 
-    F --> I["Scalers (e.g., PrometheusScaler)"]
-
-    click K "api_v1alpha1.md" "View API v1alpha1 Module Documentation"
-    click E "informer.md" "View Informer Module Documentation"
-    click F "pkg.md" "View Pkg Module Documentation"
+    click informer_module "informer.md" "View Informer Module Documentation"
+    click scaling_module "scaling.md" "View Scaling Module Documentation"
 ```
+
+*   **`client.Client`**: Used for interacting with the Kubernetes API server, performing operations like fetching, creating, updating, and deleting Kubernetes resources.
+*   **`kRuntime.Scheme`**: Provides a way to register Kubernetes API types, allowing the controller to work with different versions and kinds of resources.
+*   **`zap.Logger`**: An efficient, structured logging library used throughout the reconciler for operational insights and debugging.
+*   **`InformerManager`**: Manages the lifecycle of informers. It's responsible for starting, stopping, and providing access to cached objects (see [Informer Module](informer.md)).
+*   **`ScaleHandler`**: Orchestrates the actual scaling logic, interacting with various scalers to adjust the number of replicas for a workload (see [Scaling Module](scaling.md)).
+
+## System Integration
+
+The `controller` module is an integral part of the `operator` module, specifically designed to manage `ElastiService` custom resources within a Kubernetes cluster. It fits into the overall system as follows:
+
+1.  **Custom Resource Definition (CRD) Management**: The `operator` defines the `ElastiService` CRD, which the controller watches.
+2.  **Event-Driven Reconciliation**: When an `ElastiService` object is created, updated, or deleted, the Kubernetes API server notifies the `ElastiServiceReconciler`.
+3.  **Orchestration of Scaling**: The reconciler, upon detecting changes or desired state mismatches, delegates scaling decisions and actions to the `ScaleHandler`.
+4.  **Resource Monitoring**: Through the `InformerManager` and its underlying informers, the controller continuously monitors the state of relevant Kubernetes resources (e.g., deployments, statefulsets) and `ElastiService` objects themselves.
+5.  **Feedback Loop**: The controller updates the `status` field of the `ElastiService` resource to reflect the current state of the managed workload, providing a feedback mechanism to users and other components.
+
+In essence, the `controller` module is the active agent that bridges the declarative API of Kubernetes with the operational logic required to manage dynamic scaling for services defined by `ElastiService` resources.

@@ -2,71 +2,61 @@
 
 ## Introduction
 
-The `throttler` module within the `resolver` component is responsible for controlling the flow of requests, preventing system overload, and ensuring resilience. It implements concurrency limits and circuit breaking patterns to manage traffic effectively and gracefully handle backend service issues.
-
-## Core Functionality
-
-The `throttler` module provides mechanisms to:
-
-*   **Limit Concurrency**: Control the maximum number of in-flight requests to a backend service.
-*   **Implement Circuit Breaking**: Automatically stop sending requests to an unhealthy service and gradually re-enable it once it recovers.
-*   **Manage Queues and Retries**: Handle requests that exceed concurrency limits by queuing them or retrying after a specified duration.
+The `throttler` module is a critical component within the resolver system, responsible for managing and limiting the concurrency of requests to prevent system overload and ensure stability. It implements circuit breaking and semaphore-based throttling mechanisms to control the flow of traffic, protect downstream services, and handle transient failures gracefully.
 
 ## Architecture and Component Relationships
 
-The `throttler` module is composed of several key components that work together to achieve its functionality:
+The `throttler` module comprises several key components that work together to achieve robust request throttling. The main orchestrator is the `Throttler` component, which utilizes a `Breaker` for circuit breaking logic and integrates with Kubernetes utilities for operational insights. The `Breaker`, in turn, relies on a `semaphore` for low-level concurrency control.
 
-*   **`semaphore`**: A fundamental concurrency primitive used to limit the number of concurrent operations.
-*   **`Breaker`**: Implements the circuit breaker pattern, using a `semaphore` to manage in-flight requests and detect service health.
-*   **`Throttler`**: The main orchestrator that uses `Breaker` and other configurations to apply throttling logic to incoming requests.
+```mermaid
+graph TD
+    A[Throttler] --> B[Breaker]
+    B --> C[Semaphore]
+    A --> D[K8sHelper Ops]
 
-### Components:
-
-*   **`resolver.internal.throttler.semaphore.semaphore`**
-    ```go
-type semaphore struct {
-	state atomic.Uint64
-	queue chan struct{}
-}
+    click A "throttler.md" "View Throttler Module"
+    click B "throttler.md#breaker-component" "View Breaker Component"
+    click C "throttler.md#semaphore-component" "View Semaphore Component"
+    click D "pkg.md" "View K8sHelper Ops (from pkg module)"
 ```
-    A basic semaphore implementation used for controlling concurrent access. It maintains an atomic counter for its state and a channel for queuing. This component is a low-level primitive used by the `Breaker`.
 
-*   **`resolver.internal.throttler.breaker.BreakerParams`**
-    ```go
-type BreakerParams struct {
-	QueueDepth      int
-	MaxConcurrency  int
-	InitialCapacity int
-	Logger          *zap.Logger
-}
-```
-    Configuration parameters for the `Breaker` component, defining its behavior such as queue depth, maximum concurrency, initial capacity, and a logger.
+### Core Components
 
-*   **`resolver.internal.throttler.breaker.Breaker`**
-    ```go
-type Breaker struct {
-	logger         *zap.Logger
-	inFlight       atomic.Int64
-	totalSlots     int64
-	maxConcurrency uint16
-	sem            *semaphore
-}
-```
-    The `Breaker` struct implements the circuit breaking logic. It uses an `atomic.Int64` to track in-flight requests, has a `totalSlots` to define its capacity, and leverages a `semaphore` to manage concurrency. It works with the `Throttler` to decide when to allow or deny requests based on service health and load.
+#### `Throttler`
+The `Throttler` struct is the main entry point for the throttling functionality. It encapsulates the logic for managing request concurrency, integrating a circuit breaker, and interacting with Kubernetes for operational context.
 
-*   **`resolver.internal.throttler.throttler.Params`**
-    ```go
+**Code:**
+```go
 type (
 	Throttler struct {
 		logger                  *zap.Logger
 		breaker                 *Breaker
 		k8sUtil                 *k8shelper.Ops
-		retryDuration           time.Duration
+	etryDuration           time.Duration
 		TrafficReEnableDuration time.Duration
 		serviceReadyMap         sync.Map
 		queueSizeMap            sync.Map
 	}
+    // ...
+)
+```
 
+**Description:**
+- `logger`: An instance of `zap.Logger` for structured logging.
+- `breaker`: A pointer to a `Breaker` instance, which handles the circuit breaking logic.
+- `k8sUtil`: A pointer to `k8shelper.Ops` from the `pkg` module, providing utilities for interacting with Kubernetes. This dependency allows the throttler to potentially fetch information about services or manage resources based on throttling decisions. For more details, refer to the [pkg module documentation](pkg.md).
+- `retryDuration`: The duration to wait before retrying a request that was throttled or failed.
+- `TrafficReEnableDuration`: The duration after which traffic might be re-enabled after a circuit break.
+- `serviceReadyMap`: A `sync.Map` to keep track of the readiness status of various services.
+- `queueSizeMap`: A `sync.Map` to store and manage queue sizes for different services.
+
+#### `Params`
+The `Params` struct is used to configure the `Throttler` instance.
+
+**Code:**
+```go
+type (
+	// ...
 	Params struct {
 		QueueRetryDuration      time.Duration
 		TrafficReEnableDuration time.Duration
@@ -78,27 +68,80 @@ type (
 	}
 )
 ```
-    The `Throttler` struct orchestrates the overall throttling logic. It holds a reference to a `Breaker`, a `k8shelper.Ops` utility for Kubernetes interactions (likely for service readiness checks), and manages retry durations and traffic re-enablement. The `Params` struct provides configuration for initializing a `Throttler` instance.
 
-### Architecture Diagram
+**Description:**
+- `QueueRetryDuration`: Configures the `retryDuration` for the `Throttler`.
+- `TrafficReEnableDuration`: Configures the `TrafficReEnableDuration` for the `Throttler`.
+- `K8sUtil`: Provides the `k8shelper.Ops` instance for the `Throttler`. Refer to [pkg module documentation](pkg.md) for more details.
+- `QueueDepth`: Specifies the depth of the queue for the underlying `Breaker`'s semaphore.
+- `MaxConcurrency`: Defines the maximum number of concurrent requests allowed by the `Breaker`.
+- `InitialCapacity`: Sets the initial capacity for the `Breaker`.
+- `Logger`: Provides a `zap.Logger` instance for the `Throttler`.
 
-```mermaid
-graph TD
-    Throttler[Throttler]
-    Breaker[Breaker]
-    Semaphore[Semaphore]
-    K8sUtil[pkg.k8shelper.ops.Ops]
+#### `Breaker` Component
+The `Breaker` struct implements the circuit breaker pattern, allowing the system to detect and prevent requests from being sent to services that are likely to fail.
 
-    Throttler --> Breaker
-    Breaker --> Semaphore
-    Throttler --> K8sUtil
-
-    click K8sUtil "pkg.md" "View K8s Helper Module"
+**Code:**
+```go
+type Breaker struct {
+	logger         *zap.Logger
+	inFlight       atomic.Int64
+	totalSlots     int64
+	maxConcurrency uint16
+	sem            *semaphore
+}
 ```
 
-## Integration with the Overall System
+**Description:**
+- `logger`: An instance of `zap.Logger` for logging within the circuit breaker.
+- `inFlight`: An atomic counter that tracks the number of requests currently being processed.
+- `totalSlots`: The total number of available slots for concurrent requests.
+- `maxConcurrency`: The maximum number of concurrent requests allowed before the breaker trips.
+- `sem`: A pointer to a `semaphore` instance, used to control access to shared resources and limit concurrency.
 
-The `throttler` module is a critical part of the `resolver` component. It acts as a gatekeeper for requests before they are forwarded to backend services, ensuring that the `resolver` operates reliably under varying load conditions and service health. It integrates with:
+#### `BreakerParams`
+The `BreakerParams` struct is used to configure a `Breaker` instance.
 
-*   **`handler` module**: The `handler` module (e.g., `resolver.internal.handler.handler.HostManager`) likely utilizes the `Throttler` to manage requests directed to specific hosts or services, ensuring that individual services are not overwhelmed. [handler.md](handler.md)
-*   **`pkg.k8shelper.ops.Ops`**: The `Throttler` uses `k8shelper.Ops` for Kubernetes-related operations, which might include checking service readiness or obtaining service-specific information to inform its throttling decisions. [pkg.md](pkg.md)
+**Code:**
+```go
+type BreakerParams struct {
+	QueueDepth      int
+	MaxConcurrency  int
+	InitialCapacity int
+	Logger          *zap.Logger
+}
+```
+
+**Description:**
+- `QueueDepth`: The depth of the queue for the internal semaphore.
+- `MaxConcurrency`: The maximum number of concurrent requests the breaker should allow.
+- `InitialCapacity`: The initial capacity of the breaker's internal resources.
+- `Logger`: An instance of `zap.Logger` for the `Breaker`.
+
+#### `Semaphore` Component
+The `semaphore` struct provides a basic counting semaphore implementation, used by the `Breaker` to limit concurrent access to resources.
+
+**Code:**
+```go
+type semaphore struct {
+	state atomic.Uint64
+	queue chan struct{}
+}
+```
+
+**Description:**
+- `state`: An atomic unsigned 64-bit integer that represents the current state (available permits) of the semaphore.
+- `queue`: A channel used to block and unblock goroutines waiting for a permit.
+
+## How the Module Fits into the Overall System
+
+The `throttler` module is a crucial infrastructure component within the `resolver` system, primarily ensuring the reliability and stability of request handling. It acts as a gatekeeper, preventing upstream components from overwhelming downstream services or the system itself.
+
+Specifically, the `throttler` module is likely integrated into the `handler` module, where incoming requests are processed. Before forwarding requests to actual services or performing resource-intensive operations, the `handler` would consult the `Throttler` to determine if the request can be processed immediately or if it needs to be queued, delayed, or rejected due to high load or a tripped circuit breaker.
+
+By intelligently managing concurrency and providing circuit-breaking capabilities, the `throttler` module contributes to:
+- **System Stability:** Prevents cascading failures by isolating failing services.
+- **Resource Management:** Ensures that the system operates within its capacity limits.
+- **Improved Responsiveness:** Prioritizes requests when under load and gracefully degrades performance rather than crashing.
+
+For further details on how requests are handled and integrated with the throttling mechanism, refer to the [handler module documentation](handler.md).

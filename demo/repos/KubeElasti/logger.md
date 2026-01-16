@@ -1,14 +1,37 @@
 # Logger Module Documentation
 
-## Purpose
-The `logger` module provides custom logging functionalities, extending the capabilities of the underlying logging library (likely `zap`). Its primary goal is to offer a consistent and structured way to record events, errors, and debugging information throughout the application, thereby improving observability and troubleshooting.
+## Introduction
 
-## Core Components
+The `logger` module, located within the `pkg` package, provides custom logging functionalities for the system. It leverages the `zapcore` library to offer a flexible and efficient logging core, allowing for tailored logging configurations across various components of the application. This module acts as a wrapper to extend or customize the default `zapcore.Core` capabilities.
 
-### `CustomCore`
+## Architecture and Component Relationships
+
+### Core Components
+
+#### `pkg.logger.logger.CustomCore`
+
+The `CustomCore` struct is the primary component of the `logger` module. It embeds `zapcore.Core`, allowing it to inherit all the functionalities of a standard `zapcore.Core` while also providing a point for future extensions or customizations specific to the application's logging requirements.
+
 ```go
 type CustomCore struct {
 	zapcore.Core
 }
 ```
-The `CustomCore` struct is an extension of `zapcore.Core` from the `zap` logging library. By embedding `zapcore.Core`, `CustomCore` can inherit and potentially override or augment the default behavior of `zap`'s core logging functionalities. This allows for custom implementations of how logs are written, encoded, and handled, enabling advanced features like adding specific fields to all logs, filtering based on custom criteria, or integrating with external logging systems. This component provides the foundation for tailored logging within the system.
+
+### Module Architecture Diagram
+
+```mermaid
+graph TD
+    pkg[pkg Module]
+    logger[Logger Module]
+    custom_core[CustomCore]
+
+    pkg --> logger
+    logger --> custom_core
+
+    click pkg "pkg.md" "View Pkg Module Documentation"
+```
+
+## How the Module Fits into the Overall System
+
+The `logger` module is an integral part of the `pkg` package, providing a standardized and configurable logging mechanism. It is designed to be utilized by other components within the `pkg` module and potentially other top-level modules like `resolver` and `operator` for consistent log generation. By wrapping `zapcore.Core`, it ensures high-performance logging while maintaining the flexibility to introduce custom logging behaviors, output formats, or integration with external logging services as needed by the application. This centralizes logging configuration and promotes reusability across the codebase.

@@ -1,29 +1,29 @@
 {
   "repo_name": "KubeElasti",
   "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
-  "repo_size_mb": 449685.84375,
+  "repo_size_mb": 449973.28515625,
   "total_files": 0,
   "total_code_files": 45,
   "stages": {
     "Dependency Analysis": {
       "stage_name": "Dependency Analysis",
-      "duration": 0.11589574813842773,
+      "duration": 0.12827801704406738,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Module Clustering": {
       "stage_name": "Module Clustering",
-      "duration": 0.013335943222045898,
+      "duration": 0.019931793212890625,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Documentation Generation": {
       "stage_name": "Documentation Generation",
-      "duration": 233.0153112411499,
+      "duration": 314.6173298358917,
       "tokens_used": 0,
-      "files_created": 15,
+      "files_created": 19,
       "files_created_list": [
         "resolver.md",
         "crddirectory.md",
@@ -31,23 +31,27 @@
         "elastiserver.md",
         "messages.md",
         "overview.md",
+        "api.md",
+        "host_manager.md",
+        "operator_client.md",
         "informer.md",
+        "handler.md",
         "config.md",
         "controller.md",
         "scaling.md",
         "throttler.md",
+        "main_config.md",
         "operator.md",
-        "api_v1alpha1.md",
         "k8shelper.md",
         "logger.md"
       ]
     }
   },
-  "time_to_first_overview": 233.17019701004028,
+  "time_to_first_overview": 314.78957986831665,
   "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti/docs/overview.md",
-  "total_duration": 233.1702380180359,
+  "total_duration": 314.78968501091003,
   "total_tokens": 0,
-  "total_files_created": 15,
-  "start_time": 1768576697.8206341,
-  "end_time": 1768576930.9908721
+  "total_files_created": 19,
+  "start_time": 1768583149.585786,
+  "end_time": 1768583464.375471
 }

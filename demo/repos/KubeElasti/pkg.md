@@ -1,46 +1,53 @@
 # Pkg Module Documentation
 
 ## Introduction
-The `pkg` module serves as a foundational library within the system, providing essential utilities, configurations, and common data structures that are leveraged by other core modules such as `operator` and `resolver`. It encapsulates cross-cutting concerns like Kubernetes client operations, logging, inter-module message formats, and scaling interfaces, ensuring a consistent and standardized approach across the application.
+
+The `pkg` module serves as a foundational library within the system, encapsulating common functionalities, data structures, and utilities essential for various components, particularly those related to Kubernetes operations, scaling mechanisms, and inter-service communication. It provides reusable interfaces and implementations to streamline development and ensure consistency across the application.
 
 ## Architecture Overview
-The `pkg` module is structured into several sub-modules, each responsible for a specific set of functionalities. This modular design promotes reusability, maintainability, and clear separation of concerns. The overall architecture of the `pkg` module and its internal dependencies are depicted in the following diagram:
+
+The `pkg` module is structured into several key sub-modules, each responsible for a specific domain of functionality. The architecture is designed to promote modularity, reusability, and clear separation of concerns. Below is a high-level overview of the `pkg` module's architecture.
 
 ```mermaid
 graph TD
     pkg[Pkg Module]
-    config[Config]
     scaling[Scaling]
-    k8shelper[K8s Helper]
     messages[Messages]
+    config[Configuration]
     logger[Logger]
+    k8shelper[Kubernetes Helper]
 
-    pkg --> config
     pkg --> scaling
-    pkg --> k8shelper
     pkg --> messages
+    pkg --> config
     pkg --> logger
+    pkg --> k8shelper
 
-    click config "config.md" "View Config Module"
     click scaling "scaling.md" "View Scaling Module"
-    click k8shelper "k8shelper.md" "View K8s Helper Module"
     click messages "messages.md" "View Messages Module"
+    click config "config.md" "View Configuration Module"
     click logger "logger.md" "View Logger Module"
+    click k8shelper "k8shelper.md" "View Kubernetes Helper Module"
 ```
 
-## Sub-modules Functionality
+## Sub-modules Overview
 
-### [Config Module](config.md)
-This sub-module handles all configuration-related aspects of the system, including general application settings and specific configurations for the resolver component. It provides structured types to define and manage various configuration parameters.
+### Scaling
 
-### [Scaling Module](scaling.md)
-Dedicated to managing the scaling logic for services. It defines interfaces for different types of scalers and includes implementations for specific scaling mechanisms, such as Prometheus-based scaling. This module is critical for dynamic resource management.
+The `scaling` sub-module provides interfaces and implementations for managing the scaling logic of services. It defines how services can be scaled up or down based on various metrics and conditions. This includes core interfaces for scalers and handlers for managing scaling operations.
 
-### [K8s Helper Module](k8shelper.md)
-Provides a wrapper around Kubernetes client operations, simplifying interactions with the Kubernetes API. It abstracts away the complexities of direct Kubernetes API calls, offering a consistent interface for managing Kubernetes resources.
+### Messages
 
-### [Messages Module](messages.md)
-Defines the data structures used for inter-module communication. It includes message formats for host information and operator-related requests, facilitating clear and structured data exchange between different parts of the system.
+The `messages` sub-module defines the data structures used for inter-service communication and internal data representation. It includes definitions for host-related information and request counts, facilitating clear and consistent data exchange.
 
-### [Logger Module](logger.md)
-Offers custom logging functionalities. It provides a structured way to log events and errors within the application, enhancing observability and debugging capabilities.
+### Configuration
+
+The `config` sub-module handles the application's configuration, providing structures to define and manage various settings, including Resolver-specific configurations and general application parameters.
+
+### Logger
+
+The `logger` sub-module provides custom logging functionalities, extending standard logging capabilities to better suit the application's needs for structured and efficient logging.
+
+### Kubernetes Helper
+
+The `k8shelper` sub-module offers utility functions and clients for interacting with the Kubernetes API. It simplifies common Kubernetes operations, making it easier for other modules to manage resources within a Kubernetes cluster.

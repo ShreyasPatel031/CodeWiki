@@ -1,6 +1,6 @@
 {
     "generation_info": {
-        "timestamp": "2026-01-16T20:52:10.990105",
+        "timestamp": "2026-01-16T22:41:04.374678",
         "main_model": "gemini-2.5-flash",
         "generator_version": "1.0.0",
         "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
@@ -20,13 +20,17 @@
         "pkg.md",
         "elastiserver.md",
         "messages.md",
+        "api.md",
+        "host_manager.md",
+        "operator_client.md",
         "informer.md",
+        "handler.md",
         "config.md",
         "controller.md",
         "scaling.md",
         "throttler.md",
+        "main_config.md",
         "operator.md",
-        "api_v1alpha1.md",
         "k8shelper.md",
         "logger.md"
     ]

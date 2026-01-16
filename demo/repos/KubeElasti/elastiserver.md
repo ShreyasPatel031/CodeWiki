@@ -2,76 +2,50 @@
 
 ## Introduction
 
-The `elastiserver` module provides the core server component (`Server`) responsible for receiving and processing external communication, primarily from the `Resolver` module. Its main function is to trigger scaling actions for services based on these communications, especially when a service at zero replicas receives a request.
+The `elastiserver` module, located within the `operator` package, provides the core server functionality for handling communications and events related to service scaling within the Kubernetes environment. Its primary role is to act as an intermediary, receiving signals (e.g., from the `resolver` module when a service requires scaling) and orchestrating the necessary scaling operations through the `ScaleHandler`.
 
-## Core Components
+## Core Functionality
 
-### `operator.internal.elastiserver.elastiServer.Server`
-
-This is the central component of the `elastiserver` module. It acts as an RPC server, listening for events and requests from other components, such as the `Resolver`. When a relevant event occurs (e.g., a request for a service currently scaled to zero replicas), the `Server` initiates the necessary scaling procedures.
-
-**Fields:**
-
-*   `logger`: A `zap.Logger` instance used for logging messages and events within the server.
-*   `scaleHandler`: A pointer to a `scaling.ScaleHandler` instance. This component is responsible for executing the actual scaling operations by interacting with the underlying Kubernetes API.
-*   `rescaleDuration`: A `time.Duration` specifying the duration to wait before re-evaluating and potentially rescaling a target service.
-
-### `operator.internal.elastiserver.elastiServer.Response`
-
-A simple struct used to define the response format for communications received by the `Server`. It currently contains a `Message` field of type string.
-
-```go
-type (
-        Response struct {
-                Message string `json:"message"`
-        }
-
-        // Server is used to receive communication from Resolver, or any future components
-        // It is used by components about certain events, like when resolver receive the request
-        // for a service, that service is scaled up if it's at 0 replicas
-        Server struct {
-                logger       *zap.Logger
-                scaleHandler *scaling.ScaleHandler
-                // rescaleDuration is the duration to wait before checking to rescaling the target
-                rescaleDuration time.Duration
-        }
-)
-```
+The `elastiserver.elastiServer.Server` component is responsible for:
+*   **Receiving Communications**: It is designed to receive communication from the `resolver` module, or other future components, about specific events.
+*   **Event-Driven Scaling**: When a service, potentially managed by an `ElastiService` Custom Resource, receives a request and is currently at zero replicas, the `Server` can initiate a scale-up action for that service.
+*   **Orchestrating Scaling Operations**: It leverages the `ScaleHandler` from the `pkg.scaling` module to execute the actual scaling logic.
+*   **Logging**: Utilizes a logger for internal operations and debugging.
 
 ## Architecture and Component Relationships
 
-The `elastiserver` module, specifically its `Server` component, acts as a crucial bridge in the overall system, enabling responsive scaling of services. It receives signals from the `Resolver` and orchestrates scaling through the `ScaleHandler`.
+The `elastiserver` module's architecture is centered around the `Server` component. This component integrates with several other modules to perform its functions effectively.
 
 ```mermaid
 graph TD
-    A[elastiserver.Server]
-    B[Resolver Module]
-    C[ScaleHandler]
-    D[ElastiServiceReconciler]
-    E[ElastiService Types]
-    F[Logger]
+    A[operator.internal.elastiserver.elastiServer.Server] --> B[pkg.scaling.ScaleHandler]
+    A --> C[pkg.logger.CustomCore]
+    D[resolver Module] --> A
+    E[operator.internal.controller.ElastiServiceReconciler] --> A
 
-    B -- Sends Events --> A
-    A -- Initiates Scale Action --> C
-    C -- Operates on --> E
-    D -- Manages --> E
-    A -- Logs via --> F
-
-    click B "resolver.md" "View Resolver Module Documentation"
-    click C "pkg.md" "View Pkg Module Documentation"
-    click D "controller.md" "View Controller Module Documentation"
-    click E "api_v1alpha1.md" "View API v1alpha1 Module Documentation"
-    click F "pkg.md" "View Pkg Module Documentation"
+    click A "elastiserver.md" "ElastiServer Module"
+    click B "scaling.md" "View Scaling Module"
+    click C "logger.md" "View Logger Module"
+    click D "resolver.md" "View Resolver Module"
+    click E "controller.md" "View Controller Module"
 ```
 
-**Key Relationships:**
+### Component Breakdown:
 
-*   **Resolver Module** (`resolver.md`): The `Resolver` module is the primary source of external events for the `elastiserver.Server`. It sends information or requests, particularly when a service needs to be scaled up (e.g., from zero replicas).
-*   **Pkg Module (ScaleHandler)** (`pkg.md`): The `elastiserver.Server` utilizes the `ScaleHandler` from the `pkg` module to perform the actual scaling operations. The `ScaleHandler` interacts with the Kubernetes API to adjust the replica count of services.
-*   **Controller Module (ElastiServiceReconciler)** (`controller.md`): The `ElastiServiceReconciler` from the `controller` module is responsible for managing the lifecycle and desired state of `ElastiService` custom resources within Kubernetes. While `elastiserver.Server` and `ScaleHandler` initiate scaling, the `ElastiServiceReconciler` ensures the consistency and proper functioning of these scaled services.
-*   **API v1alpha1 Module (ElastiService Types)** (`api_v1alpha1.md`): This module defines the `ElastiService` custom resource definition and related types (`ElastiServiceSpec`, `ElastiServiceStatus`, etc.). Both the `ScaleHandler` and the `ElastiServiceReconciler` operate on these defined types to manage services.
-*   **Pkg Module (Logger)** (`pkg.md`): The `elastiserver.Server` uses the logging utilities provided by the `pkg` module to record operational information, errors, and debugging details.
+*   **`operator.internal.elastiserver.elastiServer.Server`**: The central component of this module. It encapsulates the logic for event reception and delegates scaling tasks.
+    *   `logger *zap.Logger`: An instance of a logger, typically `pkg.logger.CustomCore`, used for structured logging of server operations and events.
+    *   `scaleHandler *scaling.ScaleHandler`: A crucial dependency that provides the interface for interacting with various scalers to adjust the replica count of services.
+    *   `rescaleDuration time.Duration`: Configurable duration to wait before re-checking for scaling opportunities.
 
-## How the Module Fits into the Overall System
+## Integration with the Overall System
 
-The `elastiserver` module serves as the central communication and initial decision-making point for dynamic service scaling based on external triggers. It bridges the gap between external events (from components like the `Resolver`) and the internal scaling mechanisms of the operator. By integrating with the `ScaleHandler`, it translates incoming requests into concrete scaling actions on `ElastiService` resources, thereby maintaining service availability and responsiveness. This module is essential for the operator's ability to react promptly to changing demand and efficiently manage resource allocation within a Kubernetes environment.
+The `elastiserver` module plays a vital role within the larger `operator` system, facilitating the dynamic scaling of services.
+
+*   **Operator Module**: As part of the `operator` module, `elastiserver` works in conjunction with components like the `controller` (specifically `ElastiServiceReconciler`) and `informer`. The controller might use the `ElastiServer` to trigger scaling actions based on observed `ElastiService` custom resources or events.
+*   **Resolver Module**: The `elastiserver` receives communication from the `resolver` module. The `resolver` is responsible for routing requests and, in certain scenarios (e.g., a service is scaled to 0), it communicates with `elastiserver` to initiate a scale-up.
+*   **PKG Module**:
+    *   **Scaling (`pkg.scaling`)**: The `elastiserver` directly utilizes the `ScaleHandler` from the `pkg.scaling` module to perform the actual scaling operations, abstracting the details of different scaling mechanisms (e.g., Prometheus scaler). For more details, refer to the [scaling.md](scaling.md) documentation.
+    *   **Logger (`pkg.logger`)**: It uses the logging utilities provided by `pkg.logger.CustomCore` to output operational information, errors, and debugging messages, which is crucial for monitoring and troubleshooting. For more details, refer to the [logger.md](logger.md) documentation.
+    *   **Configuration (`pkg.config`)**: While not directly shown in the `Server` component's fields, it's highly probable that the `rescaleDuration` and other operational parameters are configured via the `pkg.config` module. For more details, refer to the [config.md](config.md) documentation.
+
+In summary, the `elastiserver` module acts as a crucial event listener and scaling orchestrator, bridging external triggers (like those from the `resolver`) with the internal scaling mechanisms provided by the `pkg.scaling` module, all within the operational context of the `operator`.
