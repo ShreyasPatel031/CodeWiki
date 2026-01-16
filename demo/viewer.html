@@ -471,8 +471,9 @@
         
         // Get repo path from URL query param: ?repo=flask or ?repo=repos/flask
         const urlParams = new URLSearchParams(window.location.search);
-        const repoPath = urlParams.get('repo') || 'repos/flask';
-        const basePath = repoPath.startsWith('repos/') ? repoPath : `repos/${repoPath}`;
+        const repoPath = urlParams.get('repo') || 'flask';
+        // Ensure relative path with ./ prefix for correct resolution
+        const basePath = repoPath.startsWith('repos/') ? `./${repoPath}` : `./repos/${repoPath}`;
         
         // State
         let REPO_TITLE = '';
@@ -1215,8 +1216,9 @@
                 return;
             }
             
-            // Otherwise, go back to the main index page
-            window.location.href = '/';
+            // Already at overview with no expansions - stay on current page
+            // (User can use browser back button to leave the viewer)
+            return;
         }
         
         // ============================================================
