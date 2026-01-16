@@ -273,6 +273,136 @@
             background: #f1f5f9;
             font-weight: 600;
         }
+        
+        /* Q&A Section */
+        .qa-section {
+            position: sticky;
+            bottom: 0;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            margin: 20px -30px -20px -30px;
+        }
+        
+        .qa-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .qa-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        
+        .qa-input:focus {
+            border-color: #2563eb;
+        }
+        
+        .qa-input::placeholder {
+            color: #94a3b8;
+        }
+        
+        .qa-btn {
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        
+        .qa-btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .qa-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .qa-response {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #334155;
+            display: none;
+        }
+        
+        .qa-response.visible {
+            display: block;
+        }
+        
+        .qa-response.loading {
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .qa-response.error {
+            color: #dc2626;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        
+        .qa-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+        
+        .api-key-setup {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .api-key-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+        }
+        
+        .api-key-btn {
+            padding: 8px 14px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .api-key-btn:hover {
+            background: #059669;
+        }
+        
+        .api-key-status {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .api-key-status.connected {
+            color: #10b981;
+        }
 
         .loading {
             text-align: center;
@@ -460,6 +590,21 @@
         </div>
         <div class="doc-pane">
             <div class="doc-content" id="docContent">Loading documentation...</div>
+            <div class="qa-section" id="qaSection">
+                <div id="apiKeySetup" class="api-key-setup" style="display: none;">
+                    <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Enter Gemini API key...">
+                    <button class="api-key-btn" onclick="saveApiKey()">Save</button>
+                    <span class="api-key-status" id="apiKeyStatus"></span>
+                </div>
+                <div id="qaInterface">
+                    <div class="qa-input-row">
+                        <input type="text" id="qaInput" class="qa-input" placeholder="Ask about this module..." onkeypress="handleQaKeypress(event)">
+                        <button class="qa-btn" id="qaBtn" onclick="askQuestion()">Ask</button>
+                    </div>
+                    <div class="qa-response" id="qaResponse"></div>
+                    <div class="qa-hint" id="qaHint">Press / to focus • Enter to ask • Answers are brief</div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1226,6 +1371,15 @@
         // ============================================================
         
         document.addEventListener('keydown', (e) => {
+            // Skip shortcuts if typing in an input field
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // Only handle Escape in inputs
+                if (e.key === 'Escape') {
+                    e.target.blur();
+                }
+                return;
+            }
+            
             // Number keys 1-9 to click on nodes
             if (e.key >= '1' && e.key <= '9') {
                 const nodeIndex = parseInt(e.key) - 1;
@@ -1255,6 +1409,11 @@
             // Escape to go back
             if (e.key === 'Escape') {
                 goBack();
+            }
+            // '/' to focus Q&A input
+            if (e.key === '/') {
+                e.preventDefault();
+                document.getElementById('qaInput').focus();
             }
         });
         
@@ -1448,6 +1607,137 @@
         }
         
         // ============================================================
+        // Q&A WITH GEMINI
+        // ============================================================
+        
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+        
+        function getApiKey() {
+            // Priority: URL param > localStorage
+            const urlKey = urlParams.get('key');
+            if (urlKey) {
+                localStorage.setItem('codewiki_gemini_key', urlKey);
+                return urlKey;
+            }
+            return localStorage.getItem('codewiki_gemini_key') || '';
+        }
+        
+        function saveApiKey() {
+            const input = document.getElementById('apiKeyInput');
+            const key = input.value.trim();
+            if (key) {
+                localStorage.setItem('codewiki_gemini_key', key);
+                input.value = '';
+                updateApiKeyStatus();
+            }
+        }
+        
+        function updateApiKeyStatus() {
+            const hasKey = !!getApiKey();
+            const setupDiv = document.getElementById('apiKeySetup');
+            const statusSpan = document.getElementById('apiKeyStatus');
+            const hintDiv = document.getElementById('qaHint');
+            
+            if (hasKey) {
+                setupDiv.style.display = 'none';
+                hintDiv.textContent = 'Press / to focus • Enter to ask • Answers are brief';
+            } else {
+                setupDiv.style.display = 'flex';
+                statusSpan.textContent = 'API key required for Q&A';
+                statusSpan.className = 'api-key-status';
+                hintDiv.textContent = 'Add your Gemini API key above to enable Q&A';
+            }
+        }
+        
+        function handleQaKeypress(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        }
+        
+        async function askQuestion() {
+            const input = document.getElementById('qaInput');
+            const btn = document.getElementById('qaBtn');
+            const responseDiv = document.getElementById('qaResponse');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                responseDiv.textContent = 'Please add your Gemini API key first.';
+                responseDiv.className = 'qa-response visible error';
+                document.getElementById('apiKeySetup').style.display = 'flex';
+                return;
+            }
+            
+            // Get current module context
+            const currentModule = moduleData[selectedModuleId] || moduleData['overview'];
+            const moduleName = currentModule?.name || 'Overview';
+            const moduleDoc = currentModule?.documentation || '';
+            
+            // Clean documentation (remove mermaid blocks for context)
+            const cleanDoc = moduleDoc.replace(/```mermaid[\s\S]*?```/g, '').trim();
+            
+            // Show loading
+            btn.disabled = true;
+            responseDiv.textContent = 'Thinking...';
+            responseDiv.className = 'qa-response visible loading';
+            
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are a concise code documentation assistant. Answer questions about the "${moduleName}" module.
+
+RULES:
+- Give EXTREMELY brief answers (1-2 sentences max)
+- Be direct and specific
+- No fluff, no introductions, no "Here's..."
+- If you don't know, say "Not covered in docs"
+
+MODULE DOCUMENTATION:
+${cleanDoc.substring(0, 8000)}
+
+QUESTION: ${question}`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            maxOutputTokens: 150
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error?.message || `API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received.';
+                
+                responseDiv.textContent = answer.trim();
+                responseDiv.className = 'qa-response visible';
+                input.value = '';
+                
+            } catch (err) {
+                console.error('Q&A error:', err);
+                responseDiv.textContent = err.message.includes('API key') 
+                    ? 'Invalid API key. Please check and try again.'
+                    : `Error: ${err.message}`;
+                responseDiv.className = 'qa-response visible error';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        // ============================================================
         // INITIALIZATION
         // ============================================================
         
@@ -1465,6 +1755,9 @@
             
             // Initialize zoom/pan
             initZoomPan();
+            
+            // Initialize Q&A
+            updateApiKeyStatus();
             
             // Initialize with overview
             currentModuleId = 'overview';
