@@ -1,14 +1,12 @@
 # Messages Module Documentation
 
 ## Introduction
-
-The `messages` module (`pkg/messages`) serves as a foundational component within the system, defining the core data structures used for inter-module communication. It encapsulates well-defined message formats for critical operational data, such as host information and request counts. By centralizing these definitions, the module ensures consistency and clarity in data exchange across various system components, promoting loose coupling and maintainability.
+The `messages` module defines core data structures used for inter-service communication and management within the system. It provides essential message formats for representing host information and request counts, facilitating clear and standardized data exchange between different components, particularly within the `pkg` module.
 
 ## Core Components
 
-### `pkg.messages.host.Host`
-
-The `Host` struct represents detailed information about a host involved in network traffic or service interactions. It captures attributes essential for traffic management, routing, and operational insights.
+### Host
+The `Host` struct encapsulates detailed information about a network host, including its origin, destination, and various service-related identifiers. This structure is crucial for routing, access control, and understanding traffic flow within the application.
 
 ```go
 type Host struct {
@@ -22,19 +20,16 @@ type Host struct {
 }
 ```
 
-**Fields:**
+- **IncomingHost**: The hostname or IP address from which a request originates.
+- **Namespace**: The Kubernetes namespace associated with the services.
+- **SourceService**: The name of the service initiating the request.
+- **TargetService**: The name of the service intended to receive the request.
+- **SourceHost**: The specific host within the source service.
+- **TargetHost**: The specific host within the target service.
+- **TrafficAllowed**: A boolean indicating whether traffic is permitted between the source and target.
 
-*   `IncomingHost`: The hostname of the incoming request.
-*   `Namespace`: The Kubernetes namespace where the services operate.
-*   `SourceService`: The name of the service initiating the traffic.
-*   `TargetService`: The name of the service intended to receive the traffic.
-*   `SourceHost`: The actual host from which the traffic originates.
-*   `TargetHost`: The actual host to which the traffic is directed.
-*   `TrafficAllowed`: A boolean flag indicating whether the traffic flow is permitted.
-
-### `pkg.messages.operator.RequestCount`
-
-The `RequestCount` struct is used to aggregate and communicate the number of requests for a specific service within a given namespace. This data is crucial for monitoring service load and informing autoscaling decisions.
+### RequestCount
+The `RequestCount` struct is used to aggregate and report the number of requests for a particular service within a specific namespace. This is vital for monitoring, autoscaling, and load balancing decisions.
 
 ```go
 type RequestCount struct {
@@ -44,36 +39,28 @@ type RequestCount struct {
 }
 ```
 
-**Fields:**
+- **Count**: The total number of requests.
+- **Svc**: The name of the service to which the request count applies.
+- **Namespace**: The Kubernetes namespace of the service.
 
-*   `Count`: The total number of requests.
-*   `Svc`: The name of the service associated with the request count.
-*   `Namespace`: The Kubernetes namespace of the service.
-
-## Architecture and Component Relationships
-
-The `messages` module provides the data contracts that facilitate communication between different parts of the system. Its structs are consumed by modules responsible for traffic resolution, host management, and operational scaling.
+## Architecture
+The `messages` module is a fundamental part of the `pkg` module, providing basic data structures that are consumed by other `pkg` sub-modules and potentially other top-level modules like `operator` and `resolver` for communication and data representation.
 
 ```mermaid
 graph TD
-    subgraph Messages Module
-        HostMessage[pkg.messages.host.Host]
-        RequestCountMessage[pkg.messages.operator.RequestCount]
-    end
+    pkg[pkg Module]
+    messages[Messages Module]
 
-    Resolver[Resolver Module] --> HostMessage
-    Operator[Operator Module] --> RequestCountMessage
-    Scaling[Scaling Module] --> RequestCountMessage
+    pkg --> messages
 
-    click Resolver "resolver.md" "View Resolver Module"
-    click Operator "operator.md" "View Operator Module"
-    click Scaling "scaling.md" "View Scaling Module"
+    click pkg "pkg.md" "View Pkg Module"
+    click messages "messages.md" "View Messages Module"
 ```
 
-## How it Fits into the Overall System
+## Relationships to Other Modules
+The `messages` module primarily serves as a dependency for other modules that require standardized data structures for inter-process communication. It is a key component within the `pkg` module, and its definitions are used by:
+- **`pkg` module**: For general utilities and core functionalities.
+- **`operator` module**: Potentially uses `RequestCount` to inform scaling decisions or `Host` for managing service interactions.
+- **`resolver` module**: Might use `Host` to determine routing or `RequestCount` for load balancing.
 
-The `messages` module plays a vital role by defining the common language for data exchange across the system. It acts as a shared vocabulary, ensuring that different components interpret and process information consistently.
-
-*   **Host Management:** The `Host` message structure is fundamental for the `resolver` module, particularly for components like `resolver.internal.hostmanager.hostManager.HostManager` and `resolver.internal.handler.handler.HostManager`, to track and manage the state and traffic flow of individual hosts. It enables intelligent routing and access control decisions.
-
-*   **Operational Scaling:** The `RequestCount` message structure is critical for the `operator` and `scaling` modules. The `operator` uses this information, potentially via `operator.internal.controller.elastiservice_controller.ElastiServiceReconciler` or `operator.internal.informer.informer.RequestWatch`, to monitor service load. This data then feeds into the `scaling` module (e.g., `pkg.scaling.scalers.prometheus_scaler.prometheusScaler`) to make informed, dynamic autoscaling decisions, ensuring that services can adapt to varying demand efficiently.
+For more information on the overarching `pkg` module, refer to [pkg.md](pkg.md).

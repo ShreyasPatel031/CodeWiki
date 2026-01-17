@@ -60,6 +60,21 @@ Key requirements:
 - Show relationships between modules with arrows
 - DO NOT use classDiagram, sequenceDiagram, or other diagram types
 </ARCHITECTURE_DIAGRAM_EXAMPLE>
+
+<CRITICAL_NAMING_RULES>
+**IMPORTANT**: All module names and file references MUST use consistent lowercase_with_underscores naming:
+- Module names: `user_auth`, `database_handler`, `api_routes` (NOT `UserAuth`, `userAuth`, `user-auth`)
+- File names: `user_auth.md`, `database_handler.md` (match module name exactly + .md)
+- Click statements: `click node_id "module_name.md"` where module_name matches EXACTLY
+
+When you call `generate_sub_module_documentation`, use names like:
+- CORRECT: user_authentication, database_layer (lowercase with underscores)
+- WRONG: UserAuthentication, userAuth, user-auth (camelCase or dashes)
+
+The click statement filename MUST match the sub-module name exactly:
+- If sub-module is named `ops_informer`, click must be: `click ops_informer "ops_informer.md"`
+- NEVER use different naming conventions between module name and filename
+</CRITICAL_NAMING_RULES>
 </DOCUMENTATION_STRUCTURE>
 
 <WORKFLOW>
@@ -113,6 +128,13 @@ graph TD
 
 Use "click nodeId 'filename.md' 'tooltip'" to make nodes navigable to other documentation files.
 </ARCHITECTURE_DIAGRAM_EXAMPLE>
+
+<CRITICAL_NAMING_RULES>
+All module names and file references MUST use consistent lowercase_with_underscores naming:
+- Module names: `user_auth`, `database_handler` (NOT `UserAuth`, `userAuth`)
+- File references in click statements must match module names exactly + .md
+- Example: If module is `api_handler`, click must be: `click api_handler "api_handler.md"`
+</CRITICAL_NAMING_RULES>
 </DOCUMENTATION_REQUIREMENTS>
 
 <WORKFLOW>

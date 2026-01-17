@@ -1,37 +1,40 @@
-# Logger Module Documentation
+# logger Module Documentation
 
 ## Introduction
-
-The `logger` module, located within the `pkg` package, provides custom logging functionalities for the system. It leverages the `zapcore` library to offer a flexible and efficient logging core, allowing for tailored logging configurations across various components of the application. This module acts as a wrapper to extend or customize the default `zapcore.Core` capabilities.
+The `logger` module is a core utility within the `pkg` package, providing custom logging functionalities for the system. It leverages the `zap` logging library, extending its capabilities through the `CustomCore` component to offer a tailored logging solution. This module ensures that all other components within the system have a consistent and efficient way to record events, debug information, and errors.
 
 ## Architecture and Component Relationships
 
-### Core Components
-
-#### `pkg.logger.logger.CustomCore`
-
-The `CustomCore` struct is the primary component of the `logger` module. It embeds `zapcore.Core`, allowing it to inherit all the functionalities of a standard `zapcore.Core` while also providing a point for future extensions or customizations specific to the application's logging requirements.
-
-```go
-type CustomCore struct {
-	zapcore.Core
-}
-```
-
-### Module Architecture Diagram
+The `logger` module is designed to be a foundational service, utilized by various other modules within the `pkg` package and potentially other parts of the system for robust logging.
 
 ```mermaid
 graph TD
     pkg[pkg Module]
-    logger[Logger Module]
+    logger[logger Module]
     custom_core[CustomCore]
 
     pkg --> logger
     logger --> custom_core
 
-    click pkg "pkg.md" "View Pkg Module Documentation"
+    click pkg "pkg.md" "View Pkg Module"
 ```
+
+### Components
+
+#### CustomCore
+The `CustomCore` component is the primary structure within the `logger` module. It is a Go struct that embeds `zapcore.Core`, which is a fundamental interface from the `zap` logging library.
+```go
+type CustomCore struct {
+	zapcore.Core
+}
+```
+By embedding `zapcore.Core`, `CustomCore` inherently gains all the functionalities of the `zap` core logger. This design pattern allows the `logger` module to extend or customize `zap`'s behavior without rewriting its core logic. It provides a flexible way to implement custom logging levels, output formats, or hooks for specific application requirements while maintaining compatibility with the high-performance `zap` logger.
 
 ## How the Module Fits into the Overall System
 
-The `logger` module is an integral part of the `pkg` package, providing a standardized and configurable logging mechanism. It is designed to be utilized by other components within the `pkg` module and potentially other top-level modules like `resolver` and `operator` for consistent log generation. By wrapping `zapcore.Core`, it ensures high-performance logging while maintaining the flexibility to introduce custom logging behaviors, output formats, or integration with external logging services as needed by the application. This centralizes logging configuration and promotes reusability across the codebase.
+The `logger` module, specifically through its `CustomCore` component, acts as the central logging mechanism for the entire system. Its integration into the `pkg` module signifies its role as a common utility, available to all sub-modules within `pkg` such as `config`, `scaling`, `messages`, and `k8shelper`. By providing a unified and customizable logging interface, the `logger` module helps in:
+*   **Centralized Logging:** Ensuring that all system components log their activities through a consistent mechanism.
+*   **Debuggability and Observability:** Facilitating easier debugging and monitoring of the application's behavior in various environments.
+*   **Performance:** Leveraging the high-performance characteristics of the `zap` library for efficient log processing.
+
+This module is crucial for maintaining system health, troubleshooting issues, and gaining insights into the application's operational dynamics.

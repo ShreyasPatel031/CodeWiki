@@ -1,28 +1,136 @@
 {
-    "resolver": {
-        "path": "resolver",
+    "operator": {
+        "path": "operator",
         "components": [
-            "resolver.internal.handler.handler.QueueStatusResponse",
-            "resolver.internal.handler.writer.responseWriter",
-            "resolver.internal.handler.handler.Response",
-            "resolver.internal.operator.RPCClient.Client",
-            "resolver.internal.throttler.breaker.Breaker",
-            "resolver.cmd.main.config",
-            "resolver.internal.throttler.breaker.BreakerParams",
-            "resolver.internal.handler.handler.HostManager",
-            "resolver.internal.throttler.semaphore.semaphore",
-            "resolver.internal.hostmanager.hostManager.HostManager",
-            "resolver.internal.handler.handler.bufferPool",
-            "resolver.internal.throttler.throttler.Params"
+            "operator.internal.crddirectory.directory.CRDDetails",
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
+            "operator.internal.informer.informer.RequestWatch",
+            "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
+            "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
+            "operator.api.v1alpha1.elastiservice_types.ScaleTrigger",
+            "operator.api.v1alpha1.elastiservice_types.ElastiService",
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceList",
+            "operator.internal.controller.opsInformer.updateObjInfo",
+            "operator.internal.crddirectory.directory.Directory",
+            "operator.internal.informer.informer.KeyParams",
+            "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec",
+            "operator.internal.elastiserver.elastiServer.Server",
+            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler"
         ],
         "children": {
-            "host_manager": {
+            "operator_api": {
                 "components": [
-                    "resolver.internal.hostmanager.hostManager.HostManager"
+                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
+                    "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
+                    "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
+                    "operator.api.v1alpha1.elastiservice_types.ScaleTrigger",
+                    "operator.api.v1alpha1.elastiservice_types.ElastiService",
+                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceList",
+                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec"
+                ],
+                "children": {
+                    "crddirectory": {
+                        "components": [
+                            "operator.internal.crddirectory.directory.CRDDetails",
+                            "operator.internal.crddirectory.directory.Directory"
+                        ],
+                        "children": {}
+                    },
+                    "controller": {
+                        "components": [
+                            "operator.internal.controller.opsInformer.updateObjInfo",
+                            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler"
+                        ],
+                        "children": {
+                            "elastiservice_controller": {
+                                "components": [
+                                    "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler"
+                                ],
+                                "children": {}
+                            },
+                            "ops_informer": {
+                                "components": [
+                                    "operator.internal.controller.opsInformer.updateObjInfo"
+                                ],
+                                "children": {}
+                            }
+                        }
+                    },
+                    "elastiserver": {
+                        "components": [
+                            "operator.internal.elastiserver.elastiServer.Server"
+                        ],
+                        "children": {}
+                    },
+                    "informer": {
+                        "components": [
+                            "operator.internal.informer.informer.RequestWatch",
+                            "operator.internal.informer.informer.KeyParams"
+                        ],
+                        "children": {}
+                    }
+                }
+            },
+            "operator_crddirectory": {
+                "components": [
+                    "operator.internal.crddirectory.directory.CRDDetails",
+                    "operator.internal.crddirectory.directory.Directory"
                 ],
                 "children": {}
             },
-            "operator_client": {
+            "operator_informer": {
+                "components": [
+                    "operator.internal.informer.informer.RequestWatch",
+                    "operator.internal.informer.informer.KeyParams"
+                ],
+                "children": {}
+            },
+            "operator_controller": {
+                "components": [
+                    "operator.internal.controller.opsInformer.updateObjInfo",
+                    "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler"
+                ],
+                "children": {
+                    "elastiservice_controller": {
+                        "components": [
+                            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler"
+                        ],
+                        "children": {}
+                    },
+                    "ops_informer": {
+                        "components": [
+                            "operator.internal.controller.opsInformer.updateObjInfo"
+                        ],
+                        "children": {}
+                    }
+                }
+            },
+            "operator_elastiserver": {
+                "components": [
+                    "operator.internal.elastiserver.elastiServer.Server"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "resolver": {
+        "path": "resolver",
+        "components": [
+            "resolver.internal.handler.writer.responseWriter",
+            "resolver.cmd.main.config",
+            "resolver.internal.handler.handler.Response",
+            "resolver.internal.handler.handler.QueueStatusResponse",
+            "resolver.internal.operator.RPCClient.Client",
+            "resolver.internal.throttler.breaker.BreakerParams",
+            "resolver.internal.handler.handler.bufferPool",
+            "resolver.internal.hostmanager.hostManager.HostManager",
+            "resolver.internal.throttler.throttler.Params",
+            "resolver.internal.handler.handler.HostManager",
+            "resolver.internal.throttler.semaphore.semaphore",
+            "resolver.internal.throttler.breaker.Breaker"
+        ],
+        "children": {
+            "operator": {
                 "components": [
                     "resolver.internal.operator.RPCClient.Client"
                 ],
@@ -30,26 +138,40 @@
             },
             "throttler": {
                 "components": [
-                    "resolver.internal.throttler.breaker.Breaker",
                     "resolver.internal.throttler.breaker.BreakerParams",
+                    "resolver.internal.throttler.throttler.Params",
                     "resolver.internal.throttler.semaphore.semaphore",
-                    "resolver.internal.throttler.throttler.Params"
+                    "resolver.internal.throttler.breaker.Breaker"
                 ],
-                "children": {}
+                "children": {
+                    "semaphore": {
+                        "components": [
+                            "resolver.internal.throttler.semaphore.semaphore"
+                        ],
+                        "children": {}
+                    },
+                    "breaker": {
+                        "components": [
+                            "resolver.internal.throttler.breaker.BreakerParams",
+                            "resolver.internal.throttler.breaker.Breaker"
+                        ],
+                        "children": {}
+                    }
+                }
             },
             "handler": {
                 "components": [
-                    "resolver.internal.handler.handler.QueueStatusResponse",
+                    "resolver.internal.handler.writer.responseWriter",
                     "resolver.internal.handler.handler.Response",
-                    "resolver.internal.handler.handler.HostManager",
+                    "resolver.internal.handler.handler.QueueStatusResponse",
                     "resolver.internal.handler.handler.bufferPool",
-                    "resolver.internal.handler.writer.responseWriter"
+                    "resolver.internal.handler.handler.HostManager"
                 ],
                 "children": {}
             },
-            "main_config": {
+            "hostmanager": {
                 "components": [
-                    "resolver.cmd.main.config"
+                    "resolver.internal.hostmanager.hostManager.HostManager"
                 ],
                 "children": {}
             }
@@ -58,110 +180,92 @@
     "pkg": {
         "path": "pkg",
         "components": [
-            "pkg.scaling.scalers.scaler.Scaler",
+            "pkg.config.config.Config",
             "pkg.scaling.scale_handler.ScaleHandler",
             "pkg.messages.host.Host",
-            "pkg.config.config.ResolverConfig",
+            "pkg.k8shelper.ops.Ops",
+            "pkg.scaling.scalers.scaler.Scaler",
             "pkg.logger.logger.CustomCore",
-            "pkg.config.config.Config",
             "pkg.scaling.scalers.prometheus_scaler.prometheusMetadata",
             "pkg.messages.operator.RequestCount",
-            "pkg.k8shelper.ops.Ops",
+            "pkg.config.config.ResolverConfig",
             "pkg.scaling.scalers.prometheus_scaler.prometheusScaler"
         ],
         "children": {
+            "config": {
+                "components": [
+                    "pkg.config.config.Config",
+                    "pkg.config.config.ResolverConfig"
+                ],
+                "children": {}
+            },
             "scaling": {
                 "components": [
-                    "pkg.scaling.scalers.scaler.Scaler",
                     "pkg.scaling.scale_handler.ScaleHandler",
+                    "pkg.scaling.scalers.scaler.Scaler",
                     "pkg.scaling.scalers.prometheus_scaler.prometheusMetadata",
                     "pkg.scaling.scalers.prometheus_scaler.prometheusScaler"
                 ],
-                "children": {}
+                "children": {
+                    "scale_handler": {
+                        "components": [
+                            "pkg.scaling.scale_handler.ScaleHandler"
+                        ],
+                        "children": {}
+                    },
+                    "scalers": {
+                        "components": [
+                            "pkg.scaling.scalers.scaler.Scaler",
+                            "pkg.scaling.scalers.prometheus_scaler.prometheusMetadata",
+                            "pkg.scaling.scalers.prometheus_scaler.prometheusScaler"
+                        ],
+                        "children": {
+                            "scaler_go": {
+                                "components": [
+                                    "pkg.scaling.scalers.scaler.Scaler"
+                                ],
+                                "children": {}
+                            },
+                            "prometheus_scaler_go": {
+                                "components": [
+                                    "pkg.scaling.scalers.prometheus_scaler.prometheusMetadata",
+                                    "pkg.scaling.scalers.prometheus_scaler.prometheusScaler"
+                                ],
+                                "children": {}
+                            }
+                        }
+                    }
+                }
             },
             "messages": {
                 "components": [
                     "pkg.messages.host.Host",
                     "pkg.messages.operator.RequestCount"
                 ],
-                "children": {}
-            },
-            "config": {
-                "components": [
-                    "pkg.config.config.ResolverConfig",
-                    "pkg.config.config.Config"
-                ],
-                "children": {}
-            },
-            "logger": {
-                "components": [
-                    "pkg.logger.logger.CustomCore"
-                ],
-                "children": {}
+                "children": {
+                    "host_go": {
+                        "components": [
+                            "pkg.messages.host.Host"
+                        ],
+                        "children": {}
+                    },
+                    "operator_go": {
+                        "components": [
+                            "pkg.messages.operator.RequestCount"
+                        ],
+                        "children": {}
+                    }
+                }
             },
             "k8shelper": {
                 "components": [
                     "pkg.k8shelper.ops.Ops"
                 ],
                 "children": {}
-            }
-        }
-    },
-    "operator": {
-        "path": "operator",
-        "components": [
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec",
-            "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
-            "operator.internal.elastiserver.elastiServer.Server",
-            "operator.api.v1alpha1.elastiservice_types.ElastiService",
-            "operator.internal.crddirectory.directory.Directory",
-            "operator.api.v1alpha1.elastiservice_types.ElastiServiceList",
-            "operator.internal.informer.informer.RequestWatch",
-            "operator.internal.crddirectory.directory.CRDDetails",
-            "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
-            "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler",
-            "operator.internal.controller.opsInformer.updateObjInfo",
-            "operator.internal.informer.informer.KeyParams",
-            "operator.api.v1alpha1.elastiservice_types.ScaleTrigger"
-        ],
-        "children": {
-            "informer": {
-                "components": [
-                    "operator.internal.informer.informer.RequestWatch",
-                    "operator.internal.informer.informer.KeyParams"
-                ],
-                "children": {}
             },
-            "controller": {
+            "logger": {
                 "components": [
-                    "operator.internal.controller.elastiservice_controller.ElastiServiceReconciler",
-                    "operator.internal.controller.opsInformer.updateObjInfo"
-                ],
-                "children": {}
-            },
-            "api": {
-                "components": [
-                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec",
-                    "operator.api.v1alpha1.elastiservice_types.AutoscalerSpec",
-                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus",
-                    "operator.api.v1alpha1.elastiservice_types.ElastiService",
-                    "operator.api.v1alpha1.elastiservice_types.ElastiServiceList",
-                    "operator.api.v1alpha1.elastiservice_types.ScaleTargetRef",
-                    "operator.api.v1alpha1.elastiservice_types.ScaleTrigger"
-                ],
-                "children": {}
-            },
-            "elastiserver": {
-                "components": [
-                    "operator.internal.elastiserver.elastiServer.Server"
-                ],
-                "children": {}
-            },
-            "crddirectory": {
-                "components": [
-                    "operator.internal.crddirectory.directory.Directory",
-                    "operator.internal.crddirectory.directory.CRDDetails"
+                    "pkg.logger.logger.CustomCore"
                 ],
                 "children": {}
             }

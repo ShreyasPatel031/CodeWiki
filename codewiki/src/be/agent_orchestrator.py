@@ -54,6 +54,7 @@ from codewiki.src.config import (
     MODULE_TREE_FILENAME,
     OVERVIEW_FILENAME,
     LARGE_REPO_COMPONENT_THRESHOLD,
+    MIN_DEPTH,
 )
 from codewiki.src.file_manager import file_manager
 from codewiki.src.be.dependency_analyzer.models.core import Node
@@ -91,8 +92,14 @@ class AgentOrchestrator:
         if is_large_repo:
             base_tools.extend([list_module_components_tool, get_module_summary_tool])
         
-        if is_complex:
-            logger.debug(f"[STAGE 4.3] Module is complex - creating complex agent with sub-module tool")
+        # Root-level agents (depth=0) always get sub-module tool to ensure MIN_DEPTH
+        # This is the initial agent for each top-level module
+        # Force complex agent at root level to guarantee at least MIN_DEPTH levels
+        force_complex = len(core_component_ids) >= 2  # Root level is always depth 0 < MIN_DEPTH
+        
+        if is_complex or force_complex:
+            logger.debug(f"[STAGE 4.3] Module is complex or forced - creating complex agent with sub-module tool")
+            logger.debug(f"[STAGE 4.3]   is_complex={is_complex}, force_complex={force_complex}")
             tools = base_tools + [generate_sub_module_documentation_tool]
             agent = Agent(
                 self.fallback_models,

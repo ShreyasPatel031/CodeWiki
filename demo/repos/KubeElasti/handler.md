@@ -1,142 +1,117 @@
 # Handler Module Documentation
 
 ## Introduction
-The `handler` module in the `resolver` service is responsible for handling incoming HTTP requests, acting as a reverse proxy. It orchestrates traffic management, applies throttling mechanisms, interacts with host management, and communicates with the operator for request information. This module is central to how the `resolver` processes and routes requests to appropriate backend services.
 
-## Core Functionality
+The `handler` module in the `resolver` service is responsible for processing incoming HTTP requests, interacting with the host manager and operator, and managing request throttling. It acts as the central point for routing requests to appropriate backend services and ensuring the stability and performance of the system.
 
-The `handler` module provides the following core functionalities:
-*   **Request Handling**: Processes incoming HTTP requests through a reverse proxy.
-*   **Throttling**: Integrates with the `throttler` module to apply rate limiting and circuit breaking strategies.
-*   **Host Management**: Utilizes the `host_manager` module to determine the target host for a request and manage host traffic.
-*   **Operator Communication**: Sends information about incoming requests to the `operator_client` module for monitoring and control.
-*   **Response Generation**: Manages the construction and writing of HTTP responses, including custom status and body handling.
+## Architecture Overview
 
-## Architecture and Component Relationships
-
-The `handler` module's architecture is centered around the `Handler` struct, which acts as the main entry point for request processing. It leverages several internal components and interacts with external modules to perform its duties.
+The `handler` module integrates with several other core components of the `resolver` system to fulfill its responsibilities:
 
 ```mermaid
 graph TD
-    subgraph Handler Module
-        H[Handler]
-        P(Params)
-        QR(QueueStatusResponse)
-        R(Response)
-        RW(responseWriter)
-        BP(bufferPool)
-        H --> P
-        H --> RW
-        H --> BP
-    end
+    A[Incoming HTTP Request] --> handler[Handler Module]
+    handler --> throttler[Throttler Module]
+    handler --> operator[Operator Module]
+    handler --> hostmanager[HostManager Module]
 
-    H -- "Uses" --> T[Throttler]
-    H -- "Uses" --> HM[HostManager]
-    H -- "Communicates with" --> O[Operator Client]
-    H -- "Logs via" --> L[Logger]
-    H -- "Handles" --> MSG[pkg.messages.host.Host]
-
-    click T "throttler.md" "View Throttler Module"
-    click HM "host_manager.md" "View Host Manager Module"
-    click O "operator_client.md" "View Operator Client Module"
-    click MSG "pkg.md" "View Pkg Module"
+    click throttler "throttler.md" "View Throttler Module"
+    click operator "operator.md" "View Operator Module"
+    click hostmanager "hostmanager.md" "View HostManager Module"
 ```
 
-### Key Components:
+The `Handler` within this module orchestrates the flow of requests, utilizing the `Throttler` for rate limiting and circuit breaking, the `Operator` for communicating with the Kubernetes operator, and the `HostManager` for selecting and managing target hosts.
 
-*   **`Handler` (resolver.internal.handler.handler.HostManager)**: This is the primary component of the module, implementing the reverse proxy logic. It holds references to a logger, a throttler, an HTTP transport, a buffer pool, an operator client, and a host manager.
+## Core Functionality and Components
 
-    ```go
-    type Handler struct {
-        logger      *zap.Logger
-        throttler   *throttler.Throttler
-        transport   http.RoundTripper
-        bufferPool  httputil.BufferPool
-        timeout     time.Duration
-        operatorRPC Operator
-        hostManager HostManager
-    }
-    ```
+The `handler` module comprises several key components that work together to manage request processing:
 
-*   **`Params` (resolver.internal.handler.handler.HostManager)**: Configuration structure for initializing the `Handler`.
+### `Handler` (resolver.internal.handler.handler.HostManager)
 
-    ```go
-    type Params struct {
-        Logger      *zap.Logger
-        ReqTimeout  time.Duration
-        OperatorRPC Operator
-        HostManager HostManager
-        Throttler   *throttler.Throttler
-        Transport   http.RoundTripper
-    }
-    ```
+This is the central component of the `handler` module. It defines the main `Handler` struct, which contains the necessary dependencies and configuration for processing requests. It also defines `Params` for configuring the handler and crucial interfaces `Operator` and `HostManager` that outline the expected interactions with external modules.
 
-*   **`Operator` Interface (resolver.internal.handler.handler.HostManager)**: Defines the contract for communicating with the operator. The concrete implementation is found in the `operator_client` module.
+#### `Handler` Struct
+```go
+type Handler struct {
+	logger      *zap.Logger
+	throttler   *throttler.Throttler
+	transport   http.RoundTripper
+	bufferPool  httputil.BufferPool
+	timeout     time.Duration
+	operatorRPC Operator
+	hostManager HostManager
+}
+```
+The `Handler` struct encapsulates the dependencies required for request processing, including a logger, a throttler, an HTTP transport, a buffer pool, a request timeout, an operator RPC client, and a host manager.
 
-    ```go
-    type Operator interface {
-        SendIncomingRequestInfo(ns, svc string)
-    }
-    ```
+#### `Params` Struct
+```go
+type Params struct {
+	Logger      *zap.Logger
+	ReqTimeout  time.Duration
+	OperatorRPC Operator
+	HostManager HostManager
+	Throttler   *throttler.Throttler
+	Transport   http.RoundTripper
+}
+```
+The `Params` struct is used to configure and initialize the `Handler` with its required dependencies.
 
-*   **`HostManager` Interface (resolver.internal.handler.handler.HostManager)**: Defines the contract for managing hosts and their traffic. The concrete implementation is found in the `host_manager` module.
+#### `Operator` Interface
+```go
+type Operator interface {
+	SendIncomingRequestInfo(ns, svc string)
+}
+```
+The `Operator` interface defines the contract for communicating with the Kubernetes operator, primarily for sending information about incoming requests.
 
-    ```go
-    type HostManager interface {
-        GetHost(req *http.Request) (*messages.Host, error)
-        DisableTrafficForHost(service string)
-    }
-    ```
+#### `HostManager` Interface
+```go
+type HostManager interface {
+	GetHost(req *http.Request) (*messages.Host, error)
+	DisableTrafficForHost(service string)
+}
+```
+The `HostManager` interface defines methods for managing backend hosts, including retrieving a host for a given request and disabling traffic to a specific service.
 
-*   **`QueueStatusResponse` (resolver.internal.handler.handler.QueueStatusResponse)**: A simple structure for responses indicating queue status.
+### `responseWriter` (resolver.internal.handler.writer.responseWriter)
 
-    ```go
-    type QueueStatusResponse struct {
-        QueueStatus int `json:"queueStatus"`
-    }
-    ```
+The `responseWriter` is a custom implementation of `http.ResponseWriter` that allows capturing the HTTP status code and response body before writing them back to the client. This is useful for logging or modifying responses.
 
-*   **`Response` (resolver.internal.handler.handler.Response)**: A generic structure for simple message responses.
+```go
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	body       []byte
+}
+```
 
-    ```go
-    type Response struct {
-        Message string `json:"message"`
-    }
-    ```
+### `Response` (resolver.internal.handler.handler.Response)
 
-*   **`bufferPool` (resolver.internal.handler.handler.bufferPool)**: A custom implementation of `httputil.BufferPool` using `sync.Pool` for efficient buffer reuse.
+This struct defines a generic JSON response structure used for returning simple messages to the client.
 
-    ```go
-    type bufferPool struct {
-        pool *sync.Pool
-    }
-    ```
+```go
+type Response struct {
+	Message string `json:"message"`
+}
+```
 
-*   **`responseWriter` (resolver.internal.handler.writer.responseWriter)**: A wrapper around `http.ResponseWriter` that captures the status code and body for custom response handling or logging.
+### `QueueStatusResponse` (resolver.internal.handler.handler.QueueStatusResponse)
 
-    ```go
-    type responseWriter struct {
-        http.ResponseWriter
-        statusCode int
-        body       []byte
-    }
-    ```
+This struct is used to convey the status of a request within a queue, typically indicating whether a request was successfully queued or if there were issues.
 
-### External Module Dependencies:
+```go
+type QueueStatusResponse struct {
+	QueueStatus int `json:"queueStatus"`
+}
+```
 
-*   **`throttler` Module**: The `Handler` utilizes `throttler.Throttler` for managing request rates and implementing circuit breakers. See [throttler.md](throttler.md) for more details.
-*   **`host_manager` Module**: The `Handler` relies on the `HostManager` interface, which is implemented by the `resolver.internal.hostmanager.hostManager.HostManager` component. This module is responsible for selecting and managing backend hosts. See [host_manager.md](host_manager.md) for more details.
-*   **`operator_client` Module**: The `Handler` communicates with the `operator_client` through the `Operator` interface (implemented by `resolver.internal.operator.RPCClient.Client`) to send information about incoming requests to the operator. See [operator_client.md](operator_client.md) for more details.
-*   **`pkg` Module**: The `handler` module interacts with `messages.Host` from the `pkg` module when retrieving host information from the `HostManager`. See [pkg.md](pkg.md) for more details.
+### `bufferPool` (resolver.internal.handler.handler.bufferPool)
 
-## How the Module Fits into the Overall System
+The `bufferPool` component provides a mechanism for efficiently managing byte buffers using `sync.Pool`. This helps reduce memory allocations and garbage collection overhead, especially in high-throughput scenarios where many temporary buffers are needed for request and response bodies.
 
-The `handler` module is a critical component within the `resolver` service, sitting at the forefront of request processing. It acts as the intelligent entry point, mediating between incoming client requests and the backend services or the `operator`'s control plane.
-
-It integrates with:
-*   **Load Balancing**: By using the `host_manager` to select appropriate hosts.
-*   **Traffic Management**: Through its integration with the `throttler` for flow control.
-*   **Observability/Control Plane**: By sending request metadata to the `operator_client`.
-*   **Configuration**: Initialized with parameters from the `main_config` module, defining its behavior and external dependencies. See [main_config.md](main_config.md) for more details.
-
-In essence, the `handler` module ensures that incoming requests are properly routed, controlled, and monitored, forming a crucial part of the `resolver`'s ability to efficiently and reliably manage traffic.
+```go
+type bufferPool struct {
+	pool *sync.Pool
+}
+```

@@ -19,6 +19,7 @@ OVERVIEW_FILENAME = 'overview.md'
 
 # Clustering Thresholds (Stage 2)
 MAX_DEPTH = 10                          # Maximum recursion depth for clustering
+MIN_DEPTH = 3                           # Minimum depth - force sub-agents until this depth
 MAX_TOKEN_PER_MODULE = 32_768           # Paper: 32768 tokens per leaf module
 MAX_TOKEN_PER_LEAF_MODULE = 16_000      # Threshold for sub-module delegation in Stage 4
 MIN_COMPONENTS_FOR_CLUSTERING = 3       # Don't try to cluster fewer than this many components

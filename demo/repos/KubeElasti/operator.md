@@ -2,47 +2,111 @@
 
 ## Introduction
 
-The `operator` module is a core component responsible for managing and orchestrating the scaling of services within a Kubernetes environment. It introduces the `ElastiService` Custom Resource Definition (CRD), allowing users to define how their services should scale dynamically based on various triggers. The operator watches for changes to `ElastiService` resources, reconciles the desired state with the actual cluster state, and interacts with other components like the `resolver` and external autoscalers (e.g., HPA, KEDA) to achieve intelligent scaling.
+The `operator` module is a critical component of the system, responsible for managing the lifecycle and scaling of `ElastiService` custom resources within a Kubernetes environment. It acts as a Kubernetes operator, defining the API for `ElastiService` objects, watching for changes to these resources, and performing reconciliation logic to ensure the desired state of the services. This module integrates deeply with Kubernetes to provide automated scaling and management capabilities for applications.
 
-## Architecture Overview
-
-The `operator` module follows a standard Kubernetes operator pattern, extending the Kubernetes API with custom resources and implementing a control loop to manage them. It integrates with the `pkg` module for common utilities like scaling logic, message handling, and configuration, and interacts with the `resolver` module for service request events.
+## Architecture
 
 ```mermaid
 graph TD
-    User -->|Creates/Updates| API[ElastiService API]
-    API --> Controller[Controller]
-    Controller --> K8sAPI[Kubernetes API Server]
-    Controller --> Informer[Informer]
-    Informer --> Controller
-    Controller -->|Scales via| Scaling[pkg.scaling]
-    Controller --> CRDDirectory[CRD Directory]
-    ElastiServer[ElastiServer] --> Controller
-    Resolver[resolver] -->|Notifies for scaling| ElastiServer
+    operator[Operator Module]
 
-    subgraph Operator Module
-        API
-        Controller
-        Informer
-        CRDDirectory
-        ElastiServer
+    subgraph API
+        operator_api[API Definitions]
+        elastiservice_types[ElastiService Types]
     end
 
-    click API "api.md" "View API Documentation"
-    click Controller "controller.md" "View Controller Documentation"
-    click Informer "informer.md" "View Informer Documentation"
-    click CRDDirectory "crddirectory.md" "View CRD Directory Documentation"
-    click ElastiServer "elastiserver.md" "View ElastiServer Documentation"
-    click Scaling "scaling.md" "View Scaling Module Documentation"
-    click Resolver "resolver.md" "View Resolver Module Documentation"
+    subgraph Control Plane
+        operator_controller[Controller Logic]
+        elastiservice_reconciler[ElastiService Reconciler]
+        obj_info_updater[Object Info Updater]
+    end
+
+    subgraph Watchers
+        operator_informer[Informer]
+        request_watch[Request Watch]
+        key_params[Key Parameters]
+    end
+
+    subgraph CRD Management
+        operator_crddirectory[CRD Directory]
+        crd_details[CRD Details]
+        directory[Directory]
+    end
+
+    subgraph API Server
+        operator_elastiserver[ElastiServer]
+        server[HTTP Server]
+    end
+
+    operator_api --> elastiservice_types
+    operator_controller --> elastiservice_reconciler
+    operator_controller --> obj_info_updater
+    operator_informer --> request_watch
+    operator_informer --> key_params
+    operator_crddirectory --> crd_details
+    operator_crddirectory --> directory
+    operator_elastiserver --> server
+
+    operator --> operator_api
+    operator --> operator_controller
+    operator --> operator_informer
+    operator --> operator_crddirectory
+    operator --> operator_elastiserver
+
+    elastiservice_reconciler --> elastiservice_types
+    elastiservice_reconciler --> request_watch
+    elastiservice_reconciler --> crd_details
+
+    resolver_client[RPC Client]
+    resolver[Resolver Module]
+
+    resolver_client -- communicates with --> server
+    resolver -- uses --> resolver_client
+
+    operator --- resolver_client
+    operator --- resolver
+
+    pkg[Common Utilities]
+    operator --> pkg
+
+    click operator_api "operator_api.md" "View Operator API Module"
+    click operator_controller "operator_controller.md" "View Operator Controller Module"
+    click operator_informer "operator_informer.md" "View Operator Informer Module"
+    click operator_crddirectory "operator_crddirectory.md" "View Operator CRD Directory Module"
+    click operator_elastiserver "operator_elastiserver.md" "View Operator ElastiServer Module"
+    click resolver "resolver.md" "View Resolver Module"
+    click pkg "pkg.md" "View Pkg Module"
 ```
 
-## Sub-modules and their Functionality
+## Core Components and Functionality
 
-The `operator` module is composed of several key sub-modules, each with distinct responsibilities:
+### `operator.api.v1alpha1.elastiservice_types`
+This package defines the Custom Resource Definition (CRD) for `ElastiService` objects. It includes:
+- `ElastiService`: The primary CRD object, encapsulating the desired state of a scalable service.
+- `ElastiServiceSpec`: Defines the specification of an `ElastiService`, including details about the target application, scaling behavior, and triggers.
+- `ElastiServiceStatus`: Represents the current observed state of an `ElastiService`.
+- `AutoscalerSpec`: Configuration for the autoscaling behavior.
+- `ScaleTargetRef`: Reference to the Kubernetes resource that needs to be scaled.
+- `ScaleTrigger`: Defines the conditions or metrics that trigger scaling actions.
+- `ElastiServiceList`: A list type for `ElastiService` resources, used for API operations.
 
-*   **[API](api.md)**: Defines the custom resource definitions (CRDs) for `ElastiService`, including its specifications (`ElastiServiceSpec`), status (`ElastiServiceStatus`), and various related types like `ScaleTargetRef` and `ScaleTrigger`.
-*   **[ElastiServer](elastiserver.md)**: Provides an endpoint for other components, such as the [resolver](resolver.md) module, to communicate scaling-related events to the operator. This allows the operator to react to real-time service requests.
-*   **[CRD Directory](crddirectory.md)**: Manages and provides access to the details of the `ElastiService` custom resources, effectively acting as a cache or directory for currently configured `ElastiService` instances.
-*   **[Informer](informer.md)**: Responsible for watching Kubernetes resources, including `ElastiService` instances and their target resources (e.g., Deployments, Rollouts). It informs the controller about changes, additions, or deletions of these resources.
-*   **[Controller](controller.md)**: The core reconciliation logic of the operator. It receives events from the informer, compares the desired state (defined by `ElastiService` resources) with the actual cluster state, and takes actions to bring them into alignment, primarily involving scaling operations through the [pkg.scaling](scaling.md) module.
+### `operator.internal.controller.elastiservice_controller.ElastiServiceReconciler`
+This is the core reconciliation logic for `ElastiService` resources. The `ElastiServiceReconciler` watches for changes to `ElastiService` objects and ensures that the actual state of the system matches the desired state defined in the `ElastiService` spec. It interacts with the Kubernetes API to manage deployments, services, and other related resources.
+
+### `operator.internal.informer.informer.RequestWatch` and `operator.internal.informer.informer.KeyParams`
+These components are part of the informer mechanism, responsible for watching Kubernetes resources and providing notifications about changes. `RequestWatch` likely sets up watches on specific resources, while `KeyParams` might be used to extract relevant identifying information (keys) from watched objects for processing.
+
+### `operator.internal.crddirectory.directory.CRDDetails` and `operator.internal.crddirectory.directory.Directory`
+These components manage Custom Resource Definitions (CRDs). The `Directory` likely maintains a registry of CRDs known to the operator, and `CRDDetails` would hold metadata and schema information for each CRD. This ensures the operator can correctly interpret and validate `ElastiService` resources.
+
+### `operator.internal.elastiserver.elastiServer.Server`
+This component represents an HTTP server within the operator. It likely exposes endpoints for other parts of the system (such as the `resolver` module) to communicate with the `operator`, possibly to query status or provide input for scaling decisions. The `resolver.internal.operator.RPCClient.Client` component in the `resolver` module would be used to interact with this server.
+
+### `operator.internal.controller.opsInformer.updateObjInfo`
+This component is likely responsible for updating object information within the operator's internal cache or state management, ensuring that the controller has the most up-to-date view of the Kubernetes resources it manages.
+
+## Integration with the Overall System
+
+The `operator` module plays a central role in the system's ability to manage and scale services dynamically. It acts as the primary interface for defining and controlling scalable applications through `ElastiService` custom resources. 
+
+It integrates with the `resolver` module, which uses an `RPCClient` to communicate with the `operator`'s `ElastiServer`. This communication allows the `resolver` to query the `operator` for information or trigger actions, potentially influencing scaling decisions based on real-time traffic or load. The `pkg` module provides common utilities and helper functions used across both `operator` and `resolver` modules, ensuring consistency and reusability.

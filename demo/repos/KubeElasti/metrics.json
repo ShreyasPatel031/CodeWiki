@@ -1,29 +1,29 @@
 {
   "repo_name": "KubeElasti",
   "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
-  "repo_size_mb": 449973.28515625,
+  "repo_size_mb": 449798.30859375,
   "total_files": 0,
   "total_code_files": 45,
   "stages": {
     "Dependency Analysis": {
       "stage_name": "Dependency Analysis",
-      "duration": 0.12827801704406738,
+      "duration": 0.2625858783721924,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Module Clustering": {
       "stage_name": "Module Clustering",
-      "duration": 0.019931793212890625,
+      "duration": 0.4578077793121338,
       "tokens_used": 0,
       "files_created": 0,
       "files_created_list": []
     },
     "Documentation Generation": {
       "stage_name": "Documentation Generation",
-      "duration": 314.6173298358917,
+      "duration": 631.136472940445,
       "tokens_used": 0,
-      "files_created": 19,
+      "files_created": 31,
       "files_created_list": [
         "resolver.md",
         "crddirectory.md",
@@ -31,27 +31,39 @@
         "elastiserver.md",
         "messages.md",
         "overview.md",
-        "api.md",
-        "host_manager.md",
-        "operator_client.md",
+        "operator_api.md",
+        "scale_handler.md",
+        "operator_go.md",
         "informer.md",
+        "operator_informer.md",
         "handler.md",
         "config.md",
         "controller.md",
+        "operator_crddirectory.md",
+        "operator_elastiserver.md",
+        "hostmanager.md",
         "scaling.md",
         "throttler.md",
-        "main_config.md",
+        "scaler_go.md",
+        "prometheus_scaler_go.md",
+        "operator_controller.md",
         "operator.md",
         "k8shelper.md",
-        "logger.md"
+        "logger.md",
+        "ops_informer.md",
+        "elastiservice_controller.md",
+        "scalers.md",
+        "semaphore.md",
+        "host_go.md",
+        "breaker.md"
       ]
     }
   },
-  "time_to_first_overview": 314.78957986831665,
+  "time_to_first_overview": 631.8851656913757,
   "first_overview_file": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti/docs/overview.md",
-  "total_duration": 314.78968501091003,
+  "total_duration": 631.8853068351746,
   "total_tokens": 0,
-  "total_files_created": 19,
-  "start_time": 1768583149.585786,
-  "end_time": 1768583464.375471
+  "total_files_created": 31,
+  "start_time": 1768585518.6504772,
+  "end_time": 1768586150.535784
 }

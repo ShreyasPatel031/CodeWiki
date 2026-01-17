@@ -1,62 +1,41 @@
 # Config Module Documentation
 
-## Introduction
+## Introduction and Purpose
 
-The `config` module (`pkg.config.config`) is a foundational package responsible for defining the core configuration structures used throughout the system. It provides a standardized way to manage and access essential parameters for various components, especially those interacting with Kubernetes resources and network services.
+The `config` module, located within the `pkg` directory, is responsible for defining the core configuration structures used throughout the system. It provides essential parameters for deploying and operating services, specifically detailing network configurations and service identification within a Kubernetes environment.
 
-## Core Functionality
+## Architecture Overview
 
-This module primarily defines two key configuration structures:
+The `config` module is a fundamental building block that defines data structures. It doesn't have a complex internal architecture with multiple sub-modules or intricate relationships. Instead, it offers simple, clear data types that are consumed by other modules, such as `operator` and `resolver`, to initialize their operations.
 
-1.  **`Config`**: A generic configuration struct that encapsulates common parameters such as Kubernetes namespace, deployment name, service name, and port. This struct serves as a base for more specialized configurations.
-2.  **`ResolverConfig`**: An extension of the `Config` struct, adding a specific parameter for the reverse proxy port. This specialized configuration is tailored for components that function as a reverse proxy, such as those within the `resolver` module.
-
-
-### `pkg.config.config.Config`
-
-```go
-type Config struct {
-        Namespace      string
-        DeploymentName string
-        ServiceName    string
-        Port           int32
-}
-```
-
-
-### `pkg.config.config.ResolverConfig`
-
-```go
-type ResolverConfig struct {
-        Config
-
-        ReverseProxyPort int32
-}
-```
-
-## Architecture and Component Relationships
-
-The `config` module's architecture is straightforward, focusing on data structure definitions. The relationship between its core components is one of inheritance or embedding, where `ResolverConfig` extends the `Config` struct.
+The `ResolverConfig` directly embeds the `Config` structure, indicating that a resolver's configuration extends the basic service configuration with additional resolver-specific parameters.
 
 ```mermaid
 graph TD
-    Config[pkg.config.config.Config]
-    ResolverConfig[pkg.config.config.ResolverConfig]
+    config_module[config Module]
+    config_struct[Config Structure]
+    resolver_config_struct[ResolverConfig Structure]
 
-    ResolverConfig -- embeds --> Config
-
-
-
-
-    click Config "config.md" "View Config Structure"
-    click ResolverConfig "config.md" "View ResolverConfig Structure"
+    config_module --> config_struct
+    config_module --> resolver_config_struct
+    resolver_config_struct --> config_struct
 ```
 
-## How the Module Fits into the Overall System
+## Core Components and Functionality
 
-The `config` module serves as a central repository for system-wide configuration definitions.
+### `Config`
 
-*   **`Config`**: This base configuration is likely utilized by various modules that need to identify and interact with Kubernetes resources (e.g., `pkg.k8shelper.ops.Ops` for Kubernetes operations) or define their service endpoints.
-*   **`ResolverConfig`**: This specialized configuration is specifically designed for the `resolver` module. Components within the `resolver` module, such as `resolver.cmd.main.config`, would use `ResolverConfig` to set up their operational parameters, including the reverse proxy port. This ensures that the resolver operates with the correct network and Kubernetes environment settings.
+The `Config` struct defines the fundamental configuration parameters for a service or deployment. It includes details necessary for identifying and addressing a service within a Kubernetes cluster.
 
-By centralizing configuration definitions, the `config` module promotes consistency, reduces redundancy, and simplifies the management of system parameters across different components. Other modules can import and utilize these structures, linking back to this documentation for details on configuration parameters.
+-   **`Namespace`**: (string) The Kubernetes namespace where the service is deployed.
+-   **`DeploymentName`**: (string) The name of the Kubernetes deployment associated with the service.
+-   **`ServiceName`**: (string) The name of the Kubernetes service itself.
+-   **`Port`**: (int32) The port number on which the service is exposed.
+
+### `ResolverConfig`
+
+The `ResolverConfig` struct extends the `Config` struct with additional parameters specific to a resolver component. It inherits all fields from `Config` and adds a port for the reverse proxy functionality.
+
+-   **`Config`**: (embedded struct) Inherits all fields from the `Config` struct (Namespace, DeploymentName, ServiceName, Port).
+-   **`ReverseProxyPort`**: (int32) The port number used by the reverse proxy within the resolver component.
+

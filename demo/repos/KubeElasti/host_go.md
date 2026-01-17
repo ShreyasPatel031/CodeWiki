@@ -1,56 +1,50 @@
-# Host Module Documentation
+# host_go Module Documentation
 
 ## Introduction
-The `host_go` module, located within the `pkg/messages` package, defines the `Host` struct. This struct serves as a fundamental data structure for encapsulating detailed information about hosts involved in service communication, including their identity, namespace, and traffic routing status. It is crucial for facilitating inter-service communication and decision-making within the system.
 
-## Core Functionality
+The `host_go` module, residing within the `pkg.messages` package, defines the `Host` structure. This structure is a fundamental data representation used across the system to encapsulate detailed information about hosts involved in service communication and traffic management. It plays a critical role in standardizing how host-related metadata is exchanged and processed.
 
-### `pkg.messages.host.Host`
-The `Host` struct is a Go data structure that holds comprehensive details about a host involved in a communication flow. It captures essential metadata required for routing, traffic management, and policy enforcement.
+## Core Functionality and Purpose
+
+The primary purpose of the `host_go` module is to provide a clear and consistent definition for host entities. The `Host` struct includes several key fields that describe various aspects of a host and its role in a request or operation.
+
+### `Host` Struct
+
+The `Host` struct (defined in `pkg/messages/host.go`) contains the following fields:
 
 ```go
 type Host struct {
-        IncomingHost   string
-        Namespace      string
-        SourceService  string
-        TargetService  string
-        SourceHost     string
-        TargetHost     string
-        TrafficAllowed bool
+	IncomingHost   string
+	Namespace      string
+	SourceService  string
+	TargetService  string
+	SourceHost     string
+	TargetHost     string
+	TrafficAllowed bool
 }
 ```
 
-**Fields:**
-* `IncomingHost` (string): The identifier of the host receiving traffic.
-* `Namespace` (string): The Kubernetes namespace to which the host belongs.
-* `SourceService` (string): The name of the service initiating the communication.
-* `TargetService` (string): The name of the service that is the target of the communication.
-* `SourceHost` (string): The actual host identifier of the source.
-* `TargetHost` (string): The actual host identifier of the target.
-* `TrafficAllowed` (bool): A flag indicating whether traffic is permitted between the source and target.
+-   **`IncomingHost`**: Represents the hostname or IP address from which a request is originating or being received.
+-   **`Namespace`**: The Kubernetes namespace associated with the host or the services involved.
+-   **`SourceService`**: The name of the service initiating the request.
+-   **`TargetService`**: The name of the service that is the intended recipient of the request.
+-   **`SourceHost`**: The specific host (e.g., pod name or IP) where the source service is running.
+-   **`TargetHost`**: The specific host (e.g., pod name or IP) where the target service is running.
+-   **`TrafficAllowed`**: A boolean flag indicating whether traffic is permitted for this host or between the specified source and target.
+
+This structure facilitates the reliable passing of host context between different components of the system, such as resolvers and operators, enabling informed decisions on traffic routing, access control, and observability.
 
 ## Architecture and Component Relationships
 
-The `Host` struct plays a central role in various parts of the system, particularly in how services communicate and how those communications are managed and potentially scaled. It acts as a message format, carrying vital context between different components.
+The `host_go` module is a part of the `pkg.messages` package, which is responsible for defining common data structures used for inter-component communication. The `Host` struct is a key message type that allows various parts of the system to communicate information about network endpoints and service interactions.
 
 ```mermaid
-flowchart TD
-    A[Messages Module] --> B[Host]
+graph TD
+    pkg[pkg] --> messages[messages]
+    messages --> host_go[host_go]
+    host_go --> Host_Struct[pkg.messages.host.Host]
 
-    subgraph pkg/messages
-        B
-        C[RequestCount]
-    end
-
-    B -- "Carries host information" --> D[ElastiServiceReconciler]
-    B -- "Carries host information" --> E[HostManager]
-    B -- "Carries host information" --> F[ScaleHandler]
-
-    click D "operator_internal_controller.md" "View Operator Internal Controller Module"
-    click E "resolver.md" "View Resolver Module"
-    click F "scaling_scale_handler.md" "View Scaling Scale Handler Module"
-    click C "operator_go.md" "View Operator Go Module"
+    click messages "messages.md" "View Messages Module Documentation"
 ```
 
-## How the Module Fits into the Overall System
-The `host_go` module, through its `Host` struct, is a critical data carrier that enables communication and coordination across the microservices. It provides the necessary context for the `operator` to manage `ElastiService` resources, for the `resolver` to correctly route traffic and manage host states, and for the `scaling` components to make informed scaling decisions based on traffic and service interactions. It essentially defines the "envelope" for host-related communication within the system, ensuring that all relevant information is consistently available where needed.
+The `Host` struct is utilized by modules that need to process or make decisions based on host-specific information, such as the `resolver` module for routing requests or the `operator` module for managing service instances. For more details on other message types, refer to the [messages module documentation](messages.md).

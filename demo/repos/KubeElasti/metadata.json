@@ -1,6 +1,6 @@
 {
     "generation_info": {
-        "timestamp": "2026-01-16T22:41:04.374678",
+        "timestamp": "2026-01-16T23:25:50.534895",
         "main_model": "gemini-2.5-flash",
         "generator_version": "1.0.0",
         "repo_path": "/Users/shreyaspatel/CodeWiki/test_repos/KubeElasti",
@@ -20,18 +20,30 @@
         "pkg.md",
         "elastiserver.md",
         "messages.md",
-        "api.md",
-        "host_manager.md",
-        "operator_client.md",
+        "operator_api.md",
+        "scale_handler.md",
+        "operator_go.md",
         "informer.md",
+        "operator_informer.md",
         "handler.md",
         "config.md",
         "controller.md",
+        "operator_crddirectory.md",
+        "operator_elastiserver.md",
+        "hostmanager.md",
         "scaling.md",
         "throttler.md",
-        "main_config.md",
+        "scaler_go.md",
+        "prometheus_scaler_go.md",
+        "operator_controller.md",
         "operator.md",
         "k8shelper.md",
-        "logger.md"
+        "logger.md",
+        "ops_informer.md",
+        "elastiservice_controller.md",
+        "scalers.md",
+        "semaphore.md",
+        "host_go.md",
+        "breaker.md"
     ]
 }

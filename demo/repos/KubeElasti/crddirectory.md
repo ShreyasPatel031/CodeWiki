@@ -1,88 +1,62 @@
-# crddirectory
+# CRD Directory Module Documentation
 
-The `crddirectory` module is responsible for maintaining an in-memory directory of `ElastiService` Custom Resource Definitions (CRDs) and their associated details within the operator. It acts as a central registry for `ElastiService` instances, providing a consistent view of their specifications and statuses for various components of the operator.
+## 1. Introduction and Purpose
 
-## Core Components
+The `crddirectory` module serves as a central registry and cache for Custom Resource Definitions (CRDs) within the `operator`. Specifically, it manages the details of `ElastiService` CRDs, including their specifications and current statuses. This module provides a concurrency-safe mechanism to store and retrieve CRD information, ensuring that other components of the operator, such as controllers and informers, have consistent and up-to-date access to these critical resources.
 
-### `Directory`
+Its primary purpose is to abstract away the direct interaction with Kubernetes API for fetching CRD details by maintaining an in-memory representation, thereby improving performance and simplifying CRD management logic for the rest of the operator.
 
-The `Directory` struct serves as the main entry point for managing the collection of `ElastiService` CRD details. It uses a `sync.Map` for efficient and concurrent storage and retrieval of service information.
+## 2. Architecture Overview
 
-```go
-type Directory struct {
-	Services sync.Map
-	Logger   *zap.Logger
-}
-```
+The `crddirectory` module is an integral part of the `operator`'s internal structure, residing under the `operator_api` layer. It interacts closely with other core components of the operator to maintain a consistent view of the `ElastiService` CRDs deployed in the Kubernetes cluster.
 
-*   **`Services`**: A `sync.Map` that stores key-value pairs, where keys are likely the names of `ElastiService` CRDs and values are their corresponding `CRDDetails`. This ensures thread-safe access to the service directory.
-*   **`Logger`**: A `*zap.Logger` instance used for logging operations within the directory, providing insights into its activities and potential issues. This component integrates with the [logger module](logger.md) for standardized logging.
-
-### `CRDDetails`
-
-The `CRDDetails` struct encapsulates the essential information for a single `ElastiService` Custom Resource.
-
-```go
-type CRDDetails struct {
-	CRDName string
-	Spec    v1alpha1.ElastiServiceSpec
-	Status  v1alpha1.ElastiServiceStatus
-}
-```
-
-*   **`CRDName`**: A string representing the unique name of the `ElastiService` CRD.
-*   **`Spec`**: Contains the desired state specification of the `ElastiService` as defined by `v1alpha1.ElastiServiceSpec`. This structure is defined in the [api module](api.md).
-*   **`Status`**: Holds the current observed status of the `ElastiService` as defined by `v1alpha1.ElastiServiceStatus`. This structure is also defined in the [api module](api.md).
-
-## Architecture and Component Relationships
-
-The `crddirectory` module, primarily through its `Directory` component, acts as a central data store for `ElastiService` CRD information. It interacts with several other modules to fulfill its role.
+Here's an architectural diagram illustrating its position and relationships:
 
 ```mermaid
 graph TD
-    subgraph operator.internal.crddirectory
-        A[Directory]
-        B[CRDDetails]
-    end
+    operator[Operator Module] --> operator_api[Operator API Module]
+    operator_api --> crddirectory[CRD Directory Module]
+    operator_api --> controller[Controller Module]
+    operator_api --> elastiserver[ElastiServer Module]
+    operator_api --> informer[Informer Module]
 
-    C[operator.internal.controller.ElastiServiceReconciler]
-    D[operator.internal.informer.RequestWatch]
-    E[operator.internal.elastiserver.Server]
-    F[pkg.logger.CustomCore]
-    G[operator.api.v1alpha1.ElastiServiceSpec]
-    H[operator.api.v1alpha1.ElastiServiceStatus]
+    informer --> crddirectory
+    controller --> crddirectory
+    elastiserver --> crddirectory
 
-    A --> B
-    A --> F
-    C --> A
-    D --> A
-    E --> A
-    B --> G
-    B --> H
-
-    click A "crddirectory.md" "View CRD Directory Module"
-    click B "crddirectory.md" "View CRD Details Structure"
-    click C "controller.md" "View Controller Module"
-    click D "informer.md" "View Informer Module"
-    click E "elastiserver.md" "View ElastiServer Module"
-    click F "logger.md" "View Logger Module"
-    click G "api.md" "View ElastiServiceSpec"
-    click H "api.md" "View ElastiServiceStatus"
+    click operator_api "operator_api.md" "View Operator API Module"
+    click crddirectory "crddirectory.md" "View CRD Directory Module"
+    click controller "controller.md" "View Controller Module"
+    click elastiserver "elastiserver.md" "View ElastiServer Module"
+    click informer "informer.md" "View Informer Module"
 ```
 
-*   **`Directory`**: Stores and manages `CRDDetails` objects. It utilizes `pkg.logger.CustomCore` for logging internal operations.
-*   **`CRDDetails`**: Encapsulates the `Spec` and `Status` of an `ElastiService`, which are defined in the `operator.api` module.
-*   **`operator.internal.controller.ElastiServiceReconciler`**: The reconciler uses the `Directory` to fetch and update `ElastiService` CRD information during reconciliation loops.
-*   **`operator.internal.informer.RequestWatch`**: The informer populates and updates the `Directory` with the latest `ElastiService` CRD data from the Kubernetes API server.
-*   **`operator.internal.elastiserver.Server`**: This server component might query the `Directory` to expose information about the managed `ElastiService` instances.
+### Component Relationships:
 
-## How the Module Fits into the Overall System
+*   **`operator_api`**: `crddirectory` directly consumes types defined in `operator_api` (e.g., `ElastiServiceSpec`, `ElastiServiceStatus`) to store CRD details.
+*   **`Informer`**: The `informer` module is responsible for watching changes in Kubernetes resources. It pushes updates to the `crddirectory` to keep its cache current whenever an `ElastiService` CRD is created, updated, or deleted.
+*   **`Controller`**: The `controller` module (specifically the `ElastiServiceReconciler`) relies on the `crddirectory` to fetch the latest state of `ElastiService` CRDs during reconciliation cycles. It might also update the status of CRDs stored in the directory.
+*   **`ElastiServer`**: The `elastiserver` module, which handles API requests, might query the `crddirectory` to retrieve CRD-related information to serve client requests or perform other operational tasks.
 
-The `crddirectory` module is a critical internal component of the operator, acting as the single source of truth for the current state of `ElastiService` Custom Resources. It decouples the various components that need access to CRD data from directly interacting with the Kubernetes API or complex caching mechanisms.
+## 3. Core Functionality and Components
 
-By providing a synchronized and readily available directory, `crddirectory` enables:
-*   **Efficient Reconciliation**: The controller can quickly access CRD specifications and statuses without repeatedly querying the API server.
-*   **Real-time Updates**: The informer ensures the directory is always up-to-date with the latest changes in the Kubernetes cluster.
-*   **Centralized Data Access**: Other operator components can consistently retrieve `ElastiService` information from a single, well-defined interface.
+The `crddirectory` module consists of two primary components: `CRDDetails` and `Directory`.
 
-This module is fundamental for the operator's ability to manage and respond to changes in `ElastiService` resources effectively.
+### 3.1 `CRDDetails`
+
+**Description**:
+The `CRDDetails` struct encapsulates the essential information about a single `ElastiService` Custom Resource Definition. It provides a structured way to store the CRD's name, its desired specification, and its current operational status.
+
+**Core Components**:
+*   `CRDName string`: A string identifier for the Custom Resource Definition, typically its name within Kubernetes.
+*   `Spec v1alpha1.ElastiServiceSpec`: Represents the desired state or configuration of the `ElastiService` CRD, as defined by the operator's API (`operator.api.v1alpha1.elastiservice_types.ElastiServiceSpec`). This includes parameters like scaling policies, target references, and autoscaler specifications. For more details, refer to the [operator_api.md](operator_api.md) documentation.
+*   `Status v1alpha1.ElastiServiceStatus`: Reflects the current operational status and observed state of the `ElastiService` CRD, also defined in the operator's API (`operator.api.v1alpha1.elastiservice_types.ElastiServiceStatus`). This might include conditions, observed generations, or replica counts. For more details, refer to the [operator_api.md](operator_api.md) documentation.
+
+### 3.2 `Directory`
+
+**Description**:
+The `Directory` struct acts as the central repository or cache for all `ElastiService` CRDs managed by the operator. It provides a concurrency-safe map to store `CRDDetails` objects, allowing multiple goroutines (e.g., from informers or controllers) to access and modify CRD information without conflicts.
+
+**Core Components**:
+*   `Services sync.Map`: A `sync.Map` instance used to store `CRDDetails` objects. This map is designed for concurrent use by multiple goroutines without explicit locking, making it suitable for high-concurrency environments. It typically maps a unique identifier (e.g., `CRDName`) to its corresponding `CRDDetails` object.
+*   `Logger *zap.Logger`: A structured logger instance (from the `zap` logging library) used for logging internal operations, debugging information, and errors within the `Directory` module. This helps in monitoring and troubleshooting the CRD caching mechanism.

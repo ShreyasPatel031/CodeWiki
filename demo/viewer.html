@@ -486,6 +486,7 @@
         let baseDiagramCode = '';
         let navigationHistory = [];
         let expandedNodes = new Set();
+        let expandedNodeToModule = new Map();  // Maps nodeId -> moduleId for expanded nodes
         let currentModuleId = 'overview';
         let selectedModuleId = null;  // Currently selected module
         let selectionPath = [];       // Breadcrumb path: [{id, name}, ...]
@@ -536,8 +537,19 @@
                     DOCS_CONTENT['overview.md'] = overviewMd;
                 }
                 
-                // Load all module documentation files
-                const moduleFiles = Object.keys(MODULE_TREE).map(key => `${key}.md`);
+                // Load all module documentation files (recursively from tree)
+                function collectAllModuleKeys(tree) {
+                    let keys = [];
+                    for (const [key, data] of Object.entries(tree)) {
+                        keys.push(key);
+                        if (data.children && Object.keys(data.children).length > 0) {
+                            keys = keys.concat(collectAllModuleKeys(data.children));
+                        }
+                    }
+                    return keys;
+                }
+                const allModuleKeys = collectAllModuleKeys(MODULE_TREE);
+                const moduleFiles = allModuleKeys.map(key => `${key}.md`);
                 await Promise.all(moduleFiles.map(async (filename) => {
                     const content = await loadFile(filename);
                     if (content) {
@@ -880,6 +892,7 @@
             if (moduleId === 'overview') {
                 // Go back to overview
                 expandedNodes.clear();
+                expandedNodeToModule.clear();
                 currentDiagramCode = baseDiagramCode;
                 currentModuleId = 'overview';
                 updateSelection('overview');
@@ -927,6 +940,9 @@
             const svg = document.querySelector('#mermaid-diagram svg');
             if (!svg) return;
             
+            // Build a merged links object for top-level lookups
+            const mergedLinks = {...links, ...overviewLinks};
+            
             const nodes = svg.querySelectorAll('.node');
             
             nodes.forEach(node => {
@@ -949,27 +965,51 @@
                 // Try to find target module by various methods
                 let targetModule = null;
                 
-                // Skip prefixed nodes (inside subgraphs) - they're already expanded content
-                if (nodeId.includes('_')) {
-                    return;
+                // Find the LONGEST matching prefix from expanded nodes
+                // This handles nested expansions like operator_operator_controller_elastiservice_controller
+                let longestPrefix = '';
+                let longestPrefixModuleId = null;
+                
+                for (const expandedNodeId of expandedNodes) {
+                    const prefix = `${expandedNodeId}_`;
+                    if (nodeId.startsWith(prefix) && prefix.length > longestPrefix.length) {
+                        longestPrefix = prefix;
+                        // Use the stored mapping to get the module ID
+                        longestPrefixModuleId = expandedNodeToModule.get(expandedNodeId);
+                    }
                 }
                 
-                // 1. Direct ID match in overviewLinks (from click statements or auto-mapping)
-                if (overviewLinks[nodeId]) {
-                    targetModule = overviewLinks[nodeId];
+                // If we found a prefix, strip it and look up in that module's links
+                if (longestPrefix && longestPrefixModuleId && moduleData[longestPrefixModuleId]) {
+                    const unprefixedNodeId = nodeId.substring(longestPrefix.length);
+                    const parentModule = moduleData[longestPrefixModuleId];
+                    const childLinks = parentModule.links || {};
+                    
+                    // Check unprefixed ID in child links
+                    if (childLinks[unprefixedNodeId]) {
+                        targetModule = childLinks[unprefixedNodeId];
+                    }
+                    // Check by label text
+                    else if (childLinks[nodeText]) {
+                        targetModule = childLinks[nodeText];
+                    }
                 }
                 
-                // 2. Context links (from current module's diagram)
-                if (!targetModule && links[nodeText]) {
-                    targetModule = links[nodeText];
+                // If not found via prefix stripping, try standard lookup
+                if (!targetModule) {
+                    // 1. Direct ID match in merged links
+                    if (mergedLinks[nodeId]) {
+                        targetModule = mergedLinks[nodeId];
+                    }
+                    // 2. Label text match
+                    else if (mergedLinks[nodeText]) {
+                        targetModule = mergedLinks[nodeText];
+                    }
+                    // 3. Direct module key match (for nodes like "operator_controller")
+                    else if (moduleData[nodeId]) {
+                        targetModule = nodeId;
+                    }
                 }
-                
-                // 3. overviewLinks by label
-                if (!targetModule && overviewLinks[nodeText]) {
-                    targetModule = overviewLinks[nodeText];
-                }
-                
-                // NO fuzzy matching - only exact matches from click statements or module keys
                 
                 // Check if target exists in moduleData
                 if (targetModule && moduleData[targetModule]) {
@@ -1023,6 +1063,7 @@
                 const newDiagram = applyExpansionToDiagram(currentDiagramCode, nodeId, targetModuleId, targetModule.name);
                 if (newDiagram !== currentDiagramCode) {
                     expandedNodes.add(nodeId);
+                    expandedNodeToModule.set(nodeId, targetModuleId);  // Track nodeId -> moduleId mapping
                     currentDiagramCode = newDiagram;
                     renderDiagram(currentDiagramCode, moduleData[currentModuleId]?.links || {}, currentModuleId);
                     
@@ -1136,14 +1177,15 @@
         }
         
         function collapseNode(nodeId) {
-            // Remove from expanded set and re-render from base
+            // Remove from expanded set and mapping
             expandedNodes.delete(nodeId);
+            expandedNodeToModule.delete(nodeId);
             
             // Rebuild diagram with remaining expansions
             currentDiagramCode = baseDiagramCode;
             
             for (const expandedNodeId of expandedNodes) {
-                const targetModuleId = overviewLinks[expandedNodeId];
+                const targetModuleId = expandedNodeToModule.get(expandedNodeId) || overviewLinks[expandedNodeId];
                 if (targetModuleId && moduleData[targetModuleId]) {
                     currentDiagramCode = applyExpansionToDiagram(
                         currentDiagramCode, 
@@ -1178,6 +1220,7 @@
             
             currentModuleId = moduleId;
             expandedNodes.clear();
+            expandedNodeToModule.clear();
             baseDiagramCode = moduleData[moduleId].diagram;
             currentDiagramCode = baseDiagramCode;
             
@@ -1210,6 +1253,7 @@
             // If on overview with expanded nodes, collapse all and reset selection
             if (expandedNodes.size > 0) {
                 expandedNodes.clear();
+                expandedNodeToModule.clear();
                 currentDiagramCode = baseDiagramCode;
                 updateSelection('overview');
                 renderDiagram(currentDiagramCode, overviewLinks, 'overview');
@@ -1478,7 +1522,10 @@
         }
         
         // Start
-        init();
+        init().catch(err => {
+            console.error('Init failed:', err);
+            document.body.innerHTML = `<div style="padding:20px;color:red;">Error: ${err.message}</div>`;
+        });
     </script>
 </body>
 </html>
