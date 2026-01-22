@@ -1,0 +1,8 @@
+test_repos/
+node_modules/
+*.png
+*.jpg
+*.jpeg
+test_*.js
+package-lock.json
+.git/
