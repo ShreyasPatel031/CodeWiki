@@ -167,7 +167,7 @@ class ConfigManager:
     
     def delete_api_key(self):
         """Delete API key."""
-        self._api_key = None
+            self._api_key = None
         # Re-save config without API key
         if self._config:
             self.save()
